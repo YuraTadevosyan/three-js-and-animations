@@ -1,4 +1,4 @@
-import{n as e}from"./rolldown-runtime-jpDsebLB.js";import{R as t,a as n,i as r}from"./gsap-DuBcPVdD.js";import{n as i}from"./index-eVJjkWYR.js";import{t as a}from"./AnimationPage-6yiirpmK.js";var o=e(t(),1),s=`import { useEffect, useRef } from 'react'
+import{n as e}from"./rolldown-runtime-jpDsebLB.js";import{R as t,a as n,i as r}from"./gsap-BEqxq8aq.js";import{n as i}from"./index-CfVe6Vi_.js";import{t as a}from"./AnimationPage-Dlf1l-3G.js";var o=e(t(),1),s=`import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { AnimationPage } from '@/components/AnimationPage'
 import { animationsBySlug } from '@/animations/registry'
