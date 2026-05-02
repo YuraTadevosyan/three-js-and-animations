@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { animations } from '@/animations/registry'
@@ -8,8 +8,6 @@ const Home = lazy(() => import('@/pages/Home'))
 const Animations = lazy(() => import('@/pages/Animations'))
 const About = lazy(() => import('@/pages/About'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
-
-const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
 
 function PageFallback() {
   return (
@@ -22,7 +20,7 @@ function PageFallback() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Router basename={basename}>
+      <Router>
         <Layout>
           <Suspense fallback={<PageFallback />}>
             <Routes>
