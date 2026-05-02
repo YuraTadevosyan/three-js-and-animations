@@ -29,5 +29,5 @@ export default defineConfig({
       },
     },
   },
-  base: '/gsap-animations-showcase',
+  base: '/three-js-and-animations/gsap-animations-showcase',
 })
