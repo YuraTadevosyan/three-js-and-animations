@@ -1,0 +1,82 @@
+import { useLayoutEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
+import { Flip } from 'gsap/Flip'
+import { AnimationPage } from '@/components/AnimationPage'
+import { animationsBySlug } from '@/animations/registry'
+import source from './FlipGallery.tsx?raw'
+import { cn } from '@/lib/utils'
+
+gsap.registerPlugin(Flip)
+
+const meta = animationsBySlug.get('flip-gallery')!
+
+const tiles = [
+  { id: 'a', from: 'from-fuchsia-500', to: 'to-purple-700' },
+  { id: 'b', from: 'from-cyan-400', to: 'to-blue-700' },
+  { id: 'c', from: 'from-emerald-400', to: 'to-teal-700' },
+  { id: 'd', from: 'from-orange-400', to: 'to-rose-700' },
+  { id: 'e', from: 'from-yellow-400', to: 'to-amber-700' },
+  { id: 'f', from: 'from-violet-400', to: 'to-indigo-700' },
+]
+
+export default function FlipGallery() {
+  const root = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState<string | null>(null)
+  const stateRef = useRef<Flip.FlipState | null>(null)
+
+  useLayoutEffect(() => {
+    if (!stateRef.current) return
+    Flip.from(stateRef.current, {
+      duration: 0.65,
+      ease: 'power3.inOut',
+      absolute: true,
+      scale: true,
+    })
+    stateRef.current = null
+  }, [active])
+
+  const onClickTile = (id: string) => {
+    const els = root.current?.querySelectorAll('[data-flip-id]')
+    if (els) stateRef.current = Flip.getState(els)
+    setActive((cur) => (cur === id ? null : id))
+  }
+
+  return (
+    <AnimationPage
+      title={meta.title}
+      description={meta.description}
+      tags={meta.tags}
+      sourceCode={source}
+      filename="FlipGallery.tsx"
+    >
+      <p className="mb-6 text-sm text-muted-foreground">
+        Click a tile to expand it across the gallery. GSAP Flip captures the
+        before/after positions of every tile and animates the transition.
+      </p>
+      <div
+        ref={root}
+        className="grid grid-cols-2 gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-3 sm:p-6"
+      >
+        {tiles.map((t) => {
+          const isActive = active === t.id
+          return (
+            <button
+              key={t.id}
+              data-flip-id={t.id}
+              onClick={() => onClickTile(t.id)}
+              className={cn(
+                'rounded-xl bg-gradient-to-br shadow-md transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                t.from,
+                t.to,
+                isActive
+                  ? 'order-first col-span-2 h-56 sm:col-span-3 sm:h-80'
+                  : 'aspect-square',
+              )}
+              aria-label={isActive ? `Collapse tile ${t.id}` : `Expand tile ${t.id}`}
+            />
+          )
+        })}
+      </div>
+    </AnimationPage>
+  )
+}
