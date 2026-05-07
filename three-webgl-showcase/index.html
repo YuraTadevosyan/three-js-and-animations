@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="color-scheme" content="dark light" />
+
+    <title>Three.js WebGL Showcase — Interactive 3D on the Web</title>
+    <meta
+      name="description"
+      content="Interactive Three.js and WebGL demos: GPU particles, custom GLSL shaders, and GLTF model viewers. Built with React, TanStack Router, and Tailwind."
+    />
+    <meta name="robots" content="index, follow" />
+    <link
+      rel="canonical"
+      href="https://yuratadevosyan.github.io/three-js-and-animations/three-webgl-showcase/"
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Three.js WebGL Showcase" />
+    <meta
+      property="og:description"
+      content="Interactive Three.js and WebGL demos with React, TanStack, and Tailwind."
+    />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:url" content="https://yuratadevosyan.github.io/three-js-and-animations/three-webgl-showcase/" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Three.js WebGL Showcase" />
+    <meta
+      name="twitter:description"
+      content="Interactive Three.js and WebGL demos with React, TanStack, and Tailwind."
+    />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- Performance: preconnect for any third-party origins used by demos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/three-js-and-animations/three-webgl-showcase/favicon.svg" />
+
+    <!-- Structured data: helps search engines understand the site -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Three.js WebGL Showcase",
+        "url": "https://yuratadevosyan.github.io/three-js-and-animations/three-webgl-showcase/",
+        "description": "Interactive Three.js and WebGL demos built with React, TanStack, and Tailwind."
+      }
+    </script>
+    <script type="module" crossorigin src="/three-js-and-animations/three-webgl-showcase/assets/index-CRRPCOay.js"></script>
+    <link rel="modulepreload" crossorigin href="/three-js-and-animations/three-webgl-showcase/assets/tanstack-DkmCf9xt.js">
+    <link rel="modulepreload" crossorigin href="/three-js-and-animations/three-webgl-showcase/assets/three-Cne9AhED.js">
+    <link rel="modulepreload" crossorigin href="/three-js-and-animations/three-webgl-showcase/assets/r3f-BUcHFckj.js">
+    <link rel="stylesheet" crossorigin href="/three-js-and-animations/three-webgl-showcase/assets/index-D3v6kMGF.css">
+  </head>
+  <body class="antialiased">
+    <!--
+      SPA on GitHub Pages: 404.html captures deep-link paths into a query
+      string; this script restores them before the router boots, so a hit on
+      /examples/sky is rewritten to the original URL without a flash.
+    -->
+    <script>
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&');
+            })
+            .join('?');
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash,
+          );
+        }
+      })(window.location);
+    </script>
+    <!-- Crawlable fallback content for SEO and no-JS users -->
+    <noscript>
+      <div style="padding: 2rem; font-family: system-ui">
+        <h1>Three.js WebGL Showcase</h1>
+        <p>
+          This site is an interactive showcase of Three.js and WebGL demos —
+          GPU particles, custom GLSL shaders, and GLTF model viewers. JavaScript
+          is required to view the 3D demos.
+        </p>
+      </div>
+    </noscript>
+    <div id="root"></div>
+  </body>
+</html>

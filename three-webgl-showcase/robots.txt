@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yuratadevosyan.github.io/three-js-and-animations/three-webgl-showcase/sitemap.xml

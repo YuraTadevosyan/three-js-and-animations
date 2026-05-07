@@ -1,0 +1,11 @@
+import{c as o,a as s}from"./utils-DH51L_4Q.js";import{a as t,j as r}from"./tanstack-DkmCf9xt.js";/**
+ * @license lucide-react v0.454.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const f=o("Boxes",[["path",{d:"M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z",key:"lc1i9w"}],["path",{d:"m7 16.5-4.74-2.85",key:"1o9zyk"}],["path",{d:"m7 16.5 5-3",key:"va8pkn"}],["path",{d:"M7 16.5v5.17",key:"jnp8gn"}],["path",{d:"M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z",key:"8zsnat"}],["path",{d:"m17 16.5-5-3",key:"8arw3v"}],["path",{d:"m17 16.5 4.74-2.85",key:"8rfmw"}],["path",{d:"M17 16.5v5.17",key:"k6z78m"}],["path",{d:"M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z",key:"1xygjf"}],["path",{d:"M12 8 7.26 5.15",key:"1vbdud"}],["path",{d:"m12 8 4.74-2.85",key:"3rx089"}],["path",{d:"M12 13.5V8",key:"1io7kd"}]]);/**
+ * @license lucide-react v0.454.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const k=o("Layers",[["path",{d:"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z",key:"8b97xw"}],["path",{d:"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65",key:"dd6zsq"}],["path",{d:"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65",key:"ep9fru"}]]),p=t.forwardRef(({className:a,...e},d)=>r.jsx("div",{ref:d,className:s("rounded-lg border bg-card text-card-foreground shadow-sm",a),...e}));p.displayName="Card";const l=t.forwardRef(({className:a,...e},d)=>r.jsx("div",{ref:d,className:s("flex flex-col space-y-1.5 p-6",a),...e}));l.displayName="CardHeader";const m=t.forwardRef(({className:a,...e},d)=>r.jsx("h3",{ref:d,className:s("text-lg font-semibold leading-none tracking-tight",a),...e}));m.displayName="CardTitle";const n=t.forwardRef(({className:a,...e},d)=>r.jsx("p",{ref:d,className:s("text-sm text-muted-foreground",a),...e}));n.displayName="CardDescription";const c=t.forwardRef(({className:a,...e},d)=>r.jsx("div",{ref:d,className:s("p-6 pt-0",a),...e}));c.displayName="CardContent";export{f as B,p as C,k as L,l as a,m as b,n as c,c as d};
