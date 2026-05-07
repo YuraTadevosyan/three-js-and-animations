@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content="0; url=/" />
+    <title>Redirecting…</title>
+    <!--
+      SPA fallback for GitHub Pages.
+
+      GitHub Pages serves this file for any unmatched URL under the project's
+      base path. We capture the original path into the query string and redirect
+      back to the SPA's index.html, which decodes it via a snippet in <body>.
+
+      pathSegmentsToKeep counts the segments before the SPA owns the URL:
+        / three-js-and-animations / three-webgl-showcase / examples / sky
+        \________________________/   \___________________/   \________________/
+                  keep                       keep              owned by SPA
+      -> pathSegmentsToKeep = 2.
+
+      Source: https://github.com/rafgraph/spa-github-pages
+    -->
+    <script>
+      var pathSegmentsToKeep = 2;
+      var l = window.location;
+      l.replace(
+        l.protocol +
+          '//' +
+          l.hostname +
+          (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') +
+          '/?/' +
+          l.pathname
+            .slice(1)
+            .split('/')
+            .slice(pathSegmentsToKeep)
+            .join('/')
+            .replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash,
+      );
+    </script>
+  </head>
+  <body>
+    <p>Redirecting…</p>
+  </body>
+</html>
