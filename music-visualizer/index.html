@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#05030d" />
+    <meta
+      name="description"
+      content="Audio-reactive music visualizer with real-time FFT analysis, GLSL wave-distortion shaders, particle aura, and beat-synced camera."
+    />
+    <title>Music Visualizer</title>
+    <script>
+      // Resolve theme synchronously to avoid a flash of wrong theme on load.
+      (function () {
+        try {
+          var stored = localStorage.getItem('mv-theme');
+          var dark =
+            stored === 'dark' ||
+            (!stored &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
+  </head>
+  <body class="antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
