@@ -5,36 +5,46 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
+}
+
+/* Paint the gradient on <html> so it always covers the viewport canvas,
+   not just the first screenful of <body>. */
+html {
+  color: #18181b;
+  background-color: #f6f6f9;
+  background-image:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      rgba(124, 58, 237, 0.1) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      80% 80% at 100% 100%,
+      rgba(34, 211, 238, 0.1) 0%,
+      transparent 55%
+    );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+html.dark {
+  color: #ffffff;
+  color-scheme: dark;
+  background-color: #05030d;
+  background-image:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      rgba(99, 102, 241, 0.16) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      80% 80% at 100% 100%,
+      rgba(34, 211, 238, 0.14) 0%,
+      transparent 55%
+    );
 }
 
 body {
-  color: #18181b;
-  background: radial-gradient(
-      120% 90% at 50% 0%,
-      rgba(124, 58, 237, 0.08) 0%,
-      transparent 60%
-    ),
-    radial-gradient(
-      80% 80% at 100% 100%,
-      rgba(34, 211, 238, 0.08) 0%,
-      transparent 55%
-    ),
-    #f6f6f9;
-  background-attachment: fixed;
-}
-
-html.dark body {
-  color: #ffffff;
-  background: radial-gradient(
-      120% 90% at 50% 0%,
-      rgba(99, 102, 241, 0.18) 0%,
-      transparent 60%
-    ),
-    radial-gradient(
-      80% 80% at 100% 100%,
-      rgba(34, 211, 238, 0.15) 0%,
-      transparent 55%
-    ),
-    #05030d;
+  background: transparent;
 }

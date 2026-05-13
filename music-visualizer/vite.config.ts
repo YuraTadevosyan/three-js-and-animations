@@ -11,6 +11,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // jsmediatags ships a UMD `dist/jsmediatags.min.js` but its package.json
+      // points its `browser` field at a non-existent `dist/jsmediatags.js`.
+      jsmediatags: 'jsmediatags/dist/jsmediatags.min.js',
     },
   },
   build: {

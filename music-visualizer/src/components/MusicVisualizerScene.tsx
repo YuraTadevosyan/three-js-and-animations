@@ -231,18 +231,38 @@ interface Palette extends ThemeBase, ModelColors {
   displacementScale: number;
 }
 
-function buildPalette(theme: Theme, model: ModelKind): Palette {
+function buildPalette(
+  theme: Theme,
+  model: ModelKind,
+  customColors?: CustomColors | null,
+): Palette {
+  const base = MODEL_COLORS[model][theme];
   return {
     ...THEMES[theme],
-    ...MODEL_COLORS[model][theme],
+    ...base,
+    ...(customColors
+      ? {
+          colorLow: customColors.colorLow,
+          colorMid: customColors.colorMid,
+          colorHigh: customColors.colorHigh,
+        }
+      : null),
     displacementScale: MODEL_DISPLACEMENT[model],
   };
+}
+
+export interface CustomColors {
+  colorLow: string;
+  colorMid: string;
+  colorHigh: string;
 }
 
 interface SceneProps {
   sampleAnalysis: () => AudioAnalysis;
   theme: Theme;
   model: ModelKind;
+  customColors?: CustomColors | null;
+  onCanvasReady?: (canvas: HTMLCanvasElement) => void;
 }
 
 interface PaletteProps {
@@ -430,14 +450,22 @@ export default function MusicVisualizerScene({
   sampleAnalysis,
   theme,
   model,
+  customColors,
+  onCanvasReady,
 }: SceneProps) {
-  const palette = useMemo(() => buildPalette(theme, model), [theme, model]);
+  const palette = useMemo(
+    () => buildPalette(theme, model, customColors),
+    [theme, model, customColors],
+  );
 
   return (
     <Canvas
       dpr={[1, 1.6]}
       camera={{ position: [0, 0, 4.4], fov: 55 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
+      onCreated={({ gl }) => {
+        onCanvasReady?.(gl.domElement);
+      }}
     >
       <color attach="background" args={[palette.bg]} />
       <fog attach="fog" args={[palette.bg, palette.fog[0], palette.fog[1]]} />
