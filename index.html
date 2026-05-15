@@ -2,29 +2,280 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#05060d" />
+    <meta name="color-scheme" content="dark" />
     <meta
       name="description"
-      content="A curated showcase of high-performance GSAP animations built with React, Tailwind CSS, and shadcn UI."
+      content="A collection of interactive web showcases: GSAP animations, a Three.js + WebGL gallery, and an audio-reactive music visualizer."
     />
-    <link rel="icon" type="image/svg+xml" href="/three-js-and-animations/gsap-animations-showcase/favicon.svg" />
+    <meta property="og:title" content="three-js-and-animations — showcase index" />
+    <meta
+      property="og:description"
+      content="GSAP animations, Three.js / WebGL demos, and an audio-reactive music visualizer — built with React + Vite."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
     />
-    <title>GSAP Animation Showcase — React + Tailwind + shadcn</title>
-    <script type="module" crossorigin src="/three-js-and-animations/gsap-animations-showcase/assets/index-BQJSrfQ2.js"></script>
-    <link rel="modulepreload" crossorigin href="/three-js-and-animations/gsap-animations-showcase/assets/rolldown-runtime-jpDsebLB.js">
-    <link rel="modulepreload" crossorigin href="/three-js-and-animations/gsap-animations-showcase/assets/gsap-Bysj5NC0.js">
-    <link rel="stylesheet" crossorigin href="/three-js-and-animations/gsap-animations-showcase/assets/index-Ct-R4I4G.css">
+    <link rel="stylesheet" href="./styles.css" />
+    <title>three-js-and-animations — Interactive web showcases</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div class="bg" aria-hidden="true">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="grid"></div>
+      <canvas id="particles"></canvas>
+    </div>
+
+    <header class="nav">
+      <a class="brand" href="#top" aria-label="three-js-and-animations">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 2 L22 8 L12 14 L2 8 Z" />
+            <path d="M2 8 L2 16 L12 22 L22 16 L22 8" />
+            <path d="M12 14 L12 22" />
+          </svg>
+        </span>
+        <span class="brand-text">three-js-and-animations</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#showcases">Showcases</a>
+        <a href="#stack">Stack</a>
+        <a
+          class="nav-cta"
+          href="https://github.com/YuraTadevosyan/three-js-and-animations"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub</a
+        >
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" data-reveal>
+        <span class="eyebrow">
+          <span class="dot"></span>
+          Three demos · one repo
+        </span>
+        <h1 class="title">
+          <span class="line">Interactive web,</span>
+          <span class="line gradient">rendered &amp; animated.</span>
+        </h1>
+        <p class="lede">
+          A small collection of frontend showcases — GSAP-powered motion,
+          Three.js / WebGL scenes, and an audio-reactive visualizer. Each app
+          is its own Vite build, deployed under this domain.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="#showcases">
+            Browse showcases
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+          <a
+            class="btn ghost"
+            href="https://github.com/YuraTadevosyan/three-js-and-animations"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View source
+          </a>
+        </div>
+      </section>
+
+      <section id="showcases" class="cards" aria-label="Showcases">
+        <a
+          class="card"
+          href="./three-webgl-showcase/"
+          data-reveal
+          data-accent="cyan"
+        >
+          <div class="card-spotlight" aria-hidden="true"></div>
+          <div class="card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#22d3ee" stop-opacity=".9" />
+                  <stop offset="100%" stop-color="#6366f1" stop-opacity=".5" />
+                </linearGradient>
+              </defs>
+              <g stroke="url(#g1)" stroke-width="1.1" fill="none">
+                <path d="M0 90 Q 50 30 100 70 T 200 50" />
+                <path d="M0 100 Q 50 50 100 80 T 200 70" />
+                <path d="M0 110 Q 50 70 100 90 T 200 90" />
+              </g>
+              <g fill="url(#g1)">
+                <circle cx="40" cy="70" r="1.6" />
+                <circle cx="80" cy="55" r="1.4" />
+                <circle cx="120" cy="78" r="1.8" />
+                <circle cx="160" cy="60" r="1.2" />
+              </g>
+            </svg>
+          </div>
+          <div class="card-body">
+            <span class="card-index">01</span>
+            <h2 class="card-title">Three.js WebGL Showcase</h2>
+            <p class="card-desc">
+              GPU particles, custom GLSL shaders, and GLTF viewers — routed
+              with TanStack Router, lazy-loaded per scene.
+            </p>
+            <ul class="chips">
+              <li>three</li>
+              <li>@react-three/fiber</li>
+              <li>GLSL</li>
+              <li>TanStack</li>
+            </ul>
+            <span class="card-cta">
+              Launch demo
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            </span>
+          </div>
+        </a>
+
+        <a
+          class="card"
+          href="./music-visualizer/"
+          data-reveal
+          data-accent="violet"
+        >
+          <div class="card-spotlight" aria-hidden="true"></div>
+          <div class="card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g2" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#a78bfa" stop-opacity=".95" />
+                  <stop offset="100%" stop-color="#ec4899" stop-opacity=".55" />
+                </linearGradient>
+              </defs>
+              <g fill="url(#g2)">
+                <rect x="10" y="60" width="6" height="40" rx="2" />
+                <rect x="22" y="45" width="6" height="55" rx="2" />
+                <rect x="34" y="30" width="6" height="70" rx="2" />
+                <rect x="46" y="50" width="6" height="50" rx="2" />
+                <rect x="58" y="20" width="6" height="80" rx="2" />
+                <rect x="70" y="40" width="6" height="60" rx="2" />
+                <rect x="82" y="55" width="6" height="45" rx="2" />
+                <rect x="94" y="25" width="6" height="75" rx="2" />
+                <rect x="106" y="50" width="6" height="50" rx="2" />
+                <rect x="118" y="35" width="6" height="65" rx="2" />
+                <rect x="130" y="60" width="6" height="40" rx="2" />
+                <rect x="142" y="40" width="6" height="60" rx="2" />
+                <rect x="154" y="55" width="6" height="45" rx="2" />
+                <rect x="166" y="30" width="6" height="70" rx="2" />
+                <rect x="178" y="50" width="6" height="50" rx="2" />
+              </g>
+            </svg>
+          </div>
+          <div class="card-body">
+            <span class="card-index">02</span>
+            <h2 class="card-title">Music Visualizer</h2>
+            <p class="card-desc">
+              Audio-reactive scene driven by real-time FFT — wave-distortion
+              shaders, particle aura, and a beat-synced camera.
+            </p>
+            <ul class="chips">
+              <li>R3F</li>
+              <li>Web Audio API</li>
+              <li>Postprocessing</li>
+              <li>FFT</li>
+            </ul>
+            <span class="card-cta">
+              Launch demo
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            </span>
+          </div>
+        </a>
+
+        <a
+          class="card"
+          href="./gsap-animations-showcase/"
+          data-reveal
+          data-accent="amber"
+        >
+          <div class="card-spotlight" aria-hidden="true"></div>
+          <div class="card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g3" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stop-color="#fbbf24" stop-opacity=".95" />
+                  <stop offset="100%" stop-color="#f97316" stop-opacity=".55" />
+                </linearGradient>
+              </defs>
+              <g stroke="url(#g3)" stroke-width="1.4" fill="none" stroke-linecap="round">
+                <path d="M10 90 C 50 90, 50 30, 100 30 S 150 90, 190 90" />
+                <path d="M10 70 C 50 70, 60 50, 100 50 S 160 70, 190 70" opacity=".55" />
+              </g>
+              <g fill="url(#g3)">
+                <circle cx="10" cy="90" r="2.2" />
+                <circle cx="100" cy="30" r="2.8" />
+                <circle cx="190" cy="90" r="2.2" />
+              </g>
+            </svg>
+          </div>
+          <div class="card-body">
+            <span class="card-index">03</span>
+            <h2 class="card-title">GSAP Animations Showcase</h2>
+            <p class="card-desc">
+              A curated set of high-performance GSAP patterns — scroll
+              reveals, text splits, magnetic cursors, page transitions.
+            </p>
+            <ul class="chips">
+              <li>GSAP</li>
+              <li>ScrollTrigger</li>
+              <li>React Router</li>
+              <li>shadcn/ui</li>
+            </ul>
+            <span class="card-cta">
+              Launch demo
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            </span>
+          </div>
+        </a>
+      </section>
+
+      <section id="stack" class="stack" data-reveal>
+        <h2>Built with</h2>
+        <ul class="stack-grid">
+          <li>React 18/19</li>
+          <li>TypeScript</li>
+          <li>Vite</li>
+          <li>Tailwind CSS</li>
+          <li>three.js</li>
+          <li>@react-three/fiber</li>
+          <li>GSAP</li>
+          <li>TanStack Router</li>
+          <li>Web Audio API</li>
+          <li>GLSL</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="foot-row">
+        <span>&copy; <span id="year"></span> Yura Tadevosyan</span>
+        <a
+          href="https://github.com/YuraTadevosyan/three-js-and-animations"
+          target="_blank"
+          rel="noopener noreferrer"
+          >github.com/YuraTadevosyan/three-js-and-animations</a
+        >
+      </div>
+    </footer>
+
+    <script src="./script.js" defer></script>
   </body>
 </html>
