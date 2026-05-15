@@ -1,0 +1,13 @@
+{
+  "name": "landing",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Static landing page that indexes the three child showcase apps. Deployed to the root of the gh-pages branch.",
+  "scripts": {
+    "dev": "npx --yes serve -l 5180 public",
+    "deploy": "gh-pages -d public --add"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1"
+  }
+}
