@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background-color: #05060a;
+  color: #e4e7ef;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom range slider — dark minimal */
+input[type='range'].lab-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type='range'].lab-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #e4e7ef;
+  border: 2px solid #05060a;
+  cursor: grab;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+input[type='range'].lab-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: #ffffff;
+}
+
+input[type='range'].lab-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #e4e7ef;
+  border: 2px solid #05060a;
+  cursor: grab;
+}
+
+/* No-scrollbar utility for the side panel */
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* Hide focus outline on canvas but keep accessibility on controls */
+canvas:focus {
+  outline: none;
+}

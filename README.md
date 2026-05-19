@@ -13,6 +13,7 @@ the same GitHub Pages site.
 | [`three-webgl-showcase`](./three-webgl-showcase) | [/three-webgl-showcase/](https://yuratadevosyan.github.io/three-js-and-animations/three-webgl-showcase/) | React, three.js, @react-three/fiber, GLSL, TanStack Router |
 | [`music-visualizer`](./music-visualizer) | [/music-visualizer/](https://yuratadevosyan.github.io/three-js-and-animations/music-visualizer/) | React, R3F, Web Audio API (FFT), GLSL, postprocessing |
 | [`gsap-animations-showcase`](./gsap-animations-showcase) | [/gsap-animations-showcase/](https://yuratadevosyan.github.io/three-js-and-animations/gsap-animations-showcase/) | React, GSAP, ScrollTrigger, Tailwind, shadcn/ui |
+| [`shader-lab`](./shader-lab) | [/shader-lab/](https://yuratadevosyan.github.io/three-js-and-animations/shader-lab/) | React, R3F, GLSL ES (WebGL2), Web Audio API, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -22,7 +23,8 @@ the same GitHub Pages site.
 ├── landing/                    static index page (HTML/CSS/JS)
 ├── three-webgl-showcase/       Three.js + WebGL gallery
 ├── music-visualizer/           Audio-reactive R3F scene
-└── gsap-animations-showcase/   GSAP motion patterns
+├── gsap-animations-showcase/   GSAP motion patterns
+└── shader-lab/                 GLSL shader experimentation lab
 ```
 
 ## Hosting model
@@ -42,9 +44,10 @@ without touching the app subfolders.
 Each app is independent:
 
 ```bash
-cd three-webgl-showcase && npm install && npm run dev
-cd music-visualizer       && npm install && npm run dev
+cd three-webgl-showcase     && npm install && npm run dev
+cd music-visualizer         && npm install && npm run dev
 cd gsap-animations-showcase && npm install && npm run dev
+cd shader-lab               && npm install && npm run dev
 ```
 
 For the landing page:
@@ -62,6 +65,7 @@ Each app self-publishes to its own subpath:
 cd three-webgl-showcase     && npm run deploy
 cd music-visualizer         && npm run deploy
 cd gsap-animations-showcase && npm run deploy
+cd shader-lab               && npm run deploy
 ```
 
 To publish the landing page:

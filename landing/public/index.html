@@ -7,12 +7,12 @@
     <meta name="color-scheme" content="dark" />
     <meta
       name="description"
-      content="A collection of interactive web showcases: GSAP animations, a Three.js + WebGL gallery, and an audio-reactive music visualizer."
+      content="A collection of interactive web showcases: a GLSL shader lab, GSAP animations, a Three.js + WebGL gallery, and an audio-reactive music visualizer."
     />
     <meta property="og:title" content="three-js-and-animations — showcase index" />
     <meta
       property="og:description"
-      content="GSAP animations, Three.js / WebGL demos, and an audio-reactive music visualizer — built with React + Vite."
+      content="A GLSL shader lab, GSAP animations, Three.js / WebGL demos, and an audio-reactive music visualizer — built with React + Vite."
     />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
@@ -62,7 +62,7 @@
       <section class="hero" data-reveal>
         <span class="eyebrow">
           <span class="dot"></span>
-          Three demos · one repo
+          Four demos · one repo
         </span>
         <h1 class="title">
           <span class="line">Interactive web,</span>
@@ -236,6 +236,65 @@
               <li>ScrollTrigger</li>
               <li>React Router</li>
               <li>shadcn/ui</li>
+            </ul>
+            <span class="card-cta">
+              Launch demo
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            </span>
+          </div>
+        </a>
+
+        <a
+          class="card"
+          href="/three-js-and-animations/shader-lab/"
+          data-reveal
+          data-accent="pink"
+        >
+          <div class="card-spotlight" aria-hidden="true"></div>
+          <div class="card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g4" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#ec4899" stop-opacity=".9" />
+                  <stop offset="50%" stop-color="#a78bfa" stop-opacity=".7" />
+                  <stop offset="100%" stop-color="#22d3ee" stop-opacity=".55" />
+                </linearGradient>
+                <radialGradient id="g4r" cx="50%" cy="50%" r="60%">
+                  <stop offset="0%" stop-color="#f472b6" stop-opacity=".55" />
+                  <stop offset="100%" stop-color="#f472b6" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <g fill="url(#g4r)">
+                <ellipse cx="65" cy="60" rx="55" ry="38" />
+                <ellipse cx="135" cy="55" rx="60" ry="42" />
+              </g>
+              <g stroke="url(#g4)" stroke-width="1.1" fill="none" stroke-linecap="round">
+                <path d="M0 75 Q 35 45 65 60 T 135 55 T 200 70" />
+                <path d="M0 90 Q 40 65 70 75 T 130 70 T 200 88" />
+                <path d="M0 60 Q 45 30 75 45 T 140 40 T 200 55" opacity=".55" />
+              </g>
+              <g fill="url(#g4)">
+                <circle cx="40" cy="60" r="1.6" />
+                <circle cx="100" cy="50" r="1.8" />
+                <circle cx="160" cy="65" r="1.4" />
+              </g>
+            </svg>
+          </div>
+          <div class="card-body">
+            <span class="card-index">04</span>
+            <h2 class="card-title">Shader Lab</h2>
+            <p class="card-desc">
+              A small playground for hand-written GLSL — water, plasma,
+              voronoi, kaleidoscope, hologram and GPU particles, all on
+              one fullscreen canvas with real-time controls.
+            </p>
+            <ul class="chips">
+              <li>R3F</li>
+              <li>GLSL ES</li>
+              <li>WebGL2</li>
+              <li>Web Audio</li>
             </ul>
             <span class="card-cta">
               Launch demo
