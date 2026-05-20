@@ -22,16 +22,35 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom range slider — dark minimal */
+/* Custom range slider — dark minimal.
+   The fill colour is set inline via background-image so React can drive it
+   from the current value; rounded shape comes from border-radius. */
 input[type='range'].lab-range {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  height: 6px;
+  margin: 4px 0; /* hit area without affecting the visual track height */
   border-radius: 999px;
   outline: none;
   cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.10);
+  background-repeat: no-repeat;
+}
+
+/* Track styling (Firefox) — picks up the gradient set on the element. */
+input[type='range'].lab-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+}
+
+input[type='range'].lab-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
 }
 
 input[type='range'].lab-range::-webkit-slider-thumb {
@@ -39,25 +58,45 @@ input[type='range'].lab-range::-webkit-slider-thumb {
   appearance: none;
   width: 14px;
   height: 14px;
+  margin-top: -4px; /* center the 14px thumb on the 6px track */
   border-radius: 999px;
-  background: #e4e7ef;
+  background: #ffffff;
   border: 2px solid #05060a;
   cursor: grab;
-  transition: transform 0.12s ease, background 0.12s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: transform 0.12s ease;
 }
 
 input[type='range'].lab-range::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-  background: #ffffff;
+  transform: scale(1.18);
+}
+
+input[type='range'].lab-range:active::-webkit-slider-thumb {
+  cursor: grabbing;
 }
 
 input[type='range'].lab-range::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  background: #e4e7ef;
+  background: #ffffff;
   border: 2px solid #05060a;
   cursor: grab;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: transform 0.12s ease;
+}
+
+input[type='range'].lab-range:hover::-moz-range-thumb {
+  transform: scale(1.18);
+}
+
+input[type='range'].lab-range:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+input[type='range'].lab-range:focus-visible::-moz-range-thumb {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
 }
 
 /* No-scrollbar utility for the side panel */

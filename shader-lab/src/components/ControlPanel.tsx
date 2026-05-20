@@ -87,7 +87,16 @@ function Control({
   const id = useId();
   if (spec.type === 'range') {
     const v = typeof value === 'number' ? value : spec.default;
-    const pct = ((v - spec.min) / (spec.max - spec.min)) * 100;
+    const pct = Math.max(
+      0,
+      Math.min(100, ((v - spec.min) / (spec.max - spec.min)) * 100),
+    );
+    // Fill is painted onto the slider's own track via a linear-gradient so it
+    // stays aligned with the thumb (browsers add implicit half-thumb padding
+    // that an overlay div can't match).
+    const trackStyle = {
+      background: `linear-gradient(to right, ${accent} 0%, ${accent} ${pct}%, rgba(255,255,255,0.10) ${pct}%, rgba(255,255,255,0.10) 100%)`,
+    };
     return (
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px]">
@@ -97,29 +106,19 @@ function Control({
             {spec.unit ?? ''}
           </span>
         </div>
-        <div className="relative">
-          <div
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 rounded-full pointer-events-none"
-            style={{
-              width: `${pct}%`,
-              background: accent,
-              opacity: 0.85,
-              boxShadow: `0 0 10px ${accent}40`,
-            }}
-          />
-          <input
-            id={id}
-            className="lab-range relative"
-            type="range"
-            min={spec.min}
-            max={spec.max}
-            step={spec.step}
-            value={v}
-            onPointerEnter={() => sound.hover()}
-            onPointerDown={() => sound.click()}
-            onChange={(e) => onChange(spec.key, Number(e.target.value))}
-          />
-        </div>
+        <input
+          id={id}
+          className="lab-range"
+          type="range"
+          min={spec.min}
+          max={spec.max}
+          step={spec.step}
+          value={v}
+          style={trackStyle}
+          onPointerEnter={() => sound.hover()}
+          onPointerDown={() => sound.click()}
+          onChange={(e) => onChange(spec.key, Number(e.target.value))}
+        />
       </div>
     );
   }

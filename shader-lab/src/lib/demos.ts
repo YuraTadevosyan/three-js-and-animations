@@ -4,15 +4,23 @@ import { noiseDemo } from '@/demos/NoiseDistortion';
 import { plasmaDemo } from '@/demos/Plasma';
 import { voronoiDemo } from '@/demos/Voronoi';
 import { kaleidoscopeDemo } from '@/demos/Kaleidoscope';
+import { tunnelDemo } from '@/demos/Tunnel';
+import { truchetDemo } from '@/demos/Truchet';
+import { auroraDemo } from '@/demos/Aurora';
+import { raymarchDemo } from '@/demos/Raymarch';
 import { hologramDemo } from '@/demos/Hologram';
 import { particlesDemo } from '@/demos/Particles';
 
 export const DEMOS: DemoDef[] = [
   waterDemo,
+  auroraDemo,
   noiseDemo,
   plasmaDemo,
   voronoiDemo,
+  truchetDemo,
   kaleidoscopeDemo,
+  tunnelDemo,
+  raymarchDemo,
   hologramDemo,
   particlesDemo,
 ];

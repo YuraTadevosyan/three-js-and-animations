@@ -1,6 +1,6 @@
 # Shader Lab
 
-A small GLSL experimentation lab built with **React Three Fiber** and hand-written shaders. Seven demos share a single fullscreen canvas and a minimal dark UI, with real-time controls, cross-faded transitions, pointer-driven uniforms, and tiny synthesized UI sounds.
+A small GLSL experimentation lab built with **React Three Fiber** and hand-written shaders. Eleven demos share a single fullscreen canvas and a minimal dark UI, with real-time controls, cross-faded transitions, pointer-driven uniforms, and tiny synthesized UI sounds.
 
 **Live demo:** <https://yuratadevosyan.github.io/three-js-and-animations/shader-lab/>
 
@@ -12,12 +12,16 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 | | Demo | What's inside |
 |---|---|---|
 | 01 | **Water** | Layered sine + fbm height field; screen-space derivatives drive normals, specular, and sky refraction. Pointer drops radial ripples. |
-| 02 | **Noise Distortion** | Domain-warped fbm rendered to a cosine palette. Pointer pulls the warp field. |
-| 03 | **Plasma** | Summed-sine plasma through a cosine palette with a pointer-driven swirl center. |
-| 04 | **Voronoi** | Animated cellular noise — seeds gently drift, the pointer pulls them toward the cursor, and bright edges trace cell borders. |
-| 05 | **Kaleidoscope** | N-fold polar wedge mirror over an fbm field. Twist with radius, segments tunable from 3 → 16. |
-| 06 | **Glow Hologram** | Fresnel rim + local-space scanlines + UV grid + per-band glitch jitter on an icosahedron, drawn additively over a soft halo. |
-| 07 | **Particle Sim** | 25 000 GPU points animated entirely in the vertex shader from a curl-noise field. Pointer becomes a 3D attractor projected onto the z = 0 plane. |
+| 02 | **Aurora** | Layered noise ribbons over a sparse starfield, soft-tonemapped. Pointer adds an extra ribbon under the cursor. |
+| 03 | **Noise Distortion** | Domain-warped fbm rendered to a cosine palette. Pointer pulls the warp field. |
+| 04 | **Plasma** | Summed-sine plasma through a cosine palette with a pointer-driven swirl center. |
+| 05 | **Voronoi** | Animated cellular noise — seeds gently drift, the pointer pulls them toward the cursor, and bright edges trace cell borders. |
+| 06 | **Truchet** | Quarter-arc tile pattern with animated pulse trails along the arcs. |
+| 07 | **Kaleidoscope** | N-fold polar wedge mirror over an fbm field. Twist with radius, segments tunable from 3 → 16. |
+| 08 | **Tunnel** | Inverse-radius pseudo-3D tunnel with twisting spokes; pointer leans the camera off-center. |
+| 09 | **Raymarch** | Sphere ↔ rounded-box SDF morph with twist deformation, fresnel rim, cheap AO. Pointer orbits the camera. |
+| 10 | **Glow Hologram** | Fresnel rim + local-space scanlines + UV grid + per-band glitch jitter on an icosahedron, drawn additively over a soft halo. |
+| 11 | **Particle Sim** | 25 000 GPU points animated entirely in the vertex shader from a curl-noise field. Pointer becomes a 3D attractor projected onto the z = 0 plane. |
 
 ## Architecture
 
