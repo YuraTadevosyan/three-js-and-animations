@@ -332,6 +332,9 @@ main {
 .card[data-accent='amber'] {
   --accent: var(--amber);
 }
+.card[data-accent='pink'] {
+  --accent: var(--pink);
+}
 
 .card::before {
   content: '';
