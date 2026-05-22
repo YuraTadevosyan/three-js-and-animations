@@ -32,14 +32,28 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 - **Pointer interaction** flows through `usePointerUV()`, which exposes a smoothed 0..1 UV vector via a stable ref. 3D demos unproject it onto a world plane.
 - **UI sounds** are generated on the fly via `AudioContext` + `OscillatorNode` — no asset files. Hover ticks are throttled; mute state persists in `localStorage`.
 
-## Run
+## Local development
 
 ```bash
 npm install
-npm run dev
+npm run dev          # vite dev server
+npm run build        # tsc -b && vite build → dist/
+npm run preview      # serve dist/ locally
+npm run typecheck    # tsc -b --noEmit
 ```
 
-Type-check: `npm run typecheck`. Build: `npm run build`. Deploy: `npm run deploy` (publishes `dist/` to the `shader-lab` subfolder on `gh-pages`).
+## Deployment
+
+Publishes to the `gh-pages` branch under
+<https://yuratadevosyan.github.io/three-js-and-animations/shader-lab/>:
+
+```bash
+npm run deploy
+```
+
+The script runs `predeploy` (build) then
+`gh-pages -d dist -e shader-lab`, so it lands in its own subfolder
+and doesn't clobber the sibling apps.
 
 ## Adding a demo
 
