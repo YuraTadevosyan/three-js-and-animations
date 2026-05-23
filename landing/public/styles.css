@@ -11,6 +11,7 @@
   --pink: #ec4899;
   --indigo: #6366f1;
   --orange: #f97316;
+  --lime: #a3e635;
   --radius: 18px;
   --easing: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -334,6 +335,9 @@ main {
 }
 .card[data-accent='pink'] {
   --accent: var(--pink);
+}
+.card[data-accent='lime'] {
+  --accent: var(--lime);
 }
 
 .card::before {
