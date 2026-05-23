@@ -1,0 +1,35 @@
+{
+  "name": "physics-playground",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Physics-based interactive UI playground built with React, Matter.js and GSAP — draggable cards, a magnetic cursor, elastic hover, dynamic collisions, and floating particles.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist -e physics-playground"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "gsap": "^3.13.0",
+    "matter-js": "^0.20.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/matter-js": "^0.20.0",
+    "@types/node": "^25.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "gh-pages": "^6.3.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}

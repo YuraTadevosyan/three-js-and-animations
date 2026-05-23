@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background-color: #06070d;
+  color: #e6e8f1;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide the native cursor over the playground when a fine pointer drives the
+   custom magnetic cursor. Coarse (touch) pointers keep native behaviour. */
+@media (pointer: fine) {
+  .cursor-hidden,
+  .cursor-hidden * {
+    cursor: none !important;
+  }
+}
+
+/* The physics stage must own all touch gestures so dragging a card on mobile
+   never scrolls or zooms the page. */
+.physics-stage {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A card synced to a Matter body — its transform is rewritten every frame, so
+   visual hover/elastic effects live on the inner .card-face instead. */
+.physics-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+/* GPU-friendly drop shadow that doesn't relayout while the body tumbles. */
+.card-face {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Impact ring spawned by CollisionLayer — colour set per-instance via --ring-rgb. */
+.collision-ring {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-radius: 9999px;
+  border: 2px solid rgba(var(--ring-rgb), 0.9);
+  box-shadow: 0 0 24px rgba(var(--ring-rgb), 0.55);
+}
+
+/* A card lifts toward the viewer while it is being dragged. The class is
+   toggled imperatively by the physics loop, so it never re-renders React. */
+.physics-body.is-dragging {
+  z-index: 40;
+}
+.physics-body.is-dragging .card-face {
+  box-shadow:
+    0 26px 50px -12px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(var(--accent-rgb), 0.5),
+    0 0 36px -6px rgba(var(--accent-rgb), 0.45);
+}
+
+/* No-scrollbar utility for compact panels. */
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
