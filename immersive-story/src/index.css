@@ -1,0 +1,328 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --bone: #f3f0e6;
+  --ash: #101015;
+  --ink: #05080f;
+  --blue: #004d98;
+  --red: #a50044;
+  --gold: #edbb00;
+  --yellow: #ffed02;
+  --pitch: #1d6b35;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--ink);
+  color: var(--bone);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  text-rendering: geometricPrecision;
+}
+
+#root {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+}
+
+html.lenis,
+html.lenis body { height: auto; }
+html.lenis-smooth { scroll-behavior: auto !important; }
+html.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+html.lenis-stopped body { overflow: hidden; }
+
+/* Diagonal blaugrana stripes used as a section divider. */
+.stripe {
+  height: 6px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--blue) 0,
+    var(--blue) 14px,
+    var(--red) 14px,
+    var(--red) 28px
+  );
+}
+
+.story-root { position: relative; z-index: 3; }
+
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 9999px;
+  border: 2px solid var(--bone);
+  pointer-events: none;
+  z-index: 100;
+  mix-blend-mode: difference;
+}
+
+.chapter { position: relative; width: 100%; }
+.chapter-pin { height: 100vh; width: 100%; overflow: hidden; position: relative; }
+
+/* Animated text primitives — initial transforms baked in so the first paint
+   already matches the pre-reveal state and there's no flash. */
+.split-line {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 0.95;
+  padding: 0.06em 0;
+}
+.split-line__inner {
+  display: inline-block;
+  transform: translateY(110%);
+  will-change: transform;
+}
+
+.split-word {
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.0;
+  padding-bottom: 0.06em;
+  margin-right: 0.18em;
+}
+.split-word__inner {
+  display: inline-block;
+  transform: translateY(110%);
+  will-change: transform;
+}
+
+.split-char {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.svg-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.eyebrow {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 230, 0.6);
+}
+
+.display {
+  font-family: 'Archivo Black', 'Inter', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+.chapter-rail {
+  position: fixed;
+  top: 50%;
+  right: 1.5rem;
+  transform: translateY(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  pointer-events: none;
+}
+.chapter-rail__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: rgba(243, 240, 230, 0.25);
+  transition: background 0.4s ease, transform 0.4s ease;
+}
+.chapter-rail__dot[data-active='true'] {
+  background: var(--gold);
+  transform: scaleX(2.4);
+}
+
+.story-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 230, 0.78);
+  mix-blend-mode: difference;
+}
+.story-nav a { color: inherit; text-decoration: none; }
+.story-nav .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--red);
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.6); }
+}
+
+.story-progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(243, 240, 230, 0.08);
+  z-index: 50;
+}
+.story-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--blue), var(--red), var(--gold));
+}
+
+.scroll-hint {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 230, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+.scroll-hint__line {
+  width: 1px;
+  height: 36px;
+  background: rgba(243, 240, 230, 0.55);
+  overflow: hidden;
+  position: relative;
+}
+.scroll-hint__line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform-origin: top;
+  animation: scrollline 1.6s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+}
+@keyframes scrollline {
+  0% { transform: scaleY(0); transform-origin: top; }
+  40% { transform: scaleY(1); transform-origin: top; }
+  60% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+.caption {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 230, 0.55);
+}
+
+/* A stat block — gold left border, big numerals, tiny label below. Used
+   across the hero, squad cards and the fans bleed. */
+.stat {
+  border-left: 4px solid var(--gold);
+  padding-left: 1rem;
+}
+.stat__value {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: clamp(2rem, 4.5vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--bone);
+}
+.stat__label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 230, 0.55);
+  margin-top: 0.45rem;
+}
+
+/* Scoreboard pill in the nav / hero. Sits over a bright Camp Nou photo, so
+   it needs a slightly opaque dark backdrop AND a soft drop-shadow on its
+   text so the small caps stay legible against any pixel underneath. */
+.scoreboard {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(5, 8, 15, 0.45);
+  border: 1px solid rgba(243, 240, 230, 0.22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.55);
+}
+.scoreboard__crest {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  background: linear-gradient(180deg, var(--blue) 50%, var(--red) 50%);
+  border: 1px solid var(--bone);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Mark a piece of small text as sitting over a photo — gives it the same
+   readable shadow as the scoreboard. */
+.over-photo {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.55);
+}
+
+/* A subtle outline around each staff card. The hover scale lives on the
+   inner background, not the card, so the border stays rock-steady. */
+.staff-card {
+  border: 1px solid rgba(243, 240, 230, 0.1);
+  background: rgba(243, 240, 230, 0.02);
+}
+
+@media (max-width: 768px) {
+  /* On phones the player photo collapses to the top half of the screen,
+     handled inline in the component. Make sure the chapter rail doesn't
+     overlap the right-edge text. */
+  .chapter-rail { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .split-line__inner,
+  .split-word__inner {
+    transform: translateY(0) !important;
+  }
+  .split-char {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+  }
+  .svg-line {
+    stroke-dashoffset: 0 !important;
+  }
+}
