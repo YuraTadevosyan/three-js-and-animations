@@ -164,10 +164,36 @@ html.lenis-stopped body { overflow: hidden; }
   font-size: 0.72rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(243, 240, 230, 0.78);
-  mix-blend-mode: difference;
+  color: var(--bone);
+  /* Sits over a Camp Nou photo on the hero — a top-down gradient gives the
+     bar enough contrast without ever feeling like a solid header. */
+  background: linear-gradient(
+    180deg,
+    rgba(5, 8, 15, 0.75) 0%,
+    rgba(5, 8, 15, 0.45) 60%,
+    transparent 100%
+  );
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
-.story-nav a { color: inherit; text-decoration: none; }
+.story-nav a,
+.story-nav button {
+  color: inherit;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  transition: color 0.2s ease;
+}
+.story-nav a:hover,
+.story-nav button:hover {
+  color: var(--gold);
+}
 .story-nav .dot {
   display: inline-block;
   width: 8px;

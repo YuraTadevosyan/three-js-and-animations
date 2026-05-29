@@ -5,6 +5,19 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Module-scoped reference so non-React code can stop/start the smooth
+// scroller — e.g. the About modal pauses it while open so the page
+// underneath doesn't drift when the user scrolls inside the modal.
+let lenisInstance: Lenis | null = null;
+export const pageScroll = {
+  stop() {
+    lenisInstance?.stop();
+  },
+  start() {
+    lenisInstance?.start();
+  },
+};
+
 // Mounts Lenis once at app boot and wires its frame to GSAP's ticker so
 // ScrollTrigger and the smooth scroller share a single update loop —
 // otherwise pinned sections jitter against Lenis' interpolated position.
@@ -26,6 +39,7 @@ export function useSmoothScroll() {
       touchMultiplier: 1.4,
     });
 
+    lenisInstance = lenis;
     lenis.on('scroll', ScrollTrigger.update);
 
     const onTick = (time: number) => {
@@ -39,6 +53,7 @@ export function useSmoothScroll() {
     return () => {
       gsap.ticker.remove(onTick);
       lenis.destroy();
+      lenisInstance = null;
       document.documentElement.classList.remove('lenis', 'lenis-smooth');
     };
   }, []);
