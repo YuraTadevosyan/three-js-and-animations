@@ -92,42 +92,59 @@ export function Fans() {
         }}
       />
 
-      <div className="relative z-10 h-screen px-[6vw] py-[10vh] flex flex-col justify-between">
+      <div className="relative z-10 h-screen px-[6vw] py-[6vh] md:py-[8vh] flex flex-col">
         <span className="eyebrow">03 — The Fans</span>
 
-        <div className="max-w-4xl">
-          <SplitText
-            as="h2"
-            splitBy="lines"
-            stagger={0.12}
-            duration={1.0}
-            start="top 85%"
-            className="display text-bone text-[clamp(3rem,9vw,10rem)] leading-[0.88]"
-            text={`NINETY-NINE\nTHOUSAND\nVOICES.`}
-          />
-          <p className="mt-8 max-w-xl text-bone/85 leading-relaxed text-[clamp(1.05rem,1.3vw,1.25rem)]">
-            The stadium is built from concrete and steel. The matchday is
-            built from breath. Every player walking out of the tunnel is
-            walking into the same wave of noise.
-          </p>
+        {/* Title block absorbs the remaining vertical space and centers its
+            content inside — `flex-1` + items-center keeps the title in the
+            middle of the available area on any viewport, which means the
+            stats below stay on-screen no matter how tall the display is. */}
+        <div className="flex-1 flex items-center max-w-4xl">
+          <div>
+            <SplitText
+              as="h2"
+              splitBy="lines"
+              stagger={0.12}
+              duration={1.0}
+              start="top 85%"
+              className="display text-bone text-[clamp(2.6rem,8.5vw,9rem)] leading-[0.88]"
+              text={`NINETY-NINE\nTHOUSAND\nVOICES.`}
+            />
+            <p className="mt-8 max-w-xl text-bone/85 leading-relaxed text-[clamp(1.05rem,1.3vw,1.25rem)]">
+              The stadium is built from concrete and steel. The matchday is
+              built from breath. Every player walking out of the tunnel is
+              walking into the same wave of noise.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-10 max-w-4xl">
-          <div className="stat" data-fans-stat>
-            <div className="stat__value">99,354</div>
-            <div className="stat__label">Capacity</div>
-          </div>
-          <div className="stat" data-fans-stat>
-            <div className="stat__value">112 dB</div>
-            <div className="stat__label">Peak roar</div>
-          </div>
-          <div className="stat" data-fans-stat>
-            <div className="stat__value">141k</div>
-            <div className="stat__label">Socis</div>
-          </div>
-          <div className="stat" data-fans-stat>
-            <div className="stat__value">5</div>
-            <div className="stat__label">Continents</div>
+        {/* Stats — anchored at the bottom of the pinned frame. A diagonal
+            stripe sits above to clearly separate them from the text, then
+            the four numbers center horizontally with generous spacing.
+            pb-[4vh] keeps a clear breathing gap from the viewport floor. */}
+        <div className="mx-auto w-full max-w-6xl pt-2 pb-[4vh] md:pb-[6vh]">
+          <div
+            className="px-6 md:px-10 py-5 md:py-7"
+            style={{ background: 'rgba(5,8,15,0.55)', backdropFilter: 'blur(8px)' }}
+          >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-8 md:gap-x-14 justify-items-center">
+              <div className="stat" data-fans-stat>
+                <div className="stat__value">99,354</div>
+                <div className="stat__label">Capacity</div>
+              </div>
+              <div className="stat" data-fans-stat>
+                <div className="stat__value">112 dB</div>
+                <div className="stat__label">Peak roar</div>
+              </div>
+              <div className="stat" data-fans-stat>
+                <div className="stat__value">141k</div>
+                <div className="stat__label">Socis</div>
+              </div>
+              <div className="stat" data-fans-stat>
+                <div className="stat__value">5</div>
+                <div className="stat__label">Continents</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

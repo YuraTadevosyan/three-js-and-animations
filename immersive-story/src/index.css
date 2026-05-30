@@ -41,16 +41,19 @@ html.lenis-smooth { scroll-behavior: auto !important; }
 html.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 html.lenis-stopped body { overflow: hidden; }
 
-/* Diagonal blaugrana stripes used as a section divider. */
+/* Diagonal blaugrana stripes used as a section divider. Taller + a soft
+   glow on the leading edge so it reads cleanly on huge displays where 6px
+   of stripe pattern previously disappeared into the page. */
 .stripe {
-  height: 6px;
+  height: 12px;
   background: repeating-linear-gradient(
     -45deg,
     var(--blue) 0,
-    var(--blue) 14px,
-    var(--red) 14px,
-    var(--red) 28px
+    var(--blue) 18px,
+    var(--red) 18px,
+    var(--red) 36px
   );
+  box-shadow: 0 6px 18px -6px rgba(0, 77, 152, 0.45);
 }
 
 .story-root { position: relative; z-index: 3; }
@@ -72,8 +75,10 @@ html.lenis-stopped body { overflow: hidden; }
 .chapter { position: relative; width: 100%; }
 .chapter-pin { height: 100vh; width: 100%; overflow: hidden; position: relative; }
 
-/* Animated text primitives — initial transforms baked in so the first paint
-   already matches the pre-reveal state and there's no flash. */
+/* Animated text primitives. The hidden "from" state is set by JS via
+   gsap.set() on mount — not in CSS — so if JS fails or the
+   IntersectionObserver never fires, the text remains visible rather than
+   sitting in a permanently-hidden translated state. */
 .split-line {
   display: inline-block;
   overflow: hidden;
@@ -83,7 +88,6 @@ html.lenis-stopped body { overflow: hidden; }
 }
 .split-line__inner {
   display: inline-block;
-  transform: translateY(110%);
   will-change: transform;
 }
 
@@ -96,14 +100,11 @@ html.lenis-stopped body { overflow: hidden; }
 }
 .split-word__inner {
   display: inline-block;
-  transform: translateY(110%);
   will-change: transform;
 }
 
 .split-char {
   display: inline-block;
-  transform: translateY(110%);
-  opacity: 0;
   will-change: transform, opacity;
 }
 
@@ -273,7 +274,7 @@ html.lenis-stopped body { overflow: hidden; }
 }
 .stat__value {
   font-family: 'Archivo Black', sans-serif;
-  font-size: clamp(2rem, 4.5vw, 3.6rem);
+  font-size: clamp(2rem, 2.5vw, 3.6rem);
   line-height: 1;
   letter-spacing: -0.03em;
   color: var(--bone);
@@ -339,14 +340,6 @@ html.lenis-stopped body { overflow: hidden; }
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  .split-line__inner,
-  .split-word__inner {
-    transform: translateY(0) !important;
-  }
-  .split-char {
-    transform: translateY(0) !important;
-    opacity: 1 !important;
   }
   .svg-line {
     stroke-dashoffset: 0 !important;

@@ -255,10 +255,10 @@ export const SQUAD: Player[] = [
     bio: 'Daniel Olmo Carvajal is a Spanish professional footballer who plays as an attacking midfielder or left winger for La Liga club Barcelona and the Spain national team.',
     image: asset('players/dani-olmo.jpg'),
     attribution: {
-      artist: 'crop by M-B',
-      license: 'CC BY-SA 4.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
-      file: 'File:Dani_Olmo_2022.jpg',
+      artist: 'Junta de Andalucía',
+      license: 'CC BY-SA 2.0',
+      license_url: 'https://creativecommons.org/licenses/by-sa/2.0',
+      file: 'File:2025 04 26 Final de la Copa del Rey - 54482387776.jpg',
     },
   },
   {
@@ -351,9 +351,9 @@ export const SQUAD: Player[] = [
     bio: 'Raphael Dias Belloli, known mononymously as Raphinha, is a Brazilian professional footballer who plays as a winger or forward for La Liga club Barcelona and the Brazil national team. Known for his pace, playmaking, work rate, and finishing, he is considered one of the best players in the world.',
     image: asset('players/raphinha.jpg'),
     attribution: {
-      artist: '',
-      license: '',
-      license_url: '',
+      artist: 'Silkboy29150',
+      license: 'CC0',
+      license_url: 'http://creativecommons.org/publicdomain/zero/1.0/deed.en',
       file: 'File:RaphinhaBenfica_(cropped).png',
     },
   },
