@@ -240,8 +240,12 @@ function PlayerCard({
         <div className="md:col-span-7 relative overflow-hidden h-[55vh] md:h-full">
           <div
             data-player-photo
-            className="absolute inset-0 bg-center bg-cover will-change-transform"
+            className="absolute inset-0 bg-cover will-change-transform"
             style={{
+              // bg-position: top keeps heads in frame on tall portrait
+              // crops (most FCB CDN photos are 2:3 portraits where centring
+              // cuts off the face). Horizontally centred.
+              backgroundPosition: 'center top',
               backgroundImage: `url(${player.image})`,
               filter: 'saturate(0.88) contrast(1.06)',
             }}

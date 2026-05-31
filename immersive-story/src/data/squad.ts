@@ -31,10 +31,10 @@ export const SQUAD: Player[] = [
     bio: 'Joan Garcia Pons is a Spanish professional footballer who plays as a goalkeeper for La Liga club Barcelona and the Spain national team.',
     image: asset('players/joan-garcia.jpg'),
     attribution: {
-      artist: 'Catiusca12',
-      license: 'CC BY-SA 4.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
-      file: 'File:CE_Manresa_Aleví_A,_amb_el_porter_Joan_Garcia,_abril_de_2012_(cropped).jpg',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.football-espana.net/2025/08/16/barcelona-register-joan-garcia-la-liga',
+      file: 'https://icdn.football-espana.net/wp-content/uploads/2025/06/Joan-Garcia-2031-min.jpeg',
     },
   },
   {
@@ -47,10 +47,10 @@ export const SQUAD: Player[] = [
     bio: 'Wojciech Tomasz Szczęsny is a Polish professional footballer who plays as a goalkeeper for La Liga club Barcelona.',
     image: asset('players/wojciech-szcz-sny.jpg'),
     attribution: {
-      artist: 'La Gazzetta dello Sport',
-      license: 'CC BY 3.0',
-      license_url: 'https://creativecommons.org/licenses/by/3.0',
-      file: 'File:Wojciech_Szczęsny.png',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://getfootballnewsspain.com/barcelona-fans-unveil-new-wojciech-szczesny-chant/',
+      file: 'https://getfootballnewsspain.com/wp-content/uploads/2025/02/fc-barcelona-v-deportivo-alave…',
     },
   },
   {
@@ -63,10 +63,10 @@ export const SQUAD: Player[] = [
     bio: 'João Pedro Cavaco Cancelo is a Portuguese professional footballer who plays as a full-back for La Liga club Barcelona, on loan from Saudi Pro League club Al Hilal, and the Portugal national team.',
     image: asset('players/jo-o-cancelo.jpg'),
     attribution: {
-      artist: 'Bryan Berlin',
-      license: 'CC BY-SA 4.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
-      file: 'File:João_Cancelo_USMNT_v_Portugal_Mar_31_2026-30_(cropped).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://laligadelostalentos.com/fc-barcelona-la-importancia-de-joao-cancelo/',
+      file: 'https://laligadelostalentos.com/wp-content/uploads/2023/09/fbl-esp-liga-barcelona-felix-ca…',
     },
   },
   {
@@ -79,10 +79,10 @@ export const SQUAD: Player[] = [
     bio: 'Alejandro Balde Martínez is a Spanish professional footballer who plays as a left-back for La Liga club Barcelona and the Spain national team.',
     image: asset('players/alejandro-balde.jpg'),
     attribution: {
-      artist: 'Pedro  Semitiel from Cehegín, España',
-      license: 'CC BY 2.0',
-      license_url: 'https://creativecommons.org/licenses/by/2.0',
-      file: 'File:Esapana-inglaterra-74_(48899354493).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.fcbarcelona.com/en/photos/3690597/alejandro-baldes-career-in-photos',
+      file: 'https://www.fcbarcelona.com/photo-resources/2023/09/19/f774864a-a2fc-49b3-8053-29317deeb46…',
     },
   },
   {
@@ -95,10 +95,10 @@ export const SQUAD: Player[] = [
     bio: 'Ronald Federico Araújo da Silva is an Uruguayan professional footballer who plays as a centre-back for La Liga club Barcelona, whom he captains, and the Uruguay national team.',
     image: asset('players/ronald-ara-jo.jpg'),
     attribution: {
-      artist: 'Werner100359',
-      license: 'CC0',
-      license_url: 'http://creativecommons.org/publicdomain/zero/1.0/deed.en',
-      file: 'File:FC_Red_Bull_Salzburg_gegen_CF_Barcelona_(Testspiel_4._August_2021)_45_(cropped).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.goal.com/es-ar/listados/ronald-araujo-define-regreso-entrenamientos-barcelona-tras-retiro-espiritual-israel/blt777c59d6271b3887',
+      file: 'https://assets.goal.com/images/v3/getty-2245516817/crop/MM5DIOJZGI5DEOBQHA5G433XMU5DAORR/G…',
     },
   },
   {
@@ -111,10 +111,10 @@ export const SQUAD: Player[] = [
     bio: 'Pau Cubarsí Paredes is a Spanish professional footballer who plays as a centre-back for La Liga club Barcelona and the Spain national team. In July 2025, Sports Illustrated and ESPN ranked Cubarsí as the sixth-best centre-back in world football.',
     image: asset('players/pau-cubars.jpg'),
     attribution: {
-      artist: 'Biso',
-      license: 'CC BY 4.0',
-      license_url: 'https://creativecommons.org/licenses/by/4.0',
-      file: 'File:Pau_Cubarsí_(cropped).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://getfootballnewsspain.com/injury-update-provided-on-barcelona-star-pau-cubarsi/',
+      file: 'https://getfootballnewsspain.com/wp-content/uploads/2025/08/fc-barcelona-v-real-madrid-cf-…',
     },
   },
   {
@@ -127,10 +127,10 @@ export const SQUAD: Player[] = [
     bio: 'Andreas Bødtker Christensen is a Danish professional footballer who plays as a centre-back for La Liga club Barcelona and the Denmark national team.',
     image: asset('players/andreas-christensen.jpg'),
     attribution: {
-      artist: 'Антон Зайцев',
-      license: 'CC BY-SA 3.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/3.0',
-      file: 'File:Andreas_Christensen_2019.jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://monesport.cat/barca/jugadors/andreas-christensen-pista-futur-barca-377843/',
+      file: 'https://monesport.cat/app/uploads/sites/12/2024/04/europapress_5886546_andreas_christensen…',
     },
   },
   {
@@ -143,10 +143,10 @@ export const SQUAD: Player[] = [
     bio: 'Gerard Martín Langreo is a Spanish professional footballer who plays as a defender for La Liga club Barcelona. Primarily a left-back, he is also capable of playing as a centre-back.',
     image: asset('players/gerard-mart-n.jpg'),
     attribution: {
-      artist: 'Junta de Andalucía',
-      license: 'CC BY-SA 2.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/2.0',
-      file: 'File:2025_04_26_Final_de_la_Copa_del_Rey_-_54482387776_-_Gerard_Martín.jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.fcbarcelona.cat/ca/fotos/3596800/gerard-martin-nou-jugador-del-barca-atletic',
+      file: 'https://www.fcbarcelona.com/fcbarcelona/photo/2023/07/19/bca59355-dd3b-422e-9f0b-dc2d3d05d…',
     },
   },
   {
@@ -159,10 +159,10 @@ export const SQUAD: Player[] = [
     bio: 'Jules Olivier Koundé is a French professional footballer who plays as a defender for La Liga club Barcelona and the France national team. Primarily a right-back, he is also capable of playing as a centre-back.',
     image: asset('players/jules-kound.jpg'),
     attribution: {
-      artist: 'Дмитрий Пукалик',
-      license: 'CC BY-SA 3.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/3.0',
-      file: 'File:Jules_Koundé_2020.jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://getfootballnewsspain.com/why-jules-kounde-dropped-to-the-bench-for-barcelona-vs-alaves/',
+      file: 'https://getfootballnewsspain.com/wp-content/uploads/2024/08/fc-barcelona-v-real-valladolid…',
     },
   },
   {
@@ -175,10 +175,10 @@ export const SQUAD: Player[] = [
     bio: 'Eric García Martret is a Spanish professional footballer who plays for La Liga club Barcelona and the Spain national team. Primarily a centre-back, he is also capable of playing as a full-back or defensive midfielder.',
     image: asset('players/eric-garc-a.jpg'),
     attribution: {
-      artist: 'TheSoccerBoy',
-      license: 'CC BY-SA 4.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
-      file: 'File:Eric_Garcia_autographs_2022_(cropped).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://laligadelostalentos.com/eric-garcia-del-barca-en-la-mira-de-girona-y-real-sociedad/',
+      file: 'https://laligadelostalentos.com/wp-content/uploads/2024/10/fc-barcelona-v-as-monaco-trofeu…',
     },
   },
   {
@@ -191,10 +191,10 @@ export const SQUAD: Player[] = [
     bio: 'Pablo Martín Páez Gavira, known as Gavi, is a Spanish professional footballer who plays as a central midfielder for La Liga club Barcelona and the Spain national team.',
     image: asset('players/gavi.jpg'),
     attribution: {
-      artist: 'Generalitat de Catalunya',
-      license: 'Attribution',
-      license_url: '',
-      file: 'File:Jugadors_pretemporada_pels_Estats_Units_(cropped)2.jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.fcbarcelona.com/en/football/first-team/news/3720546/gavi-i-will-always-give-everything-for-fc-barcelona',
+      file: 'https://www.fcbarcelona.com/fcbarcelona/photo/2023/10/04/2292b9a8-f946-4da8-8307-a2c1fe983…',
     },
   },
   {
@@ -207,10 +207,10 @@ export const SQUAD: Player[] = [
     bio: 'Pedro González López, more commonly known as Pedri, is a Spanish professional footballer who plays as a midfielder for La Liga club Barcelona and the Spain national team. Considered as one of the best midfielders in the world, he is known for his ball control, dribbling, passing and playmaking.',
     image: asset('players/pedri.jpg'),
     attribution: {
-      artist: 'Biso',
-      license: 'CC BY 4.0',
-      license_url: 'https://creativecommons.org/licenses/by/4.0',
-      file: 'File:Pedri.jpg',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.fcbarcelona.com/en/football/first-team/news/4264690/200-fc-barcelona-appearances-for-pedri',
+      file: 'https://www.fcbarcelona.com/fcbarcelona/photo/2025/05/15/39233a98-1c26-4bef-b553-c0d25c736…',
     },
   },
   {
@@ -223,10 +223,10 @@ export const SQUAD: Player[] = [
     bio: 'Fermín López Marín, also known simply as Fermín, is a Spanish professional footballer who plays as an attacking midfielder or winger for La Liga club Barcelona and the Spain national team.',
     image: asset('players/ferm-n-l-pez.jpg'),
     attribution: {
-      artist: 'Biso',
-      license: 'CC BY 4.0',
-      license_url: 'https://creativecommons.org/licenses/by/4.0',
-      file: 'File:Fermín_López_(cropped).jpg',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://getfootballnewsspain.com/how-introducing-fermin-lopez-could-have-forced-barcelona-xavi-to-forfeit-copa-quarter-final/',
+      file: 'https://getfootballnewsspain.com/wp-content/uploads/2024/01/fc-barcelona-v-deportivo-alave…',
     },
   },
   {
@@ -239,10 +239,10 @@ export const SQUAD: Player[] = [
     bio: 'Marc Casadó Torras is a Spanish professional footballer who plays as a defensive midfielder for La Liga club Barcelona and the Spain national team.',
     image: asset('players/marc-casad.jpg'),
     attribution: {
-      artist: 'Government of Catalonia',
-      license: 'Attribution',
-      license_url: '',
-      file: 'File:Marc_Casadó,_durant_la_gira_de_pretemporada_a_EUA._(05-08-2024)_(cropped).jpg',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://getfootballnewsspain.com/barcelona-name-price-for-premier-league-target-casado/',
+      file: 'https://getfootballnewsspain.com/wp-content/uploads/2024/10/fc-barcelona-v-fc-bayern-munch…',
     },
   },
   {
@@ -255,10 +255,10 @@ export const SQUAD: Player[] = [
     bio: 'Daniel Olmo Carvajal is a Spanish professional footballer who plays as an attacking midfielder or left winger for La Liga club Barcelona and the Spain national team.',
     image: asset('players/dani-olmo.jpg'),
     attribution: {
-      artist: 'Junta de Andalucía',
-      license: 'CC BY-SA 2.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/2.0',
-      file: 'File:2025 04 26 Final de la Copa del Rey - 54482387776.jpg',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.football-actu.fr/hansi-flick-gouverne-dani-olmo-de-leganes-barcelone.html',
+      file: 'https://icdn.football-espana.net/wp-content/uploads/2025/02/Dani-Olmo-2.jpeg',
     },
   },
   {
@@ -271,10 +271,10 @@ export const SQUAD: Player[] = [
     bio: 'Frenkie de Jong is a Dutch professional footballer who plays as a midfielder for La Liga club Barcelona and the Netherlands national team.',
     image: asset('players/frenkie-de-jong.jpg'),
     attribution: {
-      artist: 'Yuliia Perekopaiko',
-      license: 'CC BY-SA 4.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
-      file: 'File:Матч_«Динамо»_-_«Барселона»_0-1._2_ноября_2021_года._II_—_1289671_(cropped).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://monesport.cat/es/fc-barcelona/la-jornada/frenkie-de-jong-gran-senalado-osasuna-364031/',
+      file: 'https://monesport.cat/app/uploads/sites/12/2023/09/europapress_5443700_frenkie_jong_of_fc_…',
     },
   },
   {
@@ -287,10 +287,10 @@ export const SQUAD: Player[] = [
     bio: 'Marc Bernal Casas is a Spanish professional footballer who plays as a defensive midfielder for La Liga club Barcelona.',
     image: asset('players/marc-bernal.jpg'),
     attribution: {
-      artist: 'Unknown authorUnknown author',
-      license: 'CC BY 3.0',
-      license_url: 'https://creativecommons.org/licenses/by/3.0',
-      file: 'File:Marc_Bernal_(2025).png',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://monesport.cat/barca/jugadors/marc-bernal-triomfador-atletic-copa-473884/',
+      file: 'https://monesport.cat/app/uploads/sites/12/2026/03/europapress_7335693_marc_bernal_of_fc_b…',
     },
   },
   {
@@ -303,10 +303,10 @@ export const SQUAD: Player[] = [
     bio: 'Ferran Torres García is a Spanish professional footballer who plays as a forward or winger for La Liga club Barcelona and the Spain national team.',
     image: asset('players/ferran-torres.jpg'),
     attribution: {
-      artist: 'Valencia CF',
-      license: 'CC BY 3.0',
-      license_url: 'https://creativecommons.org/licenses/by/3.0',
-      file: 'File:Ferran_Torres_2019.png',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.goal.com/en/news/watch-forty-one-shots-ferran-torres-first-player-score-direct-free-kick-barcelona-lionel-messi/bltb8f0f2c4dc25a6e2',
+      file: 'https://assets.goal.com/images/v3/blt1616480ae1d24473/Ferran_Torres.jpg?auto=webp&format=p…',
     },
   },
   {
@@ -319,10 +319,10 @@ export const SQUAD: Player[] = [
     bio: 'Robert Lewandowski is a Polish professional footballer who plays as a striker for La Liga club Barcelona and captains the Poland national team. Widely regarded as one of the greatest strikers of all time, he is one of only five players to have scored 100 goals with three different clubs, ranks third for the all-time top goalscorers in the UEFA Champions L...',
     image: asset('players/robert-lewandowski.jpg'),
     attribution: {
-      artist: 'Sven Mandel',
-      license: 'CC BY-SA 4.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
-      file: 'File:2019147183134_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_München_-_Sven_-_1D_X_MK_II_-_0228_-_B70I8527_(cropped).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.republicworld.com/sports/football/lewandowski-scores-his-7th-goal-to-give-barcelona-its-7th-straight-win-in-spanish-league',
+      file: 'https://img.republicworld.com/all_images/barcelona-players-celebrate-robert-lewandowski-s-…',
     },
   },
   {
@@ -335,10 +335,10 @@ export const SQUAD: Player[] = [
     bio: 'Lamine Yamal Nasraoui Ebana is a Spanish professional footballer who plays as a right winger or right midfielder for La Liga club Barcelona and the Spain national team. Known for his flair, chance creation, and long-distance curling goals, he is widely regarded as one of the best players in the world.',
     image: asset('players/lamine-yamal.jpg'),
     attribution: {
-      artist: 'Biso',
-      license: 'CC BY 4.0',
-      license_url: 'https://creativecommons.org/licenses/by/4.0',
-      file: 'File:Lamine_Yamal_in_2025.jpg',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.sportingnews.com/es/futbol/news/record-goleador-mas-joven-clasico-barcelona-real-madrid-lamine-yamal/83f5212bf1eb0f66d52c5a51',
+      file: 'https://library.sportingnews.com/styles/twitter_card_120x120/s3/2024-10/Lamine%20Yamal%20B…',
     },
   },
   {
@@ -351,10 +351,10 @@ export const SQUAD: Player[] = [
     bio: 'Raphael Dias Belloli, known mononymously as Raphinha, is a Brazilian professional footballer who plays as a winger or forward for La Liga club Barcelona and the Brazil national team. Known for his pace, playmaking, work rate, and finishing, he is considered one of the best players in the world.',
     image: asset('players/raphinha.jpg'),
     attribution: {
-      artist: 'Silkboy29150',
-      license: 'CC0',
-      license_url: 'http://creativecommons.org/publicdomain/zero/1.0/deed.en',
-      file: 'File:RaphinhaBenfica_(cropped).png',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.dazn.com/es-MX/news/f%C3%BAtbol/cuantos-goles-raphinha-champions-league-fc-barcelona/7fz0h3bnsjbi1joh11b95ku8d',
+      file: 'https://images.daznservices.com/di/library/DAZN_News/b3/6/raphinha-fc-barcelona-champions-…',
     },
   },
   {
@@ -367,10 +367,10 @@ export const SQUAD: Player[] = [
     bio: 'Marcus Rashford is an English professional footballer who plays as a forward for La Liga club Barcelona, on loan from Premier League club Manchester United, and the England national team.',
     image: asset('players/marcus-rashford.jpg'),
     attribution: {
-      artist: 'UK Prime Minister',
-      license: 'CC BY 2.0',
-      license_url: 'https://creativecommons.org/licenses/by/2.0',
-      file: 'File:Marcus_Rashford_in_2023.jpg',
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://www.sportingnews.com/es/futbol/news/barcelona-daegu-video-resultado-resumen-goles/b940fd7ea2526ca8dceaa33d',
+      file: 'https://library.sportingnews.com/styles/twitter_card_120x120/s3/2025-08/Marcus%20Rashford%…',
     },
   },
   {
@@ -383,10 +383,10 @@ export const SQUAD: Player[] = [
     bio: 'Roony Bardghji is a professional footballer who plays as a right winger for La Liga club Barcelona. Born in Kuwait, he plays for the Sweden national team.',
     image: asset('players/roony-bardghji.jpg'),
     attribution: {
-      artist: 'Thomas Dahlstrøm Nielsen',
-      license: 'CC BY-SA 4.0',
-      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
-      file: 'File:Roony_Bardghji,_Vejle_Boldklub_-_FC_København,_29._July_2023_-_opvarmning_(cropped).jpg',
+      artist: 'Source: web search (Bing)',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://sport.dk/fc-barcelona',
+      file: 'https://r.testifier.nl/Acbs8526SDKI/resizing_type:fill/width:3840/height:2560/plain/https:…',
     },
   },
 ];

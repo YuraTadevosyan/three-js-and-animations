@@ -109,7 +109,7 @@ export function Hero() {
             duration={1.2}
             delay={0.15}
             start="top 95%"
-            className="display text-bone text-[clamp(3.6rem,11vw,16rem)] leading-[0.84]"
+            className="display text-bone text-[clamp(3.6rem,10vw,16rem)] leading-[0.84]"
             text={`MÉS\nQUE UN\nCLUB.`}
           />
           <SplitText
