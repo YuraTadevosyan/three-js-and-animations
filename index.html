@@ -7,12 +7,12 @@
     <meta name="color-scheme" content="dark" />
     <meta
       name="description"
-      content="A collection of interactive web showcases: a GLSL shader lab, a physics playground, GSAP animations, a Three.js + WebGL gallery, and an audio-reactive music visualizer."
+      content="A collection of interactive web showcases: a GLSL shader lab, a physics playground, GSAP animations, a Three.js + WebGL gallery, an audio-reactive music visualizer, and a scroll-driven FC Barcelona matchday story."
     />
     <meta property="og:title" content="three-js-and-animations — showcase index" />
     <meta
       property="og:description"
-      content="A GLSL shader lab, a Matter.js physics playground, GSAP animations, Three.js / WebGL demos, and an audio-reactive music visualizer — built with React + Vite."
+      content="A GLSL shader lab, a Matter.js physics playground, GSAP animations, Three.js / WebGL demos, an audio-reactive music visualizer, and a Camp Nou scroll story — built with React + Vite."
     />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
@@ -62,7 +62,7 @@
       <section class="hero" data-reveal>
         <span class="eyebrow">
           <span class="dot"></span>
-          Five demos · one repo
+          Six demos · one repo
         </span>
         <h1 class="title">
           <span class="line">Interactive web,</span>
@@ -358,6 +358,67 @@
             </span>
           </div>
         </a>
+
+        <a
+          class="card"
+          href="./immersive-story/"
+          data-reveal
+          data-accent="ember"
+        >
+          <div class="card-spotlight" aria-hidden="true"></div>
+          <div class="card-art" aria-hidden="true">
+            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g6" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#004D98" />
+                  <stop offset="50%" stop-color="#004D98" />
+                  <stop offset="50%" stop-color="#A50044" />
+                  <stop offset="100%" stop-color="#A50044" />
+                </linearGradient>
+              </defs>
+              <rect width="200" height="120" fill="#05080f" />
+              <rect x="20" y="18" width="160" height="84" fill="url(#g6)" opacity="0.55" />
+              <g stroke="#f3f0e6" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.85">
+                <rect x="28" y="26" width="144" height="68" />
+                <line x1="100" y1="26" x2="100" y2="94" />
+                <circle cx="100" cy="60" r="12" />
+                <circle cx="100" cy="60" r="1.6" fill="#f3f0e6" />
+              </g>
+              <g fill="#EDBB00">
+                <circle cx="100" cy="60" r="2.4" />
+              </g>
+              <g fill="#f3f0e6" opacity="0.9">
+                <rect x="40" y="42" width="6" height="36" rx="1" />
+                <rect x="154" y="42" width="6" height="36" rx="1" />
+              </g>
+            </svg>
+          </div>
+          <div class="card-body">
+            <span class="card-index">06</span>
+            <h2 class="card-title">Camp Nou — A Matchday Story</h2>
+            <p class="card-desc">
+              A blaugrana-styled scroll story at Camp Nou — full-bleed
+              hero, a pinned in-place carousel that cycles the 23-man
+              squad (roster + photos sourced live from Wikipedia / Commons),
+              a coaching-staff grid, and a parallax fans bleed. All-DOM,
+              GSAP ScrollTrigger + Lenis, IntersectionObserver-driven
+              text reveals.
+            </p>
+            <ul class="chips">
+              <li>React</li>
+              <li>GSAP ScrollTrigger</li>
+              <li>Lenis</li>
+              <li>IntersectionObserver</li>
+              <li>Tailwind</li>
+            </ul>
+            <span class="card-cta">
+              Launch demo
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 17 17 7M9 7h8v8" />
+              </svg>
+            </span>
+          </div>
+        </a>
       </section>
 
       <section id="stack" class="stack" data-reveal>
@@ -370,9 +431,12 @@
           <li>three.js</li>
           <li>@react-three/fiber</li>
           <li>GSAP</li>
+          <li>ScrollTrigger</li>
+          <li>Lenis</li>
           <li>Matter.js</li>
           <li>TanStack Router</li>
           <li>Web Audio API</li>
+          <li>IntersectionObserver</li>
           <li>GLSL</li>
         </ul>
       </section>
