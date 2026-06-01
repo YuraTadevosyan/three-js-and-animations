@@ -15,6 +15,7 @@ the same GitHub Pages site.
 | [`gsap-animations-showcase`](./gsap-animations-showcase) | [/gsap-animations-showcase/](https://yuratadevosyan.github.io/three-js-and-animations/gsap-animations-showcase/) | React, GSAP, ScrollTrigger, Tailwind, shadcn/ui |
 | [`shader-lab`](./shader-lab) | [/shader-lab/](https://yuratadevosyan.github.io/three-js-and-animations/shader-lab/) | React, R3F, GLSL ES (WebGL2), Web Audio API, Tailwind |
 | [`physics-playground`](./physics-playground) | [/physics-playground/](https://yuratadevosyan.github.io/three-js-and-animations/physics-playground/) | React, Matter.js, GSAP, TypeScript, Tailwind |
+| [`immersive-story`](./immersive-story) | [/immersive-story/](https://yuratadevosyan.github.io/three-js-and-animations/immersive-story/) | React, GSAP ScrollTrigger, Lenis, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -26,7 +27,8 @@ the same GitHub Pages site.
 ├── music-visualizer/           Audio-reactive R3F scene
 ├── gsap-animations-showcase/   GSAP motion patterns
 ├── shader-lab/                 GLSL shader experimentation lab
-└── physics-playground/         Matter.js + GSAP physics UI playground
+├── physics-playground/         Matter.js + GSAP physics UI playground
+└── immersive-story/            FC Barcelona-styled scroll matchday story (GSAP + Lenis)
 ```
 
 ## Hosting model
@@ -51,6 +53,7 @@ cd music-visualizer         && npm install && npm run dev
 cd gsap-animations-showcase && npm install && npm run dev
 cd shader-lab               && npm install && npm run dev
 cd physics-playground       && npm install && npm run dev
+cd immersive-story          && npm install && npm run dev
 ```
 
 For the landing page:
@@ -70,6 +73,7 @@ cd music-visualizer         && npm run deploy
 cd gsap-animations-showcase && npm run deploy
 cd shader-lab               && npm run deploy
 cd physics-playground       && npm run deploy
+cd immersive-story          && npm run deploy
 ```
 
 To publish the landing page:
