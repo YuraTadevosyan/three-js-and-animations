@@ -14,6 +14,8 @@ import { Hero } from '@/sections/Hero';
 import { SquadIntro } from '@/sections/SquadIntro';
 import { Squad } from '@/sections/Squad';
 import { Staff } from '@/sections/Staff';
+import { Trophies } from '@/sections/Trophies';
+import { IconicMoments } from '@/sections/IconicMoments';
 import { Fans } from '@/sections/Fans';
 import { Outro } from '@/sections/Outro';
 
@@ -41,6 +43,8 @@ export default function App() {
         <SquadIntro />
         <Squad />
         <Staff />
+        <Trophies />
+        <IconicMoments />
         <Fans />
         <Outro />
       </main>

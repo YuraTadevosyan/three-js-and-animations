@@ -29,7 +29,7 @@ export function Outro() {
     <section
       ref={ref}
       className="chapter relative px-[6vw] py-[18vh] min-h-screen"
-      data-chapter="5"
+      data-chapter="7"
       aria-label="Credits"
     >
       <div className="max-w-3xl">

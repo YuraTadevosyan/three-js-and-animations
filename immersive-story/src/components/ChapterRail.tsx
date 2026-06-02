@@ -6,6 +6,8 @@ const CHAPTERS = [
   'Intro',
   'Squad',
   'Staff',
+  'Cabinet',
+  'Moments',
   'Fans',
   'Full time',
 ];
