@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { AudioToggle } from './AudioToggle';
 
 // Fixed nav that auto-hides when the user scrolls down and slides back in
 // when they scroll up. Always visible at the very top of the page so the
@@ -63,6 +64,7 @@ export function StoryNav({
         <span className="dot" /> Live · Camp Nou
       </div>
       <nav className="flex items-center gap-5">
+        <AudioToggle />
         <button
           type="button"
           onClick={onAboutClick}

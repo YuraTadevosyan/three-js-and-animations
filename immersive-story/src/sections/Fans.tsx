@@ -73,7 +73,7 @@ export function Fans() {
     <section
       ref={ref}
       className="chapter relative w-full h-screen overflow-hidden"
-      data-chapter="6"
+      data-chapter="8"
       aria-label="The fans"
     >
       <div
@@ -93,7 +93,7 @@ export function Fans() {
       />
 
       <div className="relative z-10 h-screen px-[6vw] py-[6vh] md:py-[8vh] flex flex-col">
-        <span className="eyebrow">05 — The Fans</span>
+        <span className="eyebrow">07 — The Fans</span>
 
         {/* Title block absorbs the remaining vertical space and centers its
             content inside — `flex-1` + items-center keeps the title in the

@@ -29,7 +29,7 @@ export function Outro() {
     <section
       ref={ref}
       className="chapter relative px-[6vw] py-[18vh] min-h-screen"
-      data-chapter="7"
+      data-chapter="9"
       aria-label="Credits"
     >
       <div className="max-w-3xl">
@@ -66,7 +66,8 @@ export function Outro() {
           <div className="caption mb-2">Stack</div>
           <div className="text-[0.95rem] leading-relaxed">
             React · TypeScript · GSAP ScrollTrigger · Lenis · Tailwind CSS.
-            All-DOM, no three.js. Total bundle ~290 KB.
+            All-DOM, no three.js. Web Audio API for the synth-ambience
+            fallback. Total bundle ~290 KB.
           </div>
         </div>
         <div data-outro-credit>
@@ -107,6 +108,13 @@ export function Outro() {
           All photos sourced via the Wikimedia Commons API and used in
           accordance with their respective Creative Commons licenses. No FC
           Barcelona club marks (crest, logos, kit graphics) are used.
+        </p>
+      </div>
+
+      <div data-outro-credit className="mt-[4vh]">
+        <div className="caption mb-3">Audio</div>
+        <p className="text-[0.78rem] text-bone/55 leading-relaxed max-w-2xl">
+          <strong className="text-bone/80">El Cant del Barça — Camp Nou, a cappella</strong> · sourced from a public Barça-Chelsea pre-match recording on YouTube · <em>Internet (copyright unclear)</em>. Used on this personal portfolio site under the same caveat as the player photos; not licensed for redistribution. If the file is missing or blocked, the button falls back to a Web-Audio-synthesised stadium ambience.
         </p>
       </div>
 
