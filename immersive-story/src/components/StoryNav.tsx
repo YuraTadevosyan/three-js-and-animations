@@ -74,7 +74,7 @@ export function StoryNav({
           About
         </button>
         <a
-          href="https://github.com/YuraTadevosyan/three-js-and-animations"
+          href="https://github.com/YuraTadevosyan/three-js-and-animations/tree/main/immersive-story"
           target="_blank"
           rel="noopener noreferrer"
         >

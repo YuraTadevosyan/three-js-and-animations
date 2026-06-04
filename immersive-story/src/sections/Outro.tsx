@@ -122,7 +122,7 @@ export function Outro() {
         <div className="caption">© Camp Nou · field 005</div>
         <a
           className="caption hover:text-bone transition-colors"
-          href="https://github.com/YuraTadevosyan/three-js-and-animations"
+          href="https://github.com/YuraTadevosyan/three-js-and-animations/tree/main/immersive-story"
           target="_blank"
           rel="noopener noreferrer"
         >
