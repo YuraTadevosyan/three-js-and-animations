@@ -33,7 +33,7 @@ export function Masia() {
     <section
       ref={ref}
       className="chapter relative px-[6vw] py-[18vh]"
-      data-chapter="5"
+      data-chapter="6"
       aria-label="La Masia"
     >
       {/* Subtle wash so the section reads as its own breath between Staff
@@ -47,7 +47,7 @@ export function Masia() {
       />
       <div className="relative z-10 max-w-6xl mb-16">
         <div className="stripe max-w-[120px] mb-10" />
-        <span className="eyebrow block mb-6">04 — La Masia</span>
+        <span className="eyebrow block mb-6">05 — La Masia</span>
         <SplitText
           as="h2"
           splitBy="lines"

@@ -6,7 +6,8 @@
   "description": "An FC Barcelona-styled scroll-driven matchday story — full-bleed Camp Nou hero, pinned squad gallery, coaching staff, fans bleed — animated with GSAP ScrollTrigger and smoothed with Lenis.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "fetch:standings": "node scripts/fetch-standings.mjs",
+    "build": "npm run fetch:standings && tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "predeploy": "npm run build",

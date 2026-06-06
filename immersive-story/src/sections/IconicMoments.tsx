@@ -60,7 +60,7 @@ export function IconicMoments() {
     <section
       ref={ref}
       className="chapter relative w-screen h-screen overflow-hidden"
-      data-chapter="7"
+      data-chapter="8"
       aria-label="Iconic moments"
     >
       {/* Background wash so the panels read as a single dark stage. */}
@@ -77,7 +77,7 @@ export function IconicMoments() {
           track — they sit above it via z-index. */}
       <div className="absolute top-[6vh] left-[6vw] z-20 pointer-events-none">
         <div className="stripe max-w-[100px] mb-4" />
-        <span className="eyebrow">06 — Iconic nights</span>
+        <span className="eyebrow">07 — Iconic nights</span>
       </div>
       <div className="absolute top-[6vh] right-[6vw] z-20 caption flex items-center gap-3">
         <span className="text-bone/55">Story</span>

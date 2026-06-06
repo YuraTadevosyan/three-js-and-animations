@@ -85,7 +85,7 @@ export function Trophies() {
     <section
       ref={ref}
       className="chapter relative w-full h-screen overflow-hidden"
-      data-chapter="6"
+      data-chapter="7"
       aria-label="Trophy cabinet"
     >
       {/* Subtle blaugrana gradient backdrop so the section reads as its own
@@ -100,7 +100,7 @@ export function Trophies() {
 
       <div className="relative z-10 h-screen px-[6vw] py-[6vh] md:py-[8vh] flex flex-col">
         <div className="stripe max-w-[120px] mb-8" />
-        <span className="eyebrow block mb-4">05 — The cabinet</span>
+        <span className="eyebrow block mb-4">06 — The cabinet</span>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 flex-1 min-h-0">
           {/* Headline column. Always anchored to the top of the available

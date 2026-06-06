@@ -14,6 +14,7 @@ import { Hero } from '@/sections/Hero';
 import { SquadIntro } from '@/sections/SquadIntro';
 import { Squad } from '@/sections/Squad';
 import { Lineup } from '@/sections/Lineup';
+import { Standings } from '@/sections/Standings';
 import { Staff } from '@/sections/Staff';
 import { Masia } from '@/sections/Masia';
 import { Trophies } from '@/sections/Trophies';
@@ -45,6 +46,7 @@ export default function App() {
         <SquadIntro />
         <Squad />
         <Lineup />
+        <Standings />
         <Staff />
         <Masia />
         <Trophies />

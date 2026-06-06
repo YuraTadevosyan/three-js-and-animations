@@ -35,12 +35,12 @@ export function Staff() {
     <section
       ref={ref}
       className="chapter relative px-[6vw] py-[18vh]"
-      data-chapter="4"
+      data-chapter="5"
       aria-label="Coaching staff"
     >
       <div className="max-w-6xl mb-16">
         <div className="stripe max-w-[120px] mb-10" />
-        <span className="eyebrow block mb-6">03 — Coaching staff</span>
+        <span className="eyebrow block mb-6">04 — Coaching staff</span>
         <SplitText
           as="h2"
           splitBy="lines"

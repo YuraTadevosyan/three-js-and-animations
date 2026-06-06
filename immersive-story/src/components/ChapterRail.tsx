@@ -6,6 +6,7 @@ const CHAPTERS = [
   'Intro',
   'Squad',
   'Shape',
+  'Form',
   'Staff',
   'Masia',
   'Cabinet',
