@@ -1,9 +1,10 @@
 # Camp Nou — A Matchday Story
 
 A scroll-driven matchday story at Camp Nou, built in the **blaugrana** palette
-with **React**, **GSAP ScrollTrigger** and **Lenis**. Ten scenes — full-bleed
-stadium hero, a one-card-at-a-time squad carousel, an interactive 4-3-3
-formation diagram, a coaching-staff grid, a La Masia academy grid, a scrolled
+with **React**, **GSAP ScrollTrigger** and **Lenis**. Eleven scenes —
+full-bleed stadium hero, a one-card-at-a-time squad carousel, an interactive
+4-3-3 formation diagram, a La Liga table fetched at build time from
+Wikipedia, a coaching-staff grid, a La Masia academy grid, a scrolled
 trophy-cabinet counter, a horizontal-scrub timeline of iconic nights, a
 parallax fans bleed, and a credits outro — animate as you scroll. A nav-bar
 toggle plays *El Cant del Barça* in the background, with a Web-Audio
@@ -22,13 +23,14 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 | 00  | **Hero**         | Full-bleed Camp Nou photo with a slow ken-burns zoom, scoreboard pill, big "MÉS QUE UN CLUB" reveal.                    |
 | 01  | **Squad intro**  | "THE FIRST TEAM." headline announcing the carousel that follows.                                                        |
 | 02  | **Squad**        | Pinned carousel — all 23 first-team players, one card at a time. Photo, big stroked shirt-number, bio.                  |
-| 03  | **Shape**        | SVG 4-3-3 pitch with the starting XI plotted. Tap a dot to lift that player's card on the side.                         |
-| 04  | **Staff**        | 3-up grid of coaching-staff cards (Hansi Flick + assistants).                                                            |
-| 05  | **La Masia**     | Six-card grid of current first-teamers who came up through the academy — debut-year watermark, photo, one-line note.    |
-| 06  | **The cabinet**  | Pinned trophy room — every competition's count rolls up from 0 → N as you scroll, with a gold grand-total counter.      |
-| 07  | **Iconic nights** | Horizontal-scrub timeline. Six legendary matches (Wembley '92, Roma '09, La Remontada…) as typographic 100-vw panels.   |
-| 08  | **Fans**         | Pinned crowd photo with parallax drift; 4 stats lift in as you scroll over it.                                          |
-| 09  | **Outro**        | "VISCA EL BARÇA." sign-off + tech / data / image / audio credits.                                                        |
+| 03  | **Shape**         | SVG 4-3-3 pitch with the starting XI plotted. Tap a dot to lift that player's card on the side.                         |
+| 04  | **Where we stand** | Final La Liga 2025-26 table — top 10 with Barça highlighted in gold, plus a side callout of the champion's W/D/L/GD.    |
+| 05  | **Staff**         | 3-up grid of coaching-staff cards (Hansi Flick + assistants).                                                            |
+| 06  | **La Masia**      | Six-card grid of current first-teamers who came up through the academy — debut-year watermark, photo, one-line note.    |
+| 07  | **The cabinet**   | Pinned trophy room — every competition's count rolls up from 0 → N as you scroll, with a gold grand-total counter.      |
+| 08  | **Iconic nights** | Horizontal-scrub timeline. Six legendary matches (Wembley '92, Roma '09, La Remontada…) as typographic 100-vw panels.   |
+| 09  | **Fans**          | Pinned crowd photo with parallax drift; 4 stats lift in as you scroll over it.                                          |
+| 10  | **Outro**         | "VISCA EL BARÇA." sign-off + tech / data / image / audio credits.                                                        |
 
 ## Features
 
@@ -39,6 +41,7 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 | **Tactical 4-3-3 diagram**     | Pure SVG pitch (markings stroke-drawn via `stroke-dasharray`) with the starting XI plotted; hover/tap a dot to lift its player card.    |
 | **Trophy-cabinet count-up**    | A single scrubbed dummy tween rewrites every numeric `<span>` on each frame — every tile counts up to `N` and a grand total to 92.      |
 | **Horizontal scrub timeline**  | The Iconic Nights section pins and translates a track of N viewport-wide panels leftward; same primitive as the squad carousel.         |
+| **Build-time La Liga table**   | `npm run build` runs a zero-dep Node script that scrapes the standings off Wikipedia and writes `src/data/standings.json` for the section to import. Soft-fails to the previous JSON if Wikipedia is unreachable. |
 | **Anthem audio toggle**        | Nav button plays an MP3 of *El Cant del Barça* on demand, falling back to a Web-Audio-synthesised stadium roar if the file is missing. |
 | **IntersectionObserver text**  | `<SplitText>` lifts lines / words / chars into view from below — IO-driven so it works inside pinned sections that broke ScrollTrigger. |
 | **Ken-burns hero**             | Hero photo scales 1.05 → 1.22 on scroll, a dual blue/red overlay deepens, scroll hint fades.                                            |
@@ -48,7 +51,7 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 | **Smooth scroll**              | Lenis runs off the GSAP ticker (one update loop) — ScrollTrigger and the inertial scroll stay in lockstep.                              |
 | **Reduced-motion fallback**    | Animations collapse to ~0ms when `prefers-reduced-motion: reduce`; text is visible from the start.                                      |
 | **Photo positioning**          | Player photos are `background-position: center top` so heads stay in frame on tall portrait crops.                                      |
-| **Bundle**                     | ~360 KB JS + CSS (no `three.js`, no postprocessing). The `anthem.mp3` (~1.3 MB) and image assets dominate the deploy size.              |
+| **Bundle**                     | ~370 KB JS + CSS (no `three.js`, no postprocessing). The `anthem.mp3` (~1.3 MB) and image assets dominate the deploy size.              |
 
 ## Stack
 
@@ -59,6 +62,7 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 | Motion     | GSAP 3 + ScrollTrigger; Lenis 1 for smooth scroll       |
 | Reveals    | Native `IntersectionObserver` (replaces ScrollTrigger for text reveals — more reliable inside pinned sections) |
 | Audio      | `HTMLAudioElement` for the real anthem file; Web Audio API for the synth-ambience fallback (brown noise + lowpass + LFO swell) |
+| Build-time data | Node ESM script (`scripts/fetch-standings.mjs`) hits the Wikipedia parse API and writes `src/data/standings.json` before `vite build` runs |
 | Styling    | Tailwind CSS 3 + a small hand-written stylesheet for the design primitives |
 | Fonts      | Archivo Black (display), Inter (body), JetBrains Mono (captions) — loaded from Google Fonts |
 
@@ -107,6 +111,14 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
   switches between **Anthem** and **Ambience** so the user knows which is
   playing. The `AudioContext` is only constructed on first toggle —
   modern browsers require a user gesture.
+- **Standings: scraped at build time, not runtime.** `scripts/fetch-standings.mjs`
+  hits the Wikipedia `parse` API for the 2025-26 La Liga article, regex-
+  extracts the first `wikitable`, decodes a handful of HTML entities (the
+  minus sign on negative goal differences, footnote refs on the
+  qualification copy), strips the `(C)` champion marker into a structured
+  flag, and writes `src/data/standings.json` for the React section to
+  import. Soft-fails to the previously-committed JSON if the fetch errors
+  so offline builds still ship.
 
 ## Project layout
 
@@ -130,7 +142,8 @@ src/
 │   ├── lineup.ts              4-3-3 starting XI with pitch x/y coords; resolves players from squad.ts
 │   ├── masia.ts               academy graduates currently in the squad + debut year + one-liner
 │   ├── trophies.ts            7 competition tallies + grand total
-│   └── moments.ts             6 iconic-night entries (year, score, opponent, title, caption)
+│   ├── moments.ts             6 iconic-night entries (year, score, opponent, title, caption)
+│   └── standings.json         La Liga table — generated by scripts/fetch-standings.mjs, do not edit by hand
 ├── hooks/
 │   └── useSmoothScroll.ts     mounts Lenis + exposes `pageScroll.stop / start`
 ├── lib/
@@ -141,12 +154,15 @@ src/
     ├── SquadIntro.tsx         intro card for the squad gallery
     ├── Squad.tsx              pinned carousel (master timeline)
     ├── Lineup.tsx             SVG 4-3-3 pitch + active-dot side panel
+    ├── Standings.tsx          La Liga table + Barça-season callout (consumes data/standings.json)
     ├── Staff.tsx              coaching-staff grid
     ├── Masia.tsx              La Masia academy-graduate grid
     ├── Trophies.tsx           pinned trophy cabinet with scroll-driven count-ups
     ├── IconicMoments.tsx      pinned horizontal-scrub timeline of legendary nights
     ├── Fans.tsx               pinned parallax crowd shot + stats
     └── Outro.tsx              credits, image attribution, footer
+scripts/
+└── fetch-standings.mjs        zero-dep Node script — scrapes the La Liga table from Wikipedia
 public/
 └── audio/
     └── anthem.mp3             El Cant del Barça pulled from YouTube via yt-dlp (see Licensing caveat)
@@ -173,6 +189,11 @@ Adding a section: drop a component under `src/sections/`, add it to
 - **Trophy counts** are the cabinet at the start of the 2025-26 season,
   sourced from the *List of FC Barcelona records and statistics* article
   on Wikipedia. The grand total is computed at compile time.
+- **La Liga standings** are pulled at build time from the
+  [2025-26 La Liga Wikipedia article](https://en.wikipedia.org/wiki/2025%E2%80%9326_La_Liga)
+  by `scripts/fetch-standings.mjs` and persisted to
+  `src/data/standings.json`. Re-run `npm run fetch:standings` to refresh
+  (or just `npm run build`, which chains it automatically).
 - **Iconic-moments copy** is hand-written from the public match reports
   on Wikipedia — no images in this section, just typography, so no
   licensing question.
@@ -207,10 +228,11 @@ path on mount and picks up the new file on the next page load).
 
 ```bash
 npm install
-npm run dev          # vite dev server
-npm run build        # tsc -b && vite build → dist/
-npm run preview      # serve dist/ locally
-npm run typecheck    # tsc -b --noEmit
+npm run dev               # vite dev server
+npm run fetch:standings   # refresh src/data/standings.json from Wikipedia
+npm run build             # fetch:standings → tsc -b → vite build → dist/
+npm run preview           # serve dist/ locally
+npm run typecheck         # tsc -b --noEmit
 ```
 
 ## Deployment
@@ -222,8 +244,10 @@ Publishes to the `gh-pages` branch under
 npm run deploy
 ```
 
-The script runs `vite build` then `gh-pages -d dist -e immersive-story`, so
-it lands in its own subfolder and doesn't clobber the sibling apps.
+The `predeploy` script runs `npm run build` (which itself starts with
+`fetch:standings` so every deploy ships a fresh table), then
+`gh-pages -d dist -e immersive-story` publishes into its own subfolder
+without clobbering the sibling apps.
 
 ## License
 
