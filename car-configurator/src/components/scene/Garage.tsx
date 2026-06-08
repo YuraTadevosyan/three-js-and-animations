@@ -1,0 +1,172 @@
+import {
+  ContactShadows,
+  Environment,
+  Lightformer,
+  MeshReflectorMaterial,
+} from '@react-three/drei';
+import { DoubleSide } from 'three';
+
+/**
+ * The Need-for-Speed-style garage: a self-contained studio environment built
+ * from Lightformers (no external HDR needed), a glossy reflective floor, soft
+ * contact shadows, dark walls, and neon accent strips.
+ */
+export function Garage() {
+  return (
+    <group>
+      {/* Procedural reflections for the car paint — fully offline. */}
+      <Environment resolution={256} frames={1}>
+        <color attach="background" args={['#05060a']} />
+        {/* Big soft ceiling key */}
+        <Lightformer
+          intensity={2.4}
+          position={[0, 6, 1]}
+          scale={[10, 6, 1]}
+          color="#cfe3ff"
+        />
+        {/* Long top strip that streaks across the roof and glass */}
+        <Lightformer
+          form="rect"
+          intensity={3}
+          position={[0, 4, -3]}
+          scale={[12, 0.4, 1]}
+          rotation={[Math.PI / 2, 0, 0]}
+          color="#ffffff"
+        />
+        {/* Cool rim from the left */}
+        <Lightformer
+          intensity={2.2}
+          position={[-6, 2, 0]}
+          scale={[1, 5, 1]}
+          rotation={[0, Math.PI / 2, 0]}
+          color="#3dd7ff"
+        />
+        {/* Warm/ember rim from the right */}
+        <Lightformer
+          intensity={1.8}
+          position={[6, 2, 0]}
+          scale={[1, 5, 1]}
+          rotation={[0, -Math.PI / 2, 0]}
+          color="#ff5a47"
+        />
+        {/* Front fill so the face/grille reads */}
+        <Lightformer
+          intensity={1.4}
+          position={[0, 1.5, 7]}
+          scale={[6, 3, 1]}
+          color="#aac4ff"
+        />
+      </Environment>
+
+      {/* Reflective showroom floor */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <circleGeometry args={[24, 64]} />
+        <MeshReflectorMaterial
+          resolution={1024}
+          mirror={0.7}
+          mixStrength={2.4}
+          mixBlur={1.1}
+          blur={[400, 100]}
+          roughness={0.85}
+          depthScale={1.1}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.3}
+          color="#0a0c12"
+          metalness={0.55}
+        />
+      </mesh>
+
+      {/* Painted-on tyre marks / glow ring under the stage */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
+        <ringGeometry args={[3.4, 3.55, 96]} />
+        <meshBasicMaterial color="#3dd7ff" transparent opacity={0.16} side={DoubleSide} />
+      </mesh>
+
+      {/* Soft grounded shadow under the car */}
+      <ContactShadows
+        position={[0, 0.01, 0]}
+        scale={14}
+        resolution={1024}
+        far={6}
+        blur={2.6}
+        opacity={0.7}
+        color="#000000"
+      />
+
+      <GarageWalls />
+
+      {/* Stage key light with a crisp cast shadow */}
+      <spotLight
+        position={[4, 9, 5]}
+        angle={0.5}
+        penumbra={0.8}
+        intensity={120}
+        distance={40}
+        color="#eaf2ff"
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0002}
+      />
+      <spotLight
+        position={[-6, 5, -4]}
+        angle={0.7}
+        penumbra={1}
+        intensity={50}
+        distance={40}
+        color="#3dd7ff"
+      />
+      <spotLight
+        position={[6, 4, -5]}
+        angle={0.7}
+        penumbra={1}
+        intensity={36}
+        distance={40}
+        color="#ff5a47"
+      />
+      <ambientLight intensity={0.18} />
+    </group>
+  );
+}
+
+function GarageWalls() {
+  return (
+    <group>
+      {/* Back wall */}
+      <mesh position={[0, 5, -14]} receiveShadow>
+        <planeGeometry args={[60, 22]} />
+        <meshStandardMaterial color="#0a0b10" roughness={0.95} metalness={0.1} />
+      </mesh>
+      {/* Side walls */}
+      <mesh position={[-16, 5, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[40, 22]} />
+        <meshStandardMaterial color="#080910" roughness={0.95} />
+      </mesh>
+      <mesh position={[16, 5, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[40, 22]} />
+        <meshStandardMaterial color="#080910" roughness={0.95} />
+      </mesh>
+
+      {/* Neon accent strips on the back wall */}
+      {[-7, 7].map((x) => (
+        <mesh key={x} position={[x, 4.5, -13.8]}>
+          <boxGeometry args={[0.12, 7, 0.12]} />
+          <meshStandardMaterial
+            color="#3dd7ff"
+            emissive="#3dd7ff"
+            emissiveIntensity={3}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+      <mesh position={[0, 8.4, -13.8]}>
+        <boxGeometry args={[16, 0.1, 0.1]} />
+        <meshStandardMaterial
+          color="#ff5a47"
+          emissive="#ff5a47"
+          emissiveIntensity={2.4}
+          toneMapped={false}
+        />
+      </mesh>
+    </group>
+  );
+}
