@@ -1,36 +1,37 @@
 # car-configurator
 
-A premium **3D car configurator** — a procedural **BMW E46** sitting in a
-Need-for-Speed-style garage. Built with **React Three Fiber**, **drei**, and
-**GSAP**: real-time paint transitions, swappable alloy wheels, coloured brake
-calipers, angel-eye headlights, cinematic camera presets, and a glossy
-reflective stage with bloom.
+A premium **3D car configurator** for a **BMW M3 GTR E46** (the Need for Speed
+Most Wanted "Razor" car), built with **React Three Fiber**, **drei**, and
+**GSAP**. A real GLB model is loaded, auto-fitted into a Need-for-Speed-style
+garage, and driven by a live configurator: paint transitions, wheel/caliper
+finishes, angel-eye headlights, cinematic camera presets, reflections and bloom.
 
 **Live:** <https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/>
 
 ## Features
 
-- **Procedural BMW E46 model** — body, greenhouse, kidney grille, mirrors,
-  taillights, splitter, side skirts and exhausts assembled from `drei`
-  `RoundedBox` panels sharing one physical clearcoat material.
-- **Paint transitions** — eight BMW-individual finishes that cross-fade colour
-  _and_ metalness/roughness with GSAP rather than snapping.
-- **Interactive wheels** — four parametric rim designs (cross-spoke,
-  M double-spoke, forged 10-spoke, gold BBS mesh) generated from a spoke
-  count + fork descriptor, each with a drilled brake disc and a coloured
-  caliper.
-- **Angel-eye headlights** — twin round projectors whose coronas, lenses,
-  spotlights and volumetric cones all switch on together via a GSAP timeline.
-- **Cinematic camera** — a sweeping intro fly-in plus six GSAP-tweened presets
-  (Hero / Front / Profile / Rear / Wheel / Overhead) layered over damped
-  `OrbitControls`.
+- **Real BMW M3 GTR E46 model** — a 14-material GLB is loaded with `useGLTF`,
+  cloned (so the cached asset is never mutated), shadow-enabled, and
+  **auto-fitted**: scaled to a known length, laid long-axis-along-Z, and
+  oriented front-forward by detecting the taillight glass, then centred and
+  dropped onto the floor.
+- **Paint transitions** — eight finishes that GSAP-tween the body material's
+  colour *and* metalness/roughness. The baked livery map is removed so solid
+  colours read true.
+- **Wheel / caliper finish** — four alloy finishes (gunmetal, satin black,
+  hyper silver, bronze). On this model the rims and calipers share one
+  material, so the finish applies to both together.
+- **Angel-eye headlights** — toggles the headlight material's emissive plus two
+  forward spotlights, animated on together via GSAP.
+- **Cinematic camera** — a sweeping intro fly-in and six GSAP-tweened presets
+  (Hero / Front / Profile / Rear / Wheel / Overhead) over damped `OrbitControls`.
 - **Reflections & shadows** — a `MeshReflectorMaterial` floor, soft
   `ContactShadows`, and a fully offline studio environment built from
   `Lightformer`s (no external HDR needed).
 - **Need-for-Speed garage** — dark walls, neon accent strips, fog, and a
-  bloom + vignette post pipeline.
-- **Smooth UI** — glassmorphic panels with a staggered GSAP entrance, plus a
-  turntable spin and "randomize build" toggle.
+  bloom + vignette post pipeline, with ACES tone mapping.
+- **Smooth UI** — glassmorphic panels with a staggered GSAP entrance, a
+  turntable spin and a "randomize build" toggle.
 - **Responsive & accessible** — bottom-sheet UI on mobile, side panel on
   desktop, and a `prefers-reduced-motion` path that skips every animation.
 
@@ -43,23 +44,35 @@ React 18 · TypeScript · Vite · Tailwind CSS · three.js · @react-three/fiber
 
 ```
 src/
-├── state/configStore.tsx     React context: paint, wheel, caliper, view, toggles
-├── lib/config.ts             paint / wheel / caliper / camera-preset tables
+├── state/configStore.tsx     React context: paint, wheel, view, toggles
+├── lib/config.ts             model URL + material ids + option tables
 ├── components/
 │   ├── CarConfigurator.tsx    layout + GSAP entrance timeline
 │   ├── scene/
-│   │   ├── CarScene.tsx        Canvas, fog, post-processing
-│   │   ├── Car.tsx             the E46 shell + shared paint material
-│   │   ├── Wheel.tsx           one parametric alloy wheel
-│   │   ├── Headlights.tsx      angel-eye rings + beams (GSAP)
-│   │   ├── Garage.tsx          environment, floor, lights, walls
+│   │   ├── CarScene.tsx        Canvas, tone mapping, post-processing
+│   │   ├── CarModel.tsx        loads/clones the GLB, auto-fits, drives materials
+│   │   ├── Garage.tsx          environment, reflective floor, lights, walls
 │   │   └── CameraRig.tsx       intro + preset fly-to over OrbitControls
 │   └── ui/                     glass panels, selectors, toolbar, view bar
 └── hooks/useReducedMotion.ts
 ```
 
-All configurable options live in [`src/lib/config.ts`](./src/lib/config.ts), so
-the 3D scene and the controls are always driven from a single source of truth.
+The material ids the configurator drives live in
+[`src/lib/config.ts`](./src/lib/config.ts) (`MAT`), so the controls and the GLB
+stay in sync.
+
+### Swapping the model
+
+The car is `public/models/bmw-m3-gtr.glb`. To use a different car, replace that
+file and update the `MAT` material-name map (and option tables) in
+`src/lib/config.ts` to match the new model's material names. Inspect a GLB's
+materials/meshes with any glTF viewer, or the small parser used during build-out.
+
+## Model credit & licence
+
+3D model: **"2005 BMW M3 GTR — Need for Speed Most Wanted"** by **get3dmodels**.
+It is a fan-made asset — check and honour its original licence (typically
+non-commercial, attribution-required) before using it publicly.
 
 ## Local development
 

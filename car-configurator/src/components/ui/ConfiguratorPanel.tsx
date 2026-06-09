@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { CALIPERS, PAINTS, WHEELS } from '@/lib/config';
+import { PAINTS, WHEELS } from '@/lib/config';
 import { useConfig } from '@/state/configStore';
 import { cn } from '@/lib/cn';
 import { WheelPreview } from './WheelPreview';
@@ -32,7 +32,7 @@ function Section({
 }
 
 export function ConfiguratorPanel() {
-  const { paint, setPaint, wheel, setWheel, caliper, setCaliper } = useConfig();
+  const { paint, setPaint, wheel, setWheel } = useConfig();
 
   return (
     <div
@@ -86,8 +86,8 @@ export function ConfiguratorPanel() {
           </div>
         </Section>
 
-        {/* Wheels */}
-        <Section index="02" title="Wheels" hint={`${WHEELS.length} sets`}>
+        {/* Wheel + caliper finish */}
+        <Section index="02" title="Wheels" hint={wheel.name}>
           <div className="flex flex-col gap-2">
             {WHEELS.map((w) => {
               const active = w.id === wheel.id;
@@ -103,12 +103,7 @@ export function ConfiguratorPanel() {
                       : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]',
                   )}
                 >
-                  <span
-                    className={cn(
-                      'shrink-0 rounded-full p-1 transition-transform duration-300',
-                      active && 'rotate-180',
-                    )}
-                  >
+                  <span className="shrink-0">
                     <WheelPreview wheel={w} />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -126,29 +121,9 @@ export function ConfiguratorPanel() {
               );
             })}
           </div>
-        </Section>
-
-        {/* Calipers */}
-        <Section index="03" title="Brakes" hint={caliper.name}>
-          <div className="flex items-center gap-2.5">
-            {CALIPERS.map((cp) => {
-              const active = cp.id === caliper.id;
-              return (
-                <button
-                  key={cp.id}
-                  type="button"
-                  title={cp.name}
-                  onClick={() => setCaliper(cp)}
-                  className={cn(
-                    'h-8 w-8 rounded-lg border transition-transform duration-200 hover:scale-110',
-                    active ? 'border-white ring-2 ring-white/30' : 'border-white/15',
-                  )}
-                  style={{ background: cp.hex }}
-                />
-              );
-            })}
-            <span className="ml-1 text-xs text-white/55">{caliper.name}</span>
-          </div>
+          <p className="mt-2.5 text-[11px] leading-relaxed text-white/35">
+            Finish applies to the forged rims and the brake calipers together.
+          </p>
         </Section>
       </div>
     </div>

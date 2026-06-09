@@ -95,35 +95,42 @@ export function Garage() {
 
       <GarageWalls />
 
-      {/* Stage key light with a crisp cast shadow */}
-      <spotLight
-        position={[4, 9, 5]}
-        angle={0.5}
-        penumbra={0.8}
-        intensity={120}
-        distance={40}
-        color="#eaf2ff"
+      {/* Key light with a crisp cast shadow */}
+      <directionalLight
+        position={[6, 9, 7]}
+        intensity={2.6}
+        color="#eef4ff"
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0002}
+        shadow-camera-left={-6}
+        shadow-camera-right={6}
+        shadow-camera-top={6}
+        shadow-camera-bottom={-6}
+        shadow-camera-near={1}
+        shadow-camera-far={30}
       />
+      {/* Front fill so the face / grille reads */}
+      <directionalLight position={[-3, 4, 8]} intensity={0.9} color="#cfe0ff" />
+      {/* Neon rim accents (no distance falloff so they stay punchy) */}
       <spotLight
-        position={[-6, 5, -4]}
-        angle={0.7}
+        position={[-7, 4, -2]}
+        angle={0.9}
         penumbra={1}
-        intensity={50}
-        distance={40}
+        intensity={9}
+        decay={0}
         color="#3dd7ff"
       />
       <spotLight
-        position={[6, 4, -5]}
-        angle={0.7}
+        position={[7, 4, -3]}
+        angle={0.9}
         penumbra={1}
-        intensity={36}
-        distance={40}
+        intensity={6}
+        decay={0}
         color="#ff5a47"
       />
-      <ambientLight intensity={0.18} />
+      <hemisphereLight args={['#5a6b8a', '#0a0a0c', 0.5]} />
+      <ambientLight intensity={0.32} />
     </group>
   );
 }

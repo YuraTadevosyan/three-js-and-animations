@@ -8,14 +8,11 @@ import {
 } from 'react';
 
 import {
-  CALIPERS,
-  DEFAULT_CALIPER,
   DEFAULT_PAINT,
   DEFAULT_VIEW,
   DEFAULT_WHEEL,
   PAINTS,
   WHEELS,
-  type CaliperOption,
   type CameraViewId,
   type PaintOption,
   type WheelOption,
@@ -24,7 +21,6 @@ import {
 interface ConfigState {
   paint: PaintOption;
   wheel: WheelOption;
-  caliper: CaliperOption;
   view: CameraViewId;
   headlightsOn: boolean;
   autoSpin: boolean;
@@ -36,7 +32,6 @@ interface ConfigState {
 interface ConfigActions {
   setPaint: (paint: PaintOption) => void;
   setWheel: (wheel: WheelOption) => void;
-  setCaliper: (caliper: CaliperOption) => void;
   setView: (view: CameraViewId) => void;
   toggleHeadlights: () => void;
   toggleAutoSpin: () => void;
@@ -54,7 +49,6 @@ function pick<T>(list: T[]): T {
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const [paint, setPaint] = useState<PaintOption>(DEFAULT_PAINT);
   const [wheel, setWheel] = useState<WheelOption>(DEFAULT_WHEEL);
-  const [caliper, setCaliper] = useState<CaliperOption>(DEFAULT_CALIPER);
   const [view, setViewState] = useState<CameraViewId>(DEFAULT_VIEW);
   const [viewNonce, setViewNonce] = useState(0);
   const [headlightsOn, setHeadlightsOn] = useState(false);
@@ -74,21 +68,18 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const randomize = useCallback(() => {
     setPaint(pick(PAINTS));
     setWheel(pick(WHEELS));
-    setCaliper(pick(CALIPERS));
   }, []);
 
   const value = useMemo<ConfigContextValue>(
     () => ({
       paint,
       wheel,
-      caliper,
       view,
       viewNonce,
       headlightsOn,
       autoSpin,
       setPaint,
       setWheel,
-      setCaliper,
       setView,
       toggleHeadlights,
       toggleAutoSpin,
@@ -97,7 +88,6 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     [
       paint,
       wheel,
-      caliper,
       view,
       viewNonce,
       headlightsOn,
