@@ -34,29 +34,82 @@ export const PAINTS: PaintOption[] = [
   { id: 'phoenix', name: 'Phoenix Yellow', hex: '#f2c20b', metalness: 0.8, roughness: 0.26 },
   { id: 'titanium', name: 'Titanium Silver', hex: '#9aa1a8', metalness: 0.95, roughness: 0.2 },
   { id: 'oxford', name: 'Oxford Green', hex: '#10362a', metalness: 0.88, roughness: 0.24 },
+  { id: 'frozen', name: 'Frozen Grey', hex: '#6b7077', metalness: 0.4, roughness: 0.62 },
+  { id: 'sakhir', name: 'Sakhir Orange', hex: '#d8591b', metalness: 0.85, roughness: 0.24 },
+  { id: 'daytona', name: 'Daytona Violet', hex: '#5b2a8c', metalness: 0.88, roughness: 0.22 },
+  { id: 'british', name: 'British Racing', hex: '#0c3b2e', metalness: 0.9, roughness: 0.2 },
 ];
 
-export type WheelStyleId = 'gunmetal' | 'satin' | 'silver' | 'bronze';
+/** Build a one-off paint from the custom colour picker. */
+export function customPaint(hex: string): PaintOption {
+  return { id: 'custom', name: 'Custom', hex, metalness: 0.88, roughness: 0.22 };
+}
+export const CUSTOM_PAINT_DEFAULT = '#15d6a0';
 
-export interface WheelOption {
+// ---- Wheels: geometry style + finish colour are two independent choices ----
+
+export type WheelStyleId = 'oem' | 'tuner3' | 'split5' | 'ten' | 'mesh';
+
+export interface WheelStyle {
   id: WheelStyleId;
   name: string;
-  /** Rim + caliper finish colour. */
+  /**
+   * 'oem'   — keep the car's own rims.
+   * 'model' — mount a real wheel GLB at each hub.
+   * 'proc'  — mount generated geometry (fallback / stylised).
+   */
+  kind: 'oem' | 'model' | 'proc';
+  blurb: string;
+  /** Spoke count used only to draw the little UI preview. */
+  spokes?: number;
+  split?: boolean;
+  /** model: GLB url + which axis the wheel spins around in that file. */
+  url?: string;
+  axis?: 'x' | 'y' | 'z';
+}
+
+// Drop more wheel GLBs into public/models/wheels/ and add an entry here.
+export const WHEEL_STYLES: WheelStyle[] = [
+  { id: 'oem', name: 'GTR Forged', kind: 'oem', spokes: 10, blurb: 'Factory M3 GTR alloy' },
+  {
+    id: 'tuner3',
+    name: 'Tuner Mesh',
+    kind: 'model',
+    url: `${import.meta.env.BASE_URL}models/wheels/tuner-wheel-3.glb`,
+    axis: 'z',
+    spokes: 12,
+    blurb: 'Real 3D multi-spoke',
+  },
+];
+
+/** Every real wheel model, for preloading. */
+export const WHEEL_MODEL_URLS = WHEEL_STYLES.filter((w) => w.url).map((w) => w.url!);
+
+export interface WheelFinish {
+  id: string;
+  name: string;
   hex: string;
   metalness: number;
   roughness: number;
-  /** Short marketing blurb shown in the selector. */
-  blurb: string;
 }
 
-// On this model the rim and caliper share one material, so the "wheels" control
-// is a finish selector rather than a geometry swap.
-export const WHEELS: WheelOption[] = [
-  { id: 'gunmetal', name: 'Gunmetal', hex: '#3b3e45', metalness: 0.95, roughness: 0.32, blurb: 'OEM M forged satin' },
-  { id: 'satin', name: 'Satin Black', hex: '#141519', metalness: 0.85, roughness: 0.45, blurb: 'Murdered-out stealth' },
-  { id: 'silver', name: 'Hyper Silver', hex: '#b9bec6', metalness: 1.0, roughness: 0.22, blurb: 'Polished motorsport' },
-  { id: 'bronze', name: 'Bronze', hex: '#9a7338', metalness: 0.95, roughness: 0.3, blurb: 'JDM tuner bronze' },
+export const WHEEL_FINISHES: WheelFinish[] = [
+  { id: 'gunmetal', name: 'Gunmetal', hex: '#3b3e45', metalness: 0.95, roughness: 0.32 },
+  { id: 'satin', name: 'Satin Black', hex: '#141519', metalness: 0.85, roughness: 0.45 },
+  { id: 'silver', name: 'Hyper Silver', hex: '#b9bec6', metalness: 1.0, roughness: 0.22 },
+  { id: 'chrome', name: 'Chrome', hex: '#e8ecf2', metalness: 1.0, roughness: 0.08 },
+  { id: 'bronze', name: 'Bronze', hex: '#9a7338', metalness: 0.95, roughness: 0.3 },
+  { id: 'gold', name: 'Gold', hex: '#caa53d', metalness: 0.95, roughness: 0.26 },
+  { id: 'white', name: 'Pearl White', hex: '#e8eaee', metalness: 0.6, roughness: 0.35 },
+  { id: 'red', name: 'Race Red', hex: '#c01818', metalness: 0.7, roughness: 0.3 },
+  { id: 'blue', name: 'M Blue', hex: '#1763d6', metalness: 0.75, roughness: 0.3 },
 ];
+
+/** Build a one-off rim finish from the custom colour picker. */
+export function customFinish(hex: string): WheelFinish {
+  return { id: 'custom', name: 'Custom', hex, metalness: 0.9, roughness: 0.3 };
+}
+export const CUSTOM_FINISH_DEFAULT = '#c0392b';
 
 export type CameraViewId = 'hero' | 'front' | 'side' | 'rear' | 'wheel' | 'top';
 
@@ -79,5 +132,6 @@ export const CAMERA_VIEWS: CameraView[] = [
 ];
 
 export const DEFAULT_PAINT = PAINTS[2]; // Estoril Blue
-export const DEFAULT_WHEEL = WHEELS[0];
+export const DEFAULT_WHEEL_STYLE = WHEEL_STYLES[0];
+export const DEFAULT_WHEEL_FINISH = WHEEL_FINISHES[0];
 export const DEFAULT_VIEW: CameraViewId = 'hero';

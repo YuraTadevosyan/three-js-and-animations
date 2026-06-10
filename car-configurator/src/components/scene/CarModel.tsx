@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import gsap from 'gsap';
@@ -12,33 +12,55 @@ import {
   Vector3,
 } from 'three';
 
-import { CAR_MODEL_URL, MAT } from '@/lib/config';
+import { CAR_MODEL_URL, MAT, WHEEL_MODEL_URLS } from '@/lib/config';
 import { useConfig } from '@/state/configStore';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { ProceduralWheel } from './ProceduralWheel';
+import { WheelModel } from './WheelModel';
 
 const TARGET_LENGTH = 4.5; // fit the car to ~4.5 world units long
+// Tire outer radius relative to the measured OEM *rim* radius. Real tires stand
+// ~40% proud of the rim, so the swapped wheel fills the arch like the original.
+const TIRE_SCALE = 1.42;
+
+interface HubXform {
+  position: [number, number, number];
+  radius: number;
+  width: number;
+  side: 1 | -1;
+}
 
 interface PreparedModel {
   root: Object3D;
   paintMats: MeshStandardMaterial[];
   wheelMats: MeshStandardMaterial[];
   lightMats: MeshStandardMaterial[];
+  hubMeshes: Mesh[];
+  tireMeshes: Mesh[];
+  brakeMeshes: Mesh[];
+  diskMeshes: Mesh[];
   rearMesh: Mesh | null;
 }
 
-/**
- * Loads the BMW M3 GTR GLB, clones it (so the cached asset is never mutated),
- * enables shadows, isolates the materials the configurator drives, and
- * auto-fits + auto-orients the body to the origin. Paint, wheel finish and
- * headlights are tweened with GSAP off the live config.
- */
+/** True if `obj` or any ancestor has a name matching `re`. */
+function ancestorMatches(obj: Object3D, re: RegExp): boolean {
+  let cur: Object3D | null = obj;
+  while (cur) {
+    if (re.test(cur.name)) return true;
+    cur = cur.parent;
+  }
+  return false;
+}
+
 export function CarModel() {
-  const { paint, wheel, headlightsOn, autoSpin } = useConfig();
+  const { paint, wheelStyle, wheelFinish, headlightsOn, autoSpin } = useConfig();
   const reducedMotion = useReducedMotion();
   const { scene } = useGLTF(CAR_MODEL_URL);
   const spin = useRef<Group>(null);
   const leftBeam = useRef<import('three').SpotLight>(null);
   const rightBeam = useRef<import('three').SpotLight>(null);
+  const [hubs, setHubs] = useState<HubXform[]>([]);
+
   const beamTargets = useMemo(() => {
     const l = new Object3D();
     const r = new Object3D();
@@ -47,13 +69,16 @@ export function CarModel() {
     return { l, r };
   }, []);
 
-  // Clone once and collect the driveable materials. Cloning the materials keeps
-  // our colour tweens isolated from drei's shared GLTF cache.
+  // Clone once and collect the driveable materials + the wheel meshes.
   const prepared = useMemo<PreparedModel>(() => {
     const root = scene.clone(true);
     const paintMats: MeshStandardMaterial[] = [];
     const wheelMats: MeshStandardMaterial[] = [];
     const lightMats: MeshStandardMaterial[] = [];
+    const hubMeshes: Mesh[] = [];
+    const tireMeshes: Mesh[] = [];
+    const brakeMeshes: Mesh[] = [];
+    const diskMeshes: Mesh[] = [];
     let rearMesh: Mesh | null = null;
 
     root.traverse((obj) => {
@@ -69,13 +94,13 @@ export function CarModel() {
 
       switch (mat.name) {
         case MAT.paint:
-          // Drop the baked livery so solid configurator colours read true
-          // (a multiply tint over a blue texture can't become white/yellow).
-          mat.map = null;
+          mat.map = null; // solid configurator colours instead of the baked livery
           paintMats.push(mat);
           break;
         case MAT.wheel:
           wheelMats.push(mat);
+          if (ancestorMatches(mesh, /hub/i)) hubMeshes.push(mesh);
+          else if (ancestorMatches(mesh, /brake/i)) brakeMeshes.push(mesh);
           break;
         case MAT.lights:
           mat.emissive = new Color('#ffffff');
@@ -84,14 +109,25 @@ export function CarModel() {
           lightMats.push(mat);
           break;
       }
+      if (mat.name === 'tire') tireMeshes.push(mesh);
+      if (/disk/i.test(mat.name)) diskMeshes.push(mesh);
       if (mat.name === MAT.taillight) rearMesh = mesh;
     });
 
-    return { root, paintMats, wheelMats, lightMats, rearMesh };
+    return {
+      root,
+      paintMats,
+      wheelMats,
+      lightMats,
+      hubMeshes,
+      tireMeshes,
+      brakeMeshes,
+      diskMeshes,
+      rearMesh,
+    };
   }, [scene]);
 
-  // Auto-fit: scale to a known length, lay the long axis along Z, put the rear
-  // at -Z (so the front faces the hero camera), then centre + sit on the floor.
+  // Auto-fit + measure the hub positions for procedural wheel swapping.
   useLayoutEffect(() => {
     const obj = prepared.root;
     obj.position.set(0, 0, 0);
@@ -108,7 +144,6 @@ export function CarModel() {
     obj.rotation.y = rotY;
     obj.updateMatrixWorld(true);
 
-    // The taillight glass unambiguously marks the rear — push it to -Z.
     if (prepared.rearMesh) {
       const rear = new Box3().setFromObject(prepared.rearMesh).getCenter(new Vector3());
       if (rear.z > 0) {
@@ -123,20 +158,53 @@ export function CarModel() {
     obj.position.x -= center.x;
     obj.position.z -= center.z;
     obj.position.y -= box.min.y;
+    obj.updateMatrixWorld(true);
+
+    // Actual OEM tire radius: the tire mesh's vertical extent is its diameter.
+    let tireRadius = 0;
+    if (prepared.tireMeshes.length) {
+      const tb = new Box3();
+      prepared.tireMeshes.forEach((m) => tb.expandByObject(m));
+      tireRadius = tb.getSize(new Vector3()).y / 2;
+    }
+
+    // With the body grounded, measure each hub (rim) to place the wheels.
+    const xforms: HubXform[] = prepared.hubMeshes.map((hub) => {
+      const hbox = new Box3().setFromObject(hub);
+      const hsize = hbox.getSize(new Vector3());
+      const hc = hbox.getCenter(new Vector3());
+      const rimR = Math.max(hsize.y, hsize.z) / 2;
+      return {
+        position: [hc.x, hc.y, hc.z],
+        radius: tireRadius > 0 ? tireRadius : rimR * TIRE_SCALE,
+        width: Math.max(hsize.x, rimR * 0.62),
+        side: hc.x >= 0 ? 1 : -1,
+      };
+    });
+    setHubs(xforms);
   }, [prepared]);
+
+  // Decide which factory wheel parts stay visible:
+  //  • oem   → everything (its own rims, tires, calipers, discs)
+  //  • proc  → hide rims + tires (the procedural wheel brings its own tire),
+  //            keep calipers + discs so they show through the spokes
+  //  • model → hide the whole corner; the real wheel GLB has tire + caliper
+  useEffect(() => {
+    const k = wheelStyle.kind;
+    const showRim = k === 'oem';
+    const showCorner = k !== 'model';
+    prepared.hubMeshes.forEach((m) => (m.visible = showRim));
+    prepared.tireMeshes.forEach((m) => (m.visible = showRim));
+    prepared.brakeMeshes.forEach((m) => (m.visible = showCorner));
+    prepared.diskMeshes.forEach((m) => (m.visible = showCorner));
+  }, [wheelStyle, prepared]);
 
   // ---- Paint transition ----
   useEffect(() => {
     const target = new Color(paint.hex).convertSRGBToLinear();
     const duration = reducedMotion ? 0 : 0.7;
     prepared.paintMats.forEach((m) => {
-      gsap.to(m.color, {
-        r: target.r,
-        g: target.g,
-        b: target.b,
-        duration,
-        ease: 'power2.inOut',
-      });
+      gsap.to(m.color, { r: target.r, g: target.g, b: target.b, duration, ease: 'power2.inOut' });
       gsap.to(m, {
         metalness: paint.metalness,
         roughness: paint.roughness,
@@ -146,27 +214,21 @@ export function CarModel() {
     });
   }, [paint, prepared, reducedMotion]);
 
-  // ---- Wheel / caliper finish ----
+  // ---- Wheel / caliper finish (OEM material) ----
   useEffect(() => {
-    const target = new Color(wheel.hex).convertSRGBToLinear();
+    const target = new Color(wheelFinish.hex).convertSRGBToLinear();
     const duration = reducedMotion ? 0 : 0.6;
     prepared.wheelMats.forEach((m) => {
-      m.map = null; // let the finish colour read cleanly
-      gsap.to(m.color, {
-        r: target.r,
-        g: target.g,
-        b: target.b,
-        duration,
-        ease: 'power2.inOut',
-      });
+      m.map = null;
+      gsap.to(m.color, { r: target.r, g: target.g, b: target.b, duration, ease: 'power2.inOut' });
       gsap.to(m, {
-        metalness: wheel.metalness,
-        roughness: wheel.roughness,
+        metalness: wheelFinish.metalness,
+        roughness: wheelFinish.roughness,
         duration,
         ease: 'power2.inOut',
       });
     });
-  }, [wheel, prepared, reducedMotion]);
+  }, [wheelFinish, prepared, reducedMotion]);
 
   // ---- Headlights ----
   useEffect(() => {
@@ -177,11 +239,7 @@ export function CarModel() {
       ease: headlightsOn ? 'power2.out' : 'power2.in',
     });
     const beams = [leftBeam.current, rightBeam.current].filter(Boolean);
-    gsap.to(beams, {
-      intensity: headlightsOn ? 24 : 0,
-      duration,
-      ease: 'power2.out',
-    });
+    gsap.to(beams, { intensity: headlightsOn ? 24 : 0, duration, ease: 'power2.out' });
   }, [headlightsOn, prepared, reducedMotion]);
 
   // ---- Turntable ----
@@ -194,6 +252,39 @@ export function CarModel() {
   return (
     <group ref={spin}>
       <primitive object={prepared.root} />
+
+      {wheelStyle.kind === 'proc' &&
+        hubs.map((h, i) => (
+          <ProceduralWheel
+            key={i}
+            position={h.position}
+            radius={h.radius}
+            width={h.width}
+            side={h.side}
+            spokes={wheelStyle.spokes ?? 5}
+            split={wheelStyle.split ?? false}
+            color={wheelFinish.hex}
+            metalness={wheelFinish.metalness}
+            roughness={wheelFinish.roughness}
+          />
+        ))}
+
+      {wheelStyle.kind === 'model' && wheelStyle.url && (
+        <Suspense fallback={null}>
+          {hubs.map((h, i) => (
+            <WheelModel
+              key={i}
+              url={wheelStyle.url!}
+              position={h.position}
+              targetRadius={h.radius}
+              side={h.side}
+              color={wheelFinish.hex}
+              metalness={wheelFinish.metalness}
+              roughness={wheelFinish.roughness}
+            />
+          ))}
+        </Suspense>
+      )}
 
       {/* Headlight beams (front faces +Z after auto-orient) */}
       <primitive object={beamTargets.l} />
@@ -223,3 +314,4 @@ export function CarModel() {
 }
 
 useGLTF.preload(CAR_MODEL_URL);
+WHEEL_MODEL_URLS.forEach((url) => useGLTF.preload(url));

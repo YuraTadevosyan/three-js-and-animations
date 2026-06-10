@@ -15,12 +15,18 @@ finishes, angel-eye headlights, cinematic camera presets, reflections and bloom.
   **auto-fitted**: scaled to a known length, laid long-axis-along-Z, and
   oriented front-forward by detecting the taillight glass, then centred and
   dropped onto the floor.
-- **Paint transitions** — eight finishes that GSAP-tween the body material's
-  colour *and* metalness/roughness. The baked livery map is removed so solid
-  colours read true.
+- **Paint transitions** — twelve presets plus a **custom colour picker**, all
+  GSAP-tweening the body material's colour *and* metalness/roughness. The baked
+  livery map is removed so solid colours read true.
+- **Real wheel swapping** — choose the OEM GTR rims or a **real wheel GLB**
+  (e.g. the included tuner mesh). The OEM hub positions are measured after the
+  auto-fit; on a non-OEM selection the relevant factory parts are hidden and the
+  chosen wheel is centred, scaled to the hub radius, axle-oriented onto the
+  car's wheel axis, and tinted with the finish. Drop more wheel GLBs into
+  `public/models/wheels/` and add an entry to `WHEEL_STYLES` to extend the list.
 - **Wheel / caliper finish** — four alloy finishes (gunmetal, satin black,
   hyper silver, bronze). On this model the rims and calipers share one
-  material, so the finish applies to both together.
+  material, so the finish applies to both together (and to the procedural rims).
 - **Angel-eye headlights** — toggles the headlight material's emissive plus two
   forward spotlights, animated on together via GSAP.
 - **Cinematic camera** — a sweeping intro fly-in and six GSAP-tweened presets

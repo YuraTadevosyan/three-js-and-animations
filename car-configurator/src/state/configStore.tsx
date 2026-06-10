@@ -8,19 +8,25 @@ import {
 } from 'react';
 
 import {
+  customFinish,
+  customPaint,
   DEFAULT_PAINT,
   DEFAULT_VIEW,
-  DEFAULT_WHEEL,
+  DEFAULT_WHEEL_FINISH,
+  DEFAULT_WHEEL_STYLE,
   PAINTS,
-  WHEELS,
+  WHEEL_FINISHES,
+  WHEEL_STYLES,
   type CameraViewId,
   type PaintOption,
-  type WheelOption,
+  type WheelFinish,
+  type WheelStyle,
 } from '@/lib/config';
 
 interface ConfigState {
   paint: PaintOption;
-  wheel: WheelOption;
+  wheelStyle: WheelStyle;
+  wheelFinish: WheelFinish;
   view: CameraViewId;
   headlightsOn: boolean;
   autoSpin: boolean;
@@ -31,7 +37,10 @@ interface ConfigState {
 
 interface ConfigActions {
   setPaint: (paint: PaintOption) => void;
-  setWheel: (wheel: WheelOption) => void;
+  setCustomPaint: (hex: string) => void;
+  setWheelStyle: (style: WheelStyle) => void;
+  setWheelFinish: (finish: WheelFinish) => void;
+  setCustomFinish: (hex: string) => void;
   setView: (view: CameraViewId) => void;
   toggleHeadlights: () => void;
   toggleAutoSpin: () => void;
@@ -48,38 +57,47 @@ function pick<T>(list: T[]): T {
 
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const [paint, setPaint] = useState<PaintOption>(DEFAULT_PAINT);
-  const [wheel, setWheel] = useState<WheelOption>(DEFAULT_WHEEL);
+  const [wheelStyle, setWheelStyle] = useState<WheelStyle>(DEFAULT_WHEEL_STYLE);
+  const [wheelFinish, setWheelFinish] = useState<WheelFinish>(DEFAULT_WHEEL_FINISH);
   const [view, setViewState] = useState<CameraViewId>(DEFAULT_VIEW);
   const [viewNonce, setViewNonce] = useState(0);
   const [headlightsOn, setHeadlightsOn] = useState(false);
   const [autoSpin, setAutoSpin] = useState(false);
+
+  const setCustomPaint = useCallback((hex: string) => setPaint(customPaint(hex)), []);
+  const setCustomFinish = useCallback(
+    (hex: string) => setWheelFinish(customFinish(hex)),
+    [],
+  );
 
   const setView = useCallback((next: CameraViewId) => {
     setViewState(next);
     setViewNonce((n) => n + 1);
   }, []);
 
-  const toggleHeadlights = useCallback(
-    () => setHeadlightsOn((on) => !on),
-    [],
-  );
+  const toggleHeadlights = useCallback(() => setHeadlightsOn((on) => !on), []);
   const toggleAutoSpin = useCallback(() => setAutoSpin((on) => !on), []);
 
   const randomize = useCallback(() => {
     setPaint(pick(PAINTS));
-    setWheel(pick(WHEELS));
+    setWheelStyle(pick(WHEEL_STYLES));
+    setWheelFinish(pick(WHEEL_FINISHES));
   }, []);
 
   const value = useMemo<ConfigContextValue>(
     () => ({
       paint,
-      wheel,
+      wheelStyle,
+      wheelFinish,
       view,
       viewNonce,
       headlightsOn,
       autoSpin,
       setPaint,
-      setWheel,
+      setCustomPaint,
+      setWheelStyle,
+      setWheelFinish,
+      setCustomFinish,
       setView,
       toggleHeadlights,
       toggleAutoSpin,
@@ -87,11 +105,14 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     }),
     [
       paint,
-      wheel,
+      wheelStyle,
+      wheelFinish,
       view,
       viewNonce,
       headlightsOn,
       autoSpin,
+      setCustomPaint,
+      setCustomFinish,
       setView,
       toggleHeadlights,
       toggleAutoSpin,

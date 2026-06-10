@@ -56,6 +56,41 @@ export function Garage() {
           scale={[6, 3, 1]}
           color="#aac4ff"
         />
+        {/* Neutral profile strips — long horizontal bars along each side whose
+            reflections trace the doors, shoulder line and wheels. */}
+        <Lightformer
+          form="rect"
+          intensity={2.6}
+          position={[-7, 2.4, 0]}
+          scale={[0.5, 6, 1]}
+          rotation={[0, Math.PI / 2, 0]}
+          color="#f2f6ff"
+        />
+        <Lightformer
+          form="rect"
+          intensity={2.6}
+          position={[7, 2.4, 0]}
+          scale={[0.5, 6, 1]}
+          rotation={[0, -Math.PI / 2, 0]}
+          color="#f2f6ff"
+        />
+        {/* Low kick strips that catch the rockers + rims */}
+        <Lightformer
+          form="rect"
+          intensity={1.6}
+          position={[-5, 0.5, 0]}
+          scale={[0.3, 5, 1]}
+          rotation={[0, Math.PI / 2, 0]}
+          color="#cfe0ff"
+        />
+        <Lightformer
+          form="rect"
+          intensity={1.6}
+          position={[5, 0.5, 0]}
+          scale={[0.3, 5, 1]}
+          rotation={[0, -Math.PI / 2, 0]}
+          color="#cfe0ff"
+        />
       </Environment>
 
       {/* Reflective showroom floor */}
@@ -112,6 +147,10 @@ export function Garage() {
       />
       {/* Front fill so the face / grille reads */}
       <directionalLight position={[-3, 4, 8]} intensity={0.9} color="#cfe0ff" />
+      {/* Profile fills — neutral light straight onto each flank so the doors,
+          mirrors, wheels and brakes read from the side views. */}
+      <directionalLight position={[11, 3, 0.5]} intensity={1.5} color="#eaf1ff" />
+      <directionalLight position={[-11, 3, -0.5]} intensity={1.3} color="#eaf1ff" />
       {/* Neon rim accents (no distance falloff so they stay punchy) */}
       <spotLight
         position={[-7, 4, -2]}
@@ -129,8 +168,8 @@ export function Garage() {
         decay={0}
         color="#ff5a47"
       />
-      <hemisphereLight args={['#5a6b8a', '#0a0a0c', 0.5]} />
-      <ambientLight intensity={0.32} />
+      <hemisphereLight args={['#6678a0', '#0a0a0c', 0.65]} />
+      <ambientLight intensity={0.42} />
     </group>
   );
 }
