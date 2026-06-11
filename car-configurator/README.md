@@ -24,9 +24,9 @@ finishes, angel-eye headlights, cinematic camera presets, reflections and bloom.
   chosen wheel is centred, scaled to the hub radius, axle-oriented onto the
   car's wheel axis, and tinted with the finish. Drop more wheel GLBs into
   `public/models/wheels/` and add an entry to `WHEEL_STYLES` to extend the list.
-- **Wheel / caliper finish** — four alloy finishes (gunmetal, satin black,
-  hyper silver, bronze). On this model the rims and calipers share one
-  material, so the finish applies to both together (and to the procedural rims).
+- **Wheel / caliper finish** — nine alloy finishes plus a **custom rim colour
+  picker**. On this model the rims and calipers share one material, so the finish
+  applies to both together (and to any procedural/loaded rims).
 - **Angel-eye headlights** — toggles the headlight material's emissive plus two
   forward spotlights, animated on together via GSAP.
 - **Cinematic camera** — a sweeping intro fly-in and six GSAP-tweened presets
@@ -34,10 +34,12 @@ finishes, angel-eye headlights, cinematic camera presets, reflections and bloom.
 - **Reflections & shadows** — a `MeshReflectorMaterial` floor, soft
   `ContactShadows`, and a fully offline studio environment built from
   `Lightformer`s (no external HDR needed).
-- **Need-for-Speed garage** — dark walls, neon accent strips, fog, and a
-  bloom + vignette post pipeline, with ACES tone mapping.
+- **Need-for-Speed garage** — dark walls, neon accent strips, neutral profile
+  light bars (so the flanks/wheels read), fog, and a bloom + vignette post
+  pipeline with ACES tone mapping.
 - **Smooth UI** — glassmorphic panels with a staggered GSAP entrance, a
-  turntable spin and a "randomize build" toggle.
+  turntable spin, a "randomize build" toggle, and an **About modal** listing the
+  tech stack and model credits.
 - **Responsive & accessible** — bottom-sheet UI on mobile, side panel on
   desktop, and a `prefers-reduced-motion` path that skips every animation.
 
@@ -50,16 +52,18 @@ React 18 · TypeScript · Vite · Tailwind CSS · three.js · @react-three/fiber
 
 ```
 src/
-├── state/configStore.tsx     React context: paint, wheel, view, toggles
-├── lib/config.ts             model URL + material ids + option tables
+├── state/configStore.tsx     React context: paint, wheel style/finish, view, toggles
+├── lib/config.ts             model urls + material ids + paint/wheel/camera tables
 ├── components/
 │   ├── CarConfigurator.tsx    layout + GSAP entrance timeline
 │   ├── scene/
 │   │   ├── CarScene.tsx        Canvas, tone mapping, post-processing
-│   │   ├── CarModel.tsx        loads/clones the GLB, auto-fits, drives materials
+│   │   ├── CarModel.tsx        loads/clones the GLB, auto-fits, measures hubs, drives materials
+│   │   ├── WheelModel.tsx      loads a real wheel GLB, fits it to a hub, tints it
+│   │   ├── ProceduralWheel.tsx generated rim fallback mounted at a hub
 │   │   ├── Garage.tsx          environment, reflective floor, lights, walls
 │   │   └── CameraRig.tsx       intro + preset fly-to over OrbitControls
-│   └── ui/                     glass panels, selectors, toolbar, view bar
+│   └── ui/                     glass panels, selectors, toolbar, view bar, About modal
 └── hooks/useReducedMotion.ts
 ```
 

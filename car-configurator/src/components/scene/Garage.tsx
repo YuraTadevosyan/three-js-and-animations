@@ -130,21 +130,10 @@ export function Garage() {
 
       <GarageWalls />
 
-      {/* Key light with a crisp cast shadow */}
-      <directionalLight
-        position={[6, 9, 7]}
-        intensity={2.6}
-        color="#eef4ff"
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-bias={-0.0002}
-        shadow-camera-left={-6}
-        shadow-camera-right={6}
-        shadow-camera-top={6}
-        shadow-camera-bottom={-6}
-        shadow-camera-near={1}
-        shadow-camera-far={30}
-      />
+      {/* Key light. Grounding is handled by the soft ContactShadows above, so
+          this doesn't cast a hard map shadow (which fractured into wedges
+          through the open spokes of mesh wheels). */}
+      <directionalLight position={[6, 9, 7]} intensity={2.6} color="#eef4ff" />
       {/* Front fill so the face / grille reads */}
       <directionalLight position={[-3, 4, 8]} intensity={0.9} color="#cfe0ff" />
       {/* Profile fills — neutral light straight onto each flank so the doors,

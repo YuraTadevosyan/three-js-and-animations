@@ -5,6 +5,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { CarScene } from './scene/CarScene';
 import { Brand } from './ui/Brand';
 import { Toolbar } from './ui/Toolbar';
+import { About } from './ui/About';
 import { ConfiguratorPanel } from './ui/ConfiguratorPanel';
 import { ViewBar } from './ui/ViewBar';
 import { Footer } from './ui/Footer';
@@ -62,8 +63,9 @@ export function CarConfigurator() {
         <div className="absolute left-5 top-5">
           <Brand />
         </div>
-        <div className="pointer-events-auto absolute right-5 top-5">
+        <div className="pointer-events-auto absolute right-5 top-5 flex items-center gap-2">
           <Toolbar />
+          <About />
         </div>
 
         <div

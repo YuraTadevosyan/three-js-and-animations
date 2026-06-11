@@ -53,12 +53,21 @@ export function WheelModel({
     obj.traverse((o) => {
       const mesh = o as Mesh;
       if (!mesh.isMesh) return;
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
       const mat = (mesh.material as MeshStandardMaterial).clone();
       mesh.material = mat;
       if ('envMapIntensity' in mat) mat.envMapIntensity = 1.3;
-      if (FINISH_RE.test(mat.name)) finishMats.push(mat);
+
+      // A near-invisible logo/decal plane would otherwise cast a slab shadow
+      // under the car — keep it from casting.
+      const isDecal = /logo|decal|sticker/i.test(mat.name);
+      mesh.castShadow = !isDecal && !(mat.transparent && (mat.opacity ?? 1) < 0.5);
+      mesh.receiveShadow = true;
+
+      if (FINISH_RE.test(mat.name)) {
+        // Drop the dark base texture so light finishes (white/silver) read true.
+        mat.map = null;
+        finishMats.push(mat);
+      }
       if (SIZING_RE.test(mat.name)) sizingMeshes.push(mesh);
     });
 
