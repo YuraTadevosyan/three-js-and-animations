@@ -9,6 +9,7 @@ import {
   type Mesh,
   type MeshStandardMaterial,
   Object3D,
+  type Texture,
   Vector3,
 } from 'three';
 
@@ -39,6 +40,9 @@ interface PreparedModel {
   tireMeshes: Mesh[];
   brakeMeshes: Mesh[];
   diskMeshes: Mesh[];
+  glassMats: MeshStandardMaterial[];
+  tailMats: MeshStandardMaterial[];
+  carbonMats: { mat: MeshStandardMaterial; baseColor: Color; baseMap: Texture | null }[];
   rearMesh: Mesh | null;
 }
 
@@ -53,7 +57,17 @@ function ancestorMatches(obj: Object3D, re: RegExp): boolean {
 }
 
 export function CarModel() {
-  const { paint, wheelStyle, wheelFinish, headlightsOn, autoSpin } = useConfig();
+  const {
+    paint,
+    wheelStyle,
+    wheelFinish,
+    headlightColor,
+    taillightColor,
+    windowTint,
+    carbonOn,
+    headlightsOn,
+    autoSpin,
+  } = useConfig();
   const reducedMotion = useReducedMotion();
   const { scene } = useGLTF(CAR_MODEL_URL);
   const spin = useRef<Group>(null);
@@ -79,6 +93,9 @@ export function CarModel() {
     const tireMeshes: Mesh[] = [];
     const brakeMeshes: Mesh[] = [];
     const diskMeshes: Mesh[] = [];
+    const glassMats: MeshStandardMaterial[] = [];
+    const tailMats: MeshStandardMaterial[] = [];
+    const carbonMats: PreparedModel['carbonMats'] = [];
     let rearMesh: Mesh | null = null;
 
     root.traverse((obj) => {
@@ -111,7 +128,15 @@ export function CarModel() {
       }
       if (mat.name === 'tire') tireMeshes.push(mesh);
       if (/disk/i.test(mat.name)) diskMeshes.push(mesh);
-      if (mat.name === MAT.taillight) rearMesh = mesh;
+      if (mat.name === MAT.taillight) {
+        rearMesh = mesh;
+        mat.toneMapped = false;
+        tailMats.push(mat);
+      }
+      if (mat.name === MAT.glass) glassMats.push(mat);
+      if (mat.name === MAT.carbon) {
+        carbonMats.push({ mat, baseColor: mat.color.clone(), baseMap: mat.map ?? null });
+      }
     });
 
     return {
@@ -123,6 +148,9 @@ export function CarModel() {
       tireMeshes,
       brakeMeshes,
       diskMeshes,
+      glassMats,
+      tailMats,
+      carbonMats,
       rearMesh,
     };
   }, [scene]);
@@ -230,7 +258,13 @@ export function CarModel() {
     });
   }, [wheelFinish, prepared, reducedMotion]);
 
-  // ---- Headlights ----
+  // ---- Headlight colour (emissive; beams take it via the colour prop) ----
+  useEffect(() => {
+    const c = new Color(headlightColor.hex);
+    prepared.lightMats.forEach((m) => m.emissive.copy(c));
+  }, [headlightColor, prepared]);
+
+  // ---- Headlights on/off ----
   useEffect(() => {
     const duration = reducedMotion ? 0 : 0.5;
     gsap.to(prepared.lightMats, {
@@ -241,6 +275,48 @@ export function CarModel() {
     const beams = [leftBeam.current, rightBeam.current].filter(Boolean);
     gsap.to(beams, { intensity: headlightsOn ? 24 : 0, duration, ease: 'power2.out' });
   }, [headlightsOn, prepared, reducedMotion]);
+
+  // ---- Taillight colour ----
+  useEffect(() => {
+    const c = new Color(taillightColor.hex);
+    prepared.tailMats.forEach((m) => {
+      m.color.copy(c);
+      m.emissive.copy(c);
+      m.emissiveIntensity = 0.85;
+      m.needsUpdate = true;
+    });
+  }, [taillightColor, prepared]);
+
+  // ---- Window tint (darken the glass) ----
+  useEffect(() => {
+    const shade = 1 - 0.92 * windowTint; // 1 = clear glass … →0 blacked out
+    prepared.glassMats.forEach((m) => {
+      m.color.setScalar(shade);
+      if ('envMapIntensity' in m) m.envMapIntensity = 1.3 * (1 - 0.55 * windowTint);
+      m.transparent = true;
+      m.opacity = 0.55 + 0.45 * windowTint;
+      m.needsUpdate = true;
+    });
+  }, [windowTint, prepared]);
+
+  // ---- Carbon parts (hood vents / spoiler / diffuser) ----
+  useEffect(() => {
+    const bodyColor = new Color(paint.hex).convertSRGBToLinear();
+    prepared.carbonMats.forEach(({ mat, baseColor, baseMap }) => {
+      if (carbonOn) {
+        mat.color.copy(baseColor);
+        mat.map = baseMap;
+        mat.metalness = 0.4;
+        mat.roughness = 0.48;
+      } else {
+        mat.map = null;
+        mat.color.copy(bodyColor);
+        mat.metalness = paint.metalness;
+        mat.roughness = paint.roughness;
+      }
+      mat.needsUpdate = true;
+    });
+  }, [carbonOn, paint, prepared]);
 
   // ---- Turntable ----
   useFrame((_, delta) => {
@@ -297,7 +373,7 @@ export function CarModel() {
         penumbra={0.7}
         distance={18}
         intensity={0}
-        color="#eaf4ff"
+        color={headlightColor.hex}
       />
       <spotLight
         ref={rightBeam}
@@ -307,7 +383,7 @@ export function CarModel() {
         penumbra={0.7}
         distance={18}
         intensity={0}
-        color="#eaf4ff"
+        color={headlightColor.hex}
       />
     </group>
   );

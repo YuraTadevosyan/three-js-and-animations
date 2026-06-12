@@ -55,12 +55,17 @@ export function WheelModel({
       if (!mesh.isMesh) return;
       const mat = (mesh.material as MeshStandardMaterial).clone();
       mesh.material = mat;
-      if ('envMapIntensity' in mat) mat.envMapIntensity = 1.3;
 
-      // A near-invisible logo/decal plane would otherwise cast a slab shadow
-      // under the car — keep it from casting.
-      const isDecal = /logo|decal|sticker/i.test(mat.name);
-      mesh.castShadow = !isDecal && !(mat.transparent && (mat.opacity ?? 1) < 0.5);
+      // Drop logo/decal/backdrop/shadow planes baked into the wheel model.
+      // They render as a black patch and are also picked up by ContactShadows,
+      // showing up as a dark slab on the floor. Hiding them removes both.
+      if (/logo|decal|sticker|shadow|ground|plane|backdrop/i.test(mat.name)) {
+        mesh.visible = false;
+        return;
+      }
+
+      if ('envMapIntensity' in mat) mat.envMapIntensity = 1.3;
+      mesh.castShadow = true;
       mesh.receiveShadow = true;
 
       if (FINISH_RE.test(mat.name)) {

@@ -5,6 +5,7 @@ import { KernelSize } from 'postprocessing';
 import { ACESFilmicToneMapping } from 'three';
 
 import { CAMERA_VIEWS } from '@/lib/config';
+import { useConfig } from '@/state/configStore';
 import { CarModel } from './CarModel';
 import { Garage } from './Garage';
 import { CameraRig } from './CameraRig';
@@ -12,9 +13,10 @@ import { CameraRig } from './CameraRig';
 const HERO = CAMERA_VIEWS[0];
 
 export function CarScene() {
+  const { scene } = useConfig();
   return (
     <Canvas
-      shadows
+      shadows="variance"
       dpr={[1, 2]}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       camera={{ position: HERO.position, fov: 38, near: 0.1, far: 100 }}
@@ -23,8 +25,8 @@ export function CarScene() {
         gl.toneMappingExposure = 1.15;
       }}
     >
-      <color attach="background" args={['#06070b']} />
-      <fog attach="fog" args={['#06070b', 16, 34]} />
+      <color attach="background" args={[scene.background]} />
+      <fog attach="fog" args={[scene.fog, 16, 34]} />
 
       <Suspense fallback={null}>
         <Garage />

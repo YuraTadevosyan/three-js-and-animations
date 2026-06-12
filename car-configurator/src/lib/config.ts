@@ -10,7 +10,9 @@ export const MAT = {
   paint: 'mMAT_Carpaint_Blue1',
   wheel: 'mMAT_Tire_Brake_048', // rims + calipers share this material
   lights: 'mMAT_Lights_014',
-  taillight: 'red_glass', // used to detect which end is the rear
+  taillight: 'red_glass', // also used to detect which end is the rear
+  glass: 'mMAT_Glass_013',
+  carbon: 'mMAT_Carbon1', // hood vents / spoiler / diffuser carbon
 } as const;
 
 export interface PaintOption {
@@ -110,6 +112,74 @@ export function customFinish(hex: string): WheelFinish {
   return { id: 'custom', name: 'Custom', hex, metalness: 0.9, roughness: 0.3 };
 }
 export const CUSTOM_FINISH_DEFAULT = '#c0392b';
+
+// ---- Simple colour options (headlights, taillights) ----
+
+export interface SimpleColor {
+  id: string;
+  name: string;
+  hex: string;
+}
+
+/** Build a one-off colour from a custom picker. */
+export function customColor(hex: string): SimpleColor {
+  return { id: 'custom', name: 'Custom', hex };
+}
+
+export const HEADLIGHT_COLORS: SimpleColor[] = [
+  { id: 'xenon', name: 'Xenon White', hex: '#eaf4ff' },
+  { id: 'ice', name: 'Ice Blue', hex: '#a9d4ff' },
+  { id: 'cyan', name: 'Cyan', hex: '#3dd7ff' },
+  { id: 'violet', name: 'Violet', hex: '#b58bff' },
+  { id: 'amber', name: 'Amber', hex: '#ffb24d' },
+  { id: 'toxic', name: 'Toxic Green', hex: '#9bff5a' },
+];
+
+export const TAILLIGHT_COLORS: SimpleColor[] = [
+  { id: 'red', name: 'Classic Red', hex: '#ff1f1f' },
+  { id: 'smoked', name: 'Smoked', hex: '#5e1414' },
+  { id: 'crystal', name: 'Crystal Red', hex: '#ff5a5a' },
+  { id: 'amber', name: 'Amber', hex: '#ff8a1a' },
+  { id: 'ice', name: 'Ice Blue', hex: '#9fd0ff' },
+  { id: 'toxic', name: 'Toxic Green', hex: '#39ff8b' },
+];
+
+export const DEFAULT_HEADLIGHT = HEADLIGHT_COLORS[0];
+export const DEFAULT_TAILLIGHT = TAILLIGHT_COLORS[0];
+/** Window tint, 0 = factory glass … 1 = blacked-out limo. */
+export const DEFAULT_WINDOW_TINT = 0.3;
+
+// ---- Background scenes (garage moods) ----
+
+export interface SceneOption {
+  id: string;
+  name: string;
+  /** Scene background + fog colour. */
+  background: string;
+  fog: string;
+  /** Reflections-environment background. */
+  envBg: string;
+  /** Reflective floor tint. */
+  floor: string;
+  /** Two neon accent colours (rim lights + wall strips). */
+  accentA: string;
+  accentB: string;
+  /** Key light tint. */
+  key: string;
+  /** Ambient fill intensity. */
+  ambient: number;
+  /** Wall colour. */
+  wall: string;
+}
+
+export const SCENES: SceneOption[] = [
+  { id: 'garage', name: 'NFS Garage', background: '#06070b', fog: '#06070b', envBg: '#05060a', floor: '#0a0c12', accentA: '#3dd7ff', accentB: '#ff5a47', key: '#eef4ff', ambient: 0.42, wall: '#0a0b10' },
+  { id: 'cyber', name: 'Cyberpunk', background: '#08040f', fog: '#08040f', envBg: '#0a0512', floor: '#120a1a', accentA: '#ff2db5', accentB: '#7a3dff', key: '#ecd9ff', ambient: 0.4, wall: '#0c0716' },
+  { id: 'sunset', name: 'Sunset Strip', background: '#140a07', fog: '#170b07', envBg: '#160a08', floor: '#150d0a', accentA: '#ff7a1a', accentB: '#ff3d6e', key: '#ffe0c2', ambient: 0.5, wall: '#140b08' },
+  { id: 'midnight', name: 'Midnight', background: '#02030a', fog: '#02030a', envBg: '#02030a', floor: '#05070f', accentA: '#2b6bff', accentB: '#13e0ff', key: '#cfe0ff', ambient: 0.32, wall: '#04060e' },
+];
+
+export const DEFAULT_SCENE = SCENES[0];
 
 export type CameraViewId = 'hero' | 'front' | 'side' | 'rear' | 'wheel' | 'top';
 

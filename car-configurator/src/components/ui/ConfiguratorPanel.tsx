@@ -1,10 +1,35 @@
 import { Check, Pipette } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { PAINTS, WHEEL_FINISHES, WHEEL_STYLES } from '@/lib/config';
+import {
+  HEADLIGHT_COLORS,
+  PAINTS,
+  SCENES,
+  TAILLIGHT_COLORS,
+  WHEEL_FINISHES,
+  WHEEL_STYLES,
+} from '@/lib/config';
 import { useConfig } from '@/state/configStore';
 import { cn } from '@/lib/cn';
 import { WheelPreview } from './WheelPreview';
+import { ColorField } from './ColorField';
+
+function TogglePill({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider transition-all',
+        on
+          ? 'border-neon/50 bg-neon/15 text-neon'
+          : 'border-white/10 bg-white/[0.03] text-white/45 hover:text-white',
+      )}
+    >
+      {on ? 'On' : 'Off'}
+    </button>
+  );
+}
 
 function Section({
   index,
@@ -41,6 +66,20 @@ export function ConfiguratorPanel() {
     wheelFinish,
     setWheelFinish,
     setCustomFinish,
+    headlightColor,
+    setHeadlightColor,
+    setCustomHeadlight,
+    headlightsOn,
+    toggleHeadlights,
+    taillightColor,
+    setTaillightColor,
+    setCustomTaillight,
+    windowTint,
+    setWindowTint,
+    carbonOn,
+    toggleCarbon,
+    scene,
+    setScene,
   } = useConfig();
 
   const customActive = paint.id === 'custom';
@@ -49,10 +88,10 @@ export function ConfiguratorPanel() {
   return (
     <div
       data-ui-enter="panel"
-      className="glass pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl lg:w-[360px]"
+      className="glass pointer-events-auto flex max-h-[44vh] w-full flex-col overflow-hidden rounded-2xl lg:h-full lg:max-h-full lg:w-[360px]"
     >
       {/* Header / live summary */}
-      <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
+      <div className="flex shrink-0 items-center justify-between border-b border-white/8 px-5 py-4">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.3em] text-white/40">Your build</p>
           <p className="mt-0.5 truncate text-sm font-medium text-white">
@@ -65,7 +104,7 @@ export function ConfiguratorPanel() {
         />
       </div>
 
-      <div className="no-scrollbar divide-y divide-white/8 overflow-y-auto">
+      <div className="no-scrollbar min-h-0 flex-1 divide-y divide-white/8 overflow-y-auto">
         {/* Paint */}
         <Section index="01" title="Paint" hint={paint.name}>
           <div className="grid grid-cols-8 gap-2 lg:grid-cols-6">
@@ -224,6 +263,90 @@ export function ConfiguratorPanel() {
           <p className="mt-2.5 text-[11px] leading-relaxed text-white/35">
             Finish applies to the rims and the brake calipers together.
           </p>
+        </Section>
+
+        {/* Headlight colour */}
+        <Section index="04" title="Headlights" hint={headlightColor.name}>
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[11px] text-white/45">Beam &amp; angel-eye colour</span>
+            <TogglePill on={headlightsOn} onClick={toggleHeadlights} />
+          </div>
+          <ColorField
+            colors={HEADLIGHT_COLORS}
+            active={headlightColor}
+            onPick={setHeadlightColor}
+            onCustom={setCustomHeadlight}
+            customDefault="#eaf4ff"
+            pickerLabel="Custom light colour"
+          />
+        </Section>
+
+        {/* Taillight colour */}
+        <Section index="05" title="Taillights" hint={taillightColor.name}>
+          <ColorField
+            colors={TAILLIGHT_COLORS}
+            active={taillightColor}
+            onPick={setTaillightColor}
+            onCustom={setCustomTaillight}
+            customDefault="#ff1f1f"
+            pickerLabel="Custom taillight colour"
+          />
+        </Section>
+
+        {/* Window tint */}
+        <Section index="06" title="Windows" hint={`${Math.round(windowTint * 100)}% tint`}>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-white/40">Clear</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={windowTint}
+              onChange={(e) => setWindowTint(parseFloat(e.target.value))}
+              className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-white/15 accent-neon"
+              aria-label="Window tint"
+            />
+            <span className="text-[11px] text-white/40">Limo</span>
+          </div>
+        </Section>
+
+        {/* Carbon parts */}
+        <Section index="07" title="Carbon" hint={carbonOn ? 'Carbon' : 'Body colour'}>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-white/45">Hood vents, spoiler &amp; diffuser</span>
+            <TogglePill on={carbonOn} onClick={toggleCarbon} />
+          </div>
+        </Section>
+
+        {/* Scene / garage mood */}
+        <Section index="08" title="Scene" hint={scene.name}>
+          <div className="grid grid-cols-2 gap-2">
+            {SCENES.map((s) => {
+              const active = s.id === scene.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setScene(s)}
+                  className={cn(
+                    'flex items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition-all duration-200',
+                    active
+                      ? 'border-neon/50 bg-neon/[0.07]'
+                      : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]',
+                  )}
+                >
+                  <span
+                    className="h-6 w-6 shrink-0 rounded-full border border-white/20"
+                    style={{
+                      background: `linear-gradient(135deg, ${s.accentA}, ${s.accentB})`,
+                    }}
+                  />
+                  <span className="truncate text-[12px] font-medium text-white">{s.name}</span>
+                </button>
+              );
+            })}
+          </div>
         </Section>
       </div>
     </div>

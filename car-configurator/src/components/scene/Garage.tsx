@@ -6,65 +6,55 @@ import {
 } from '@react-three/drei';
 import { DoubleSide } from 'three';
 
+import type { SceneOption } from '@/lib/config';
+import { useConfig } from '@/state/configStore';
+
 /**
- * The Need-for-Speed-style garage: a self-contained studio environment built
- * from Lightformers (no external HDR needed), a glossy reflective floor, soft
- * contact shadows, dark walls, and neon accent strips.
+ * The garage. A self-contained studio environment built from Lightformers (no
+ * external HDR needed), a glossy reflective floor, soft contact shadows, walls
+ * and neon accent strips — all recoloured by the selected scene (garage mood).
  */
 export function Garage() {
+  const { scene } = useConfig();
+
   return (
     <group>
       {/* Procedural reflections for the car paint — fully offline. */}
       <Environment resolution={256} frames={1}>
-        <color attach="background" args={['#05060a']} />
-        {/* Big soft ceiling key */}
-        <Lightformer
-          intensity={2.4}
-          position={[0, 6, 1]}
-          scale={[10, 6, 1]}
-          color="#cfe3ff"
-        />
-        {/* Long top strip that streaks across the roof and glass */}
+        <color attach="background" args={[scene.envBg]} />
+        <Lightformer intensity={2.4} position={[0, 6, 1]} scale={[10, 6, 1]} color={scene.key} />
         <Lightformer
           form="rect"
           intensity={3}
           position={[0, 4, -3]}
           scale={[12, 0.4, 1]}
           rotation={[Math.PI / 2, 0, 0]}
-          color="#ffffff"
+          color={scene.key}
         />
-        {/* Cool rim from the left */}
+        {/* Accent rims */}
         <Lightformer
           intensity={2.2}
           position={[-6, 2, 0]}
           scale={[1, 5, 1]}
           rotation={[0, Math.PI / 2, 0]}
-          color="#3dd7ff"
+          color={scene.accentA}
         />
-        {/* Warm/ember rim from the right */}
         <Lightformer
           intensity={1.8}
           position={[6, 2, 0]}
           scale={[1, 5, 1]}
           rotation={[0, -Math.PI / 2, 0]}
-          color="#ff5a47"
+          color={scene.accentB}
         />
-        {/* Front fill so the face/grille reads */}
-        <Lightformer
-          intensity={1.4}
-          position={[0, 1.5, 7]}
-          scale={[6, 3, 1]}
-          color="#aac4ff"
-        />
-        {/* Neutral profile strips — long horizontal bars along each side whose
-            reflections trace the doors, shoulder line and wheels. */}
+        <Lightformer intensity={1.4} position={[0, 1.5, 7]} scale={[6, 3, 1]} color={scene.key} />
+        {/* Neutral profile strips so the flanks read */}
         <Lightformer
           form="rect"
           intensity={2.6}
           position={[-7, 2.4, 0]}
           scale={[0.5, 6, 1]}
           rotation={[0, Math.PI / 2, 0]}
-          color="#f2f6ff"
+          color={scene.key}
         />
         <Lightformer
           form="rect"
@@ -72,16 +62,15 @@ export function Garage() {
           position={[7, 2.4, 0]}
           scale={[0.5, 6, 1]}
           rotation={[0, -Math.PI / 2, 0]}
-          color="#f2f6ff"
+          color={scene.key}
         />
-        {/* Low kick strips that catch the rockers + rims */}
         <Lightformer
           form="rect"
           intensity={1.6}
           position={[-5, 0.5, 0]}
           scale={[0.3, 5, 1]}
           rotation={[0, Math.PI / 2, 0]}
-          color="#cfe0ff"
+          color={scene.accentA}
         />
         <Lightformer
           form="rect"
@@ -89,7 +78,7 @@ export function Garage() {
           position={[5, 0.5, 0]}
           scale={[0.3, 5, 1]}
           rotation={[0, -Math.PI / 2, 0]}
-          color="#cfe0ff"
+          color={scene.accentB}
         />
       </Environment>
 
@@ -106,15 +95,15 @@ export function Garage() {
           depthScale={1.1}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.3}
-          color="#0a0c12"
+          color={scene.floor}
           metalness={0.55}
         />
       </mesh>
 
-      {/* Painted-on tyre marks / glow ring under the stage */}
+      {/* Stage glow ring */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <ringGeometry args={[3.4, 3.55, 96]} />
-        <meshBasicMaterial color="#3dd7ff" transparent opacity={0.16} side={DoubleSide} />
+        <meshBasicMaterial color={scene.accentA} transparent opacity={0.16} side={DoubleSide} />
       </mesh>
 
       {/* Soft grounded shadow under the car */}
@@ -128,57 +117,54 @@ export function Garage() {
         color="#000000"
       />
 
-      <GarageWalls />
+      <GarageWalls scene={scene} />
 
-      {/* Key light. Grounding is handled by the soft ContactShadows above, so
-          this doesn't cast a hard map shadow (which fractured into wedges
-          through the open spokes of mesh wheels). */}
-      <directionalLight position={[6, 9, 7]} intensity={2.6} color="#eef4ff" />
-      {/* Front fill so the face / grille reads */}
-      <directionalLight position={[-3, 4, 8]} intensity={0.9} color="#cfe0ff" />
-      {/* Profile fills — neutral light straight onto each flank so the doors,
-          mirrors, wheels and brakes read from the side views. */}
-      <directionalLight position={[11, 3, 0.5]} intensity={1.5} color="#eaf1ff" />
-      <directionalLight position={[-11, 3, -0.5]} intensity={1.3} color="#eaf1ff" />
+      {/* Key light with a soft cast shadow. */}
+      <directionalLight
+        position={[6, 9, 7]}
+        intensity={2.6}
+        color={scene.key}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-radius={8}
+        shadow-bias={-0.0001}
+        shadow-normalBias={0.05}
+        shadow-camera-left={-6}
+        shadow-camera-right={6}
+        shadow-camera-top={6}
+        shadow-camera-bottom={-6}
+        shadow-camera-near={1}
+        shadow-camera-far={30}
+      />
+      <directionalLight position={[-3, 4, 8]} intensity={0.9} color={scene.key} />
+      {/* Profile fills so the flanks read from the side views */}
+      <directionalLight position={[11, 3, 0.5]} intensity={1.5} color={scene.key} />
+      <directionalLight position={[-11, 3, -0.5]} intensity={1.3} color={scene.key} />
       {/* Neon rim accents (no distance falloff so they stay punchy) */}
-      <spotLight
-        position={[-7, 4, -2]}
-        angle={0.9}
-        penumbra={1}
-        intensity={9}
-        decay={0}
-        color="#3dd7ff"
-      />
-      <spotLight
-        position={[7, 4, -3]}
-        angle={0.9}
-        penumbra={1}
-        intensity={6}
-        decay={0}
-        color="#ff5a47"
-      />
+      <spotLight position={[-7, 4, -2]} angle={0.9} penumbra={1} intensity={9} decay={0} color={scene.accentA} />
+      <spotLight position={[7, 4, -3]} angle={0.9} penumbra={1} intensity={6} decay={0} color={scene.accentB} />
       <hemisphereLight args={['#6678a0', '#0a0a0c', 0.65]} />
-      <ambientLight intensity={0.42} />
+      <ambientLight intensity={scene.ambient} />
     </group>
   );
 }
 
-function GarageWalls() {
+function GarageWalls({ scene }: { scene: SceneOption }) {
   return (
     <group>
       {/* Back wall */}
       <mesh position={[0, 5, -14]} receiveShadow>
         <planeGeometry args={[60, 22]} />
-        <meshStandardMaterial color="#0a0b10" roughness={0.95} metalness={0.1} />
+        <meshStandardMaterial color={scene.wall} roughness={0.95} metalness={0.1} />
       </mesh>
       {/* Side walls */}
       <mesh position={[-16, 5, 0]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[40, 22]} />
-        <meshStandardMaterial color="#080910" roughness={0.95} />
+        <meshStandardMaterial color={scene.wall} roughness={0.95} />
       </mesh>
       <mesh position={[16, 5, 0]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[40, 22]} />
-        <meshStandardMaterial color="#080910" roughness={0.95} />
+        <meshStandardMaterial color={scene.wall} roughness={0.95} />
       </mesh>
 
       {/* Neon accent strips on the back wall */}
@@ -186,8 +172,8 @@ function GarageWalls() {
         <mesh key={x} position={[x, 4.5, -13.8]}>
           <boxGeometry args={[0.12, 7, 0.12]} />
           <meshStandardMaterial
-            color="#3dd7ff"
-            emissive="#3dd7ff"
+            color={scene.accentA}
+            emissive={scene.accentA}
             emissiveIntensity={3}
             toneMapped={false}
           />
@@ -196,8 +182,8 @@ function GarageWalls() {
       <mesh position={[0, 8.4, -13.8]}>
         <boxGeometry args={[16, 0.1, 0.1]} />
         <meshStandardMaterial
-          color="#ff5a47"
-          emissive="#ff5a47"
+          color={scene.accentB}
+          emissive={scene.accentB}
           emissiveIntensity={2.4}
           toneMapped={false}
         />

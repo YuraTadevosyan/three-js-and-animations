@@ -8,17 +8,27 @@ import {
 } from 'react';
 
 import {
+  customColor,
   customFinish,
   customPaint,
+  DEFAULT_HEADLIGHT,
   DEFAULT_PAINT,
+  DEFAULT_SCENE,
+  DEFAULT_TAILLIGHT,
   DEFAULT_VIEW,
   DEFAULT_WHEEL_FINISH,
   DEFAULT_WHEEL_STYLE,
+  DEFAULT_WINDOW_TINT,
+  HEADLIGHT_COLORS,
   PAINTS,
+  SCENES,
+  TAILLIGHT_COLORS,
   WHEEL_FINISHES,
   WHEEL_STYLES,
   type CameraViewId,
   type PaintOption,
+  type SceneOption,
+  type SimpleColor,
   type WheelFinish,
   type WheelStyle,
 } from '@/lib/config';
@@ -27,6 +37,11 @@ interface ConfigState {
   paint: PaintOption;
   wheelStyle: WheelStyle;
   wheelFinish: WheelFinish;
+  headlightColor: SimpleColor;
+  taillightColor: SimpleColor;
+  windowTint: number;
+  carbonOn: boolean;
+  scene: SceneOption;
   view: CameraViewId;
   headlightsOn: boolean;
   autoSpin: boolean;
@@ -41,6 +56,13 @@ interface ConfigActions {
   setWheelStyle: (style: WheelStyle) => void;
   setWheelFinish: (finish: WheelFinish) => void;
   setCustomFinish: (hex: string) => void;
+  setHeadlightColor: (color: SimpleColor) => void;
+  setCustomHeadlight: (hex: string) => void;
+  setTaillightColor: (color: SimpleColor) => void;
+  setCustomTaillight: (hex: string) => void;
+  setWindowTint: (tint: number) => void;
+  toggleCarbon: () => void;
+  setScene: (scene: SceneOption) => void;
   setView: (view: CameraViewId) => void;
   toggleHeadlights: () => void;
   toggleAutoSpin: () => void;
@@ -59,6 +81,11 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [paint, setPaint] = useState<PaintOption>(DEFAULT_PAINT);
   const [wheelStyle, setWheelStyle] = useState<WheelStyle>(DEFAULT_WHEEL_STYLE);
   const [wheelFinish, setWheelFinish] = useState<WheelFinish>(DEFAULT_WHEEL_FINISH);
+  const [headlightColor, setHeadlightColor] = useState<SimpleColor>(DEFAULT_HEADLIGHT);
+  const [taillightColor, setTaillightColor] = useState<SimpleColor>(DEFAULT_TAILLIGHT);
+  const [windowTint, setWindowTint] = useState(DEFAULT_WINDOW_TINT);
+  const [carbonOn, setCarbonOn] = useState(true);
+  const [scene, setScene] = useState<SceneOption>(DEFAULT_SCENE);
   const [view, setViewState] = useState<CameraViewId>(DEFAULT_VIEW);
   const [viewNonce, setViewNonce] = useState(0);
   const [headlightsOn, setHeadlightsOn] = useState(false);
@@ -69,6 +96,15 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     (hex: string) => setWheelFinish(customFinish(hex)),
     [],
   );
+  const setCustomHeadlight = useCallback(
+    (hex: string) => setHeadlightColor(customColor(hex)),
+    [],
+  );
+  const setCustomTaillight = useCallback(
+    (hex: string) => setTaillightColor(customColor(hex)),
+    [],
+  );
+  const toggleCarbon = useCallback(() => setCarbonOn((on) => !on), []);
 
   const setView = useCallback((next: CameraViewId) => {
     setViewState(next);
@@ -82,6 +118,9 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     setPaint(pick(PAINTS));
     setWheelStyle(pick(WHEEL_STYLES));
     setWheelFinish(pick(WHEEL_FINISHES));
+    setHeadlightColor(pick(HEADLIGHT_COLORS));
+    setTaillightColor(pick(TAILLIGHT_COLORS));
+    setScene(pick(SCENES));
   }, []);
 
   const value = useMemo<ConfigContextValue>(
@@ -89,6 +128,11 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       paint,
       wheelStyle,
       wheelFinish,
+      headlightColor,
+      taillightColor,
+      windowTint,
+      carbonOn,
+      scene,
       view,
       viewNonce,
       headlightsOn,
@@ -98,6 +142,13 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       setWheelStyle,
       setWheelFinish,
       setCustomFinish,
+      setHeadlightColor,
+      setCustomHeadlight,
+      setTaillightColor,
+      setCustomTaillight,
+      setWindowTint,
+      toggleCarbon,
+      setScene,
       setView,
       toggleHeadlights,
       toggleAutoSpin,
@@ -107,12 +158,20 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       paint,
       wheelStyle,
       wheelFinish,
+      headlightColor,
+      taillightColor,
+      windowTint,
+      carbonOn,
+      scene,
       view,
       viewNonce,
       headlightsOn,
       autoSpin,
       setCustomPaint,
       setCustomFinish,
+      setCustomHeadlight,
+      setCustomTaillight,
+      toggleCarbon,
       setView,
       toggleHeadlights,
       toggleAutoSpin,

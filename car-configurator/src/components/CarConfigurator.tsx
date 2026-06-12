@@ -74,7 +74,7 @@ export function CarConfigurator() {
           <ViewBar />
         </div>
 
-        <div className="pointer-events-auto absolute inset-x-3 bottom-3 max-h-[42vh] lg:inset-x-auto lg:bottom-6 lg:right-5 lg:top-24 lg:max-h-none lg:w-[360px]">
+        <div className="pointer-events-auto absolute inset-x-3 bottom-3 lg:inset-x-auto lg:bottom-6 lg:right-5 lg:top-24 lg:w-[360px]">
           <ConfiguratorPanel />
         </div>
 
