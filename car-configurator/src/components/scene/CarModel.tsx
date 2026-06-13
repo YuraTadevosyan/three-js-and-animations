@@ -7,6 +7,7 @@ import {
   Color,
   type Group,
   type Mesh,
+  type MeshPhysicalMaterial,
   type MeshStandardMaterial,
   Object3D,
   type Texture,
@@ -40,7 +41,16 @@ interface PreparedModel {
   tireMeshes: Mesh[];
   brakeMeshes: Mesh[];
   diskMeshes: Mesh[];
-  glassMats: MeshStandardMaterial[];
+  glassMats: {
+    mat: MeshPhysicalMaterial;
+    base: {
+      color: Color;
+      opacity: number;
+      transmission: number;
+      map: Texture | null;
+      transmissionMap: Texture | null;
+    };
+  }[];
   tailMats: MeshStandardMaterial[];
   carbonMats: { mat: MeshStandardMaterial; baseColor: Color; baseMap: Texture | null }[];
   rearMesh: Mesh | null;
@@ -59,6 +69,7 @@ function ancestorMatches(obj: Object3D, re: RegExp): boolean {
 export function CarModel() {
   const {
     paint,
+    paintFinish,
     wheelStyle,
     wheelFinish,
     headlightColor,
@@ -93,7 +104,7 @@ export function CarModel() {
     const tireMeshes: Mesh[] = [];
     const brakeMeshes: Mesh[] = [];
     const diskMeshes: Mesh[] = [];
-    const glassMats: MeshStandardMaterial[] = [];
+    const glassMats: PreparedModel['glassMats'] = [];
     const tailMats: MeshStandardMaterial[] = [];
     const carbonMats: PreparedModel['carbonMats'] = [];
     let rearMesh: Mesh | null = null;
@@ -133,7 +144,26 @@ export function CarModel() {
         mat.toneMapped = false;
         tailMats.push(mat);
       }
-      if (mat.name === MAT.glass) glassMats.push(mat);
+      if (mat.name === MAT.glass) {
+        // Same glass material is used by the windows *and* the front light lens
+        // cover. Only tint the actual windows (the light cover sits low).
+        mesh.geometry.computeBoundingBox();
+        const bb = mesh.geometry.boundingBox;
+        const centreY = bb ? (bb.min.y + bb.max.y) / 2 : 1;
+        if (centreY >= 0.65) {
+          const gmat = mat as unknown as MeshPhysicalMaterial;
+          glassMats.push({
+            mat: gmat,
+            base: {
+              color: gmat.color.clone(),
+              opacity: gmat.opacity,
+              transmission: gmat.transmission ?? 0,
+              map: gmat.map,
+              transmissionMap: gmat.transmissionMap ?? null,
+            },
+          });
+        }
+      }
       if (mat.name === MAT.carbon) {
         carbonMats.push({ mat, baseColor: mat.color.clone(), baseMap: mat.map ?? null });
       }
@@ -227,20 +257,21 @@ export function CarModel() {
     prepared.diskMeshes.forEach((m) => (m.visible = showCorner));
   }, [wheelStyle, prepared]);
 
-  // ---- Paint transition ----
+  // ---- Paint colour + finish ----
   useEffect(() => {
     const target = new Color(paint.hex).convertSRGBToLinear();
     const duration = reducedMotion ? 0 : 0.7;
     prepared.paintMats.forEach((m) => {
       gsap.to(m.color, { r: target.r, g: target.g, b: target.b, duration, ease: 'power2.inOut' });
       gsap.to(m, {
-        metalness: paint.metalness,
-        roughness: paint.roughness,
+        metalness: paintFinish.metalness,
+        roughness: paintFinish.roughness,
+        envMapIntensity: paintFinish.env,
         duration,
         ease: 'power2.inOut',
       });
     });
-  }, [paint, prepared, reducedMotion]);
+  }, [paint, paintFinish, prepared, reducedMotion]);
 
   // ---- Wheel / caliper finish (OEM material) ----
   useEffect(() => {
@@ -287,15 +318,34 @@ export function CarModel() {
     });
   }, [taillightColor, prepared]);
 
-  // ---- Window tint (darken the glass) ----
+  // ---- Window tint ----
+  // The glass is a transmission material with a transmission *texture*, so the
+  // centre stays see-through no matter the transmission factor. To tint, drop
+  // both the transmission map and the base-colour map and drive a solid dark
+  // glass; restore the originals at 0%.
   useEffect(() => {
-    const shade = 1 - 0.92 * windowTint; // 1 = clear glass … →0 blacked out
-    prepared.glassMats.forEach((m) => {
-      m.color.setScalar(shade);
-      if ('envMapIntensity' in m) m.envMapIntensity = 1.3 * (1 - 0.55 * windowTint);
-      m.transparent = true;
-      m.opacity = 0.55 + 0.45 * windowTint;
-      m.needsUpdate = true;
+    const t = windowTint;
+    prepared.glassMats.forEach(({ mat, base }) => {
+      if (t <= 0.001) {
+        // Factory clear glass.
+        mat.color.copy(base.color);
+        mat.opacity = base.opacity;
+        mat.transmission = base.transmission;
+        mat.map = base.map;
+        mat.transmissionMap = base.transmissionMap;
+        mat.envMapIntensity = 1.3;
+      } else {
+        // Pure black overlay, opacity-driven (no transmission, no maps) so it
+        // darkens to black instead of a white haze.
+        mat.map = null;
+        mat.transmissionMap = null;
+        mat.transmission = 0;
+        mat.color.setScalar(0);
+        mat.opacity = Math.min(1, 0.08 + t);
+        mat.envMapIntensity = 0.2;
+      }
+      mat.transparent = true;
+      mat.needsUpdate = true;
     });
   }, [windowTint, prepared]);
 
@@ -311,12 +361,13 @@ export function CarModel() {
       } else {
         mat.map = null;
         mat.color.copy(bodyColor);
-        mat.metalness = paint.metalness;
-        mat.roughness = paint.roughness;
+        mat.metalness = paintFinish.metalness;
+        mat.roughness = paintFinish.roughness;
+        if ('envMapIntensity' in mat) mat.envMapIntensity = paintFinish.env;
       }
       mat.needsUpdate = true;
     });
-  }, [carbonOn, paint, prepared]);
+  }, [carbonOn, paint, paintFinish, prepared]);
 
   // ---- Turntable ----
   useFrame((_, delta) => {

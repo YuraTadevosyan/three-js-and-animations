@@ -48,6 +48,27 @@ export function customPaint(hex: string): PaintOption {
 }
 export const CUSTOM_PAINT_DEFAULT = '#15d6a0';
 
+// Paint finish controls the surface (the colour stays the same). These map to
+// metalness / roughness / env-reflection on the body material.
+export interface PaintFinish {
+  id: string;
+  name: string;
+  metalness: number;
+  roughness: number;
+  env: number;
+}
+
+export const PAINT_FINISHES: PaintFinish[] = [
+  { id: 'gloss', name: 'Gloss', metalness: 0.85, roughness: 0.16, env: 1.6 },
+  { id: 'metallic', name: 'Metallic', metalness: 1.0, roughness: 0.3, env: 1.75 },
+  { id: 'satin', name: 'Satin', metalness: 0.5, roughness: 0.5, env: 1.0 },
+  { id: 'matte', name: 'Matte', metalness: 0.0, roughness: 0.92, env: 0.4 },
+  { id: 'pearl', name: 'Pearl', metalness: 0.9, roughness: 0.22, env: 1.9 },
+  { id: 'chrome', name: 'Chrome', metalness: 1.0, roughness: 0.04, env: 2.3 },
+];
+
+export const DEFAULT_PAINT_FINISH = PAINT_FINISHES[0];
+
 // ---- Wheels: geometry style + finish colour are two independent choices ----
 
 export type WheelStyleId = 'oem' | 'tuner3' | 'split5' | 'ten' | 'mesh';

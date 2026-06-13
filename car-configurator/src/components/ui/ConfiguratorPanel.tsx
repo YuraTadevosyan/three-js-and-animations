@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import {
   HEADLIGHT_COLORS,
+  PAINT_FINISHES,
   PAINTS,
   SCENES,
   TAILLIGHT_COLORS,
@@ -61,6 +62,8 @@ export function ConfiguratorPanel() {
     paint,
     setPaint,
     setCustomPaint,
+    paintFinish,
+    setPaintFinish,
     wheelStyle,
     setWheelStyle,
     wheelFinish,
@@ -163,6 +166,33 @@ export function ConfiguratorPanel() {
               </span>
             </span>
           </label>
+
+          {/* Paint finish (surface type) */}
+          <div className="mt-3">
+            <p className="mb-2 text-[11px] uppercase tracking-[0.15em] text-white/40">
+              Finish · <span className="text-white/70">{paintFinish.name}</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {PAINT_FINISHES.map((f) => {
+                const active = f.id === paintFinish.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setPaintFinish(f)}
+                    className={cn(
+                      'rounded-lg border px-2.5 py-1 text-[12px] font-medium transition-all duration-200',
+                      active
+                        ? 'border-neon/50 bg-neon/10 text-neon'
+                        : 'border-white/10 bg-white/[0.02] text-white/60 hover:border-white/20 hover:text-white',
+                    )}
+                  >
+                    {f.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </Section>
 
         {/* Wheel style (geometry) */}

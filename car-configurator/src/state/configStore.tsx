@@ -13,6 +13,7 @@ import {
   customPaint,
   DEFAULT_HEADLIGHT,
   DEFAULT_PAINT,
+  DEFAULT_PAINT_FINISH,
   DEFAULT_SCENE,
   DEFAULT_TAILLIGHT,
   DEFAULT_VIEW,
@@ -20,12 +21,14 @@ import {
   DEFAULT_WHEEL_STYLE,
   DEFAULT_WINDOW_TINT,
   HEADLIGHT_COLORS,
+  PAINT_FINISHES,
   PAINTS,
   SCENES,
   TAILLIGHT_COLORS,
   WHEEL_FINISHES,
   WHEEL_STYLES,
   type CameraViewId,
+  type PaintFinish,
   type PaintOption,
   type SceneOption,
   type SimpleColor,
@@ -35,6 +38,7 @@ import {
 
 interface ConfigState {
   paint: PaintOption;
+  paintFinish: PaintFinish;
   wheelStyle: WheelStyle;
   wheelFinish: WheelFinish;
   headlightColor: SimpleColor;
@@ -53,6 +57,7 @@ interface ConfigState {
 interface ConfigActions {
   setPaint: (paint: PaintOption) => void;
   setCustomPaint: (hex: string) => void;
+  setPaintFinish: (finish: PaintFinish) => void;
   setWheelStyle: (style: WheelStyle) => void;
   setWheelFinish: (finish: WheelFinish) => void;
   setCustomFinish: (hex: string) => void;
@@ -79,6 +84,7 @@ function pick<T>(list: T[]): T {
 
 export function ConfigProvider({ children }: { children: ReactNode }) {
   const [paint, setPaint] = useState<PaintOption>(DEFAULT_PAINT);
+  const [paintFinish, setPaintFinish] = useState<PaintFinish>(DEFAULT_PAINT_FINISH);
   const [wheelStyle, setWheelStyle] = useState<WheelStyle>(DEFAULT_WHEEL_STYLE);
   const [wheelFinish, setWheelFinish] = useState<WheelFinish>(DEFAULT_WHEEL_FINISH);
   const [headlightColor, setHeadlightColor] = useState<SimpleColor>(DEFAULT_HEADLIGHT);
@@ -116,6 +122,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
   const randomize = useCallback(() => {
     setPaint(pick(PAINTS));
+    setPaintFinish(pick(PAINT_FINISHES));
     setWheelStyle(pick(WHEEL_STYLES));
     setWheelFinish(pick(WHEEL_FINISHES));
     setHeadlightColor(pick(HEADLIGHT_COLORS));
@@ -126,6 +133,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ConfigContextValue>(
     () => ({
       paint,
+      paintFinish,
       wheelStyle,
       wheelFinish,
       headlightColor,
@@ -139,6 +147,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       autoSpin,
       setPaint,
       setCustomPaint,
+      setPaintFinish,
       setWheelStyle,
       setWheelFinish,
       setCustomFinish,
@@ -156,6 +165,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     }),
     [
       paint,
+      paintFinish,
       wheelStyle,
       wheelFinish,
       headlightColor,
