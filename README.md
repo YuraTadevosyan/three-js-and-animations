@@ -16,6 +16,7 @@ the same GitHub Pages site.
 | [`shader-lab`](./shader-lab) | [/shader-lab/](https://yuratadevosyan.github.io/three-js-and-animations/shader-lab/) | React, R3F, GLSL ES (WebGL2), Web Audio API, Tailwind |
 | [`physics-playground`](./physics-playground) | [/physics-playground/](https://yuratadevosyan.github.io/three-js-and-animations/physics-playground/) | React, Matter.js, GSAP, TypeScript, Tailwind |
 | [`immersive-story`](./immersive-story) | [/immersive-story/](https://yuratadevosyan.github.io/three-js-and-animations/immersive-story/) | React, GSAP ScrollTrigger, Lenis, Tailwind |
+| [`car-configurator`](./car-configurator) | [/car-configurator/](https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/) | React, R3F, @react-three/drei, GSAP, postprocessing, TypeScript |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -28,7 +29,8 @@ the same GitHub Pages site.
 ├── gsap-animations-showcase/   GSAP motion patterns
 ├── shader-lab/                 GLSL shader experimentation lab
 ├── physics-playground/         Matter.js + GSAP physics UI playground
-└── immersive-story/            FC Barcelona-styled scroll matchday story (GSAP + Lenis)
+├── immersive-story/            FC Barcelona-styled scroll matchday story (GSAP + Lenis)
+└── car-configurator/           BMW M3 GTR E46 car configurator (R3F + drei + GSAP, GLB model)
 ```
 
 ## Hosting model
@@ -54,6 +56,7 @@ cd gsap-animations-showcase && npm install && npm run dev
 cd shader-lab               && npm install && npm run dev
 cd physics-playground       && npm install && npm run dev
 cd immersive-story          && npm install && npm run dev
+cd car-configurator         && npm install && npm run dev
 ```
 
 For the landing page:
@@ -74,6 +77,7 @@ cd gsap-animations-showcase && npm run deploy
 cd shader-lab               && npm run deploy
 cd physics-playground       && npm run deploy
 cd immersive-story          && npm run deploy
+cd car-configurator         && npm run deploy
 ```
 
 To publish the landing page:
