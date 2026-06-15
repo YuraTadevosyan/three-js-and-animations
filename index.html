@@ -1,459 +1,458 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#05060d" />
-    <meta name="color-scheme" content="dark" />
-    <meta
-      name="description"
-      content="A collection of interactive web showcases: a GLSL shader lab, a physics playground, GSAP animations, a Three.js + WebGL gallery, an audio-reactive music visualizer, and a scroll-driven FC Barcelona matchday story."
-    />
-    <meta property="og:title" content="three-js-and-animations — showcase index" />
-    <meta
-      property="og:description"
-      content="A GLSL shader lab, a Matter.js physics playground, GSAP animations, Three.js / WebGL demos, an audio-reactive music visualizer, and a Camp Nou scroll story — built with React + Vite."
-    />
-    <meta property="og:type" content="website" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-    />
-    <link rel="stylesheet" href="./styles.css" />
-    <title>three-js-and-animations — Interactive web showcases</title>
-  </head>
-  <body>
-    <div class="bg" aria-hidden="true">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
-      <div class="grid"></div>
-      <canvas id="particles"></canvas>
-    </div>
 
-    <header class="nav">
-      <a class="brand" href="#top" aria-label="three-js-and-animations">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
-            <path d="M12 2 L22 8 L12 14 L2 8 Z" />
-            <path d="M2 8 L2 16 L12 22 L22 16 L22 8" />
-            <path d="M12 14 L12 22" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#05060d" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description"
+    content="A collection of interactive web showcases: a GLSL shader lab, a physics playground, GSAP animations, a Three.js + WebGL gallery, an audio-reactive music visualizer, and a scroll-driven FC Barcelona matchday story." />
+  <meta property="og:title" content="three-js-and-animations — showcase index" />
+  <meta property="og:description"
+    content="A GLSL shader lab, a Matter.js physics playground, GSAP animations, Three.js / WebGL demos, an audio-reactive music visualizer, and a Camp Nou scroll story — built with React + Vite." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>three-js-and-animations — Interactive web showcases</title>
+</head>
+
+<body>
+  <div class="bg" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid"></div>
+    <canvas id="particles"></canvas>
+  </div>
+
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="three-js-and-animations">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 2 L22 8 L12 14 L2 8 Z" />
+          <path d="M2 8 L2 16 L12 22 L22 16 L22 8" />
+          <path d="M12 14 L12 22" />
+        </svg>
+      </span>
+      <span class="brand-text">three-js-and-animations</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#showcases">Showcases</a>
+      <a href="#stack">Stack</a>
+      <a class="nav-cta" href="https://github.com/YuraTadevosyan/three-js-and-animations" target="_blank"
+        rel="noopener noreferrer">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" data-reveal>
+      <span class="eyebrow">
+        <span class="dot"></span>
+        Six demos · one repo
+      </span>
+      <h1 class="title">
+        <span class="line">Interactive web,</span>
+        <span class="line gradient">rendered &amp; animated.</span>
+      </h1>
+      <p class="lede">
+        A small collection of frontend showcases — GSAP-powered motion,
+        Three.js / WebGL scenes, and an audio-reactive visualizer. Each app
+        is its own Vite build, deployed under this domain.
+      </p>
+      <div class="cta-row">
+        <a class="btn primary" href="#showcases">
+          Browse showcases
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
-        </span>
-        <span class="brand-text">three-js-and-animations</span>
-      </a>
-      <nav class="nav-links">
-        <a href="#showcases">Showcases</a>
-        <a href="#stack">Stack</a>
-        <a
-          class="nav-cta"
-          href="https://github.com/YuraTadevosyan/three-js-and-animations"
-          target="_blank"
-          rel="noopener noreferrer"
-          >GitHub</a
-        >
-      </nav>
-    </header>
-
-    <main id="top">
-      <section class="hero" data-reveal>
-        <span class="eyebrow">
-          <span class="dot"></span>
-          Six demos · one repo
-        </span>
-        <h1 class="title">
-          <span class="line">Interactive web,</span>
-          <span class="line gradient">rendered &amp; animated.</span>
-        </h1>
-        <p class="lede">
-          A small collection of frontend showcases — GSAP-powered motion,
-          Three.js / WebGL scenes, and an audio-reactive visualizer. Each app
-          is its own Vite build, deployed under this domain.
-        </p>
-        <div class="cta-row">
-          <a class="btn primary" href="#showcases">
-            Browse showcases
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </a>
-          <a
-            class="btn ghost"
-            href="https://github.com/YuraTadevosyan/three-js-and-animations"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View source
-          </a>
-        </div>
-      </section>
-
-      <section id="showcases" class="cards" aria-label="Showcases">
-        <a
-          class="card"
-          href="./three-webgl-showcase/"
-          data-reveal
-          data-accent="cyan"
-        >
-          <div class="card-spotlight" aria-hidden="true"></div>
-          <div class="card-art" aria-hidden="true">
-            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#22d3ee" stop-opacity=".9" />
-                  <stop offset="100%" stop-color="#6366f1" stop-opacity=".5" />
-                </linearGradient>
-              </defs>
-              <g stroke="url(#g1)" stroke-width="1.1" fill="none">
-                <path d="M0 90 Q 50 30 100 70 T 200 50" />
-                <path d="M0 100 Q 50 50 100 80 T 200 70" />
-                <path d="M0 110 Q 50 70 100 90 T 200 90" />
-              </g>
-              <g fill="url(#g1)">
-                <circle cx="40" cy="70" r="1.6" />
-                <circle cx="80" cy="55" r="1.4" />
-                <circle cx="120" cy="78" r="1.8" />
-                <circle cx="160" cy="60" r="1.2" />
-              </g>
-            </svg>
-          </div>
-          <div class="card-body">
-            <span class="card-index">01</span>
-            <h2 class="card-title">Three.js WebGL Showcase</h2>
-            <p class="card-desc">
-              GPU particles, custom GLSL shaders, and GLTF viewers — routed
-              with TanStack Router, lazy-loaded per scene.
-            </p>
-            <ul class="chips">
-              <li>three</li>
-              <li>@react-three/fiber</li>
-              <li>GLSL</li>
-              <li>TanStack</li>
-            </ul>
-            <span class="card-cta">
-              Launch demo
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
-            </span>
-          </div>
         </a>
-
-        <a
-          class="card"
-          href="./music-visualizer/"
-          data-reveal
-          data-accent="violet"
-        >
-          <div class="card-spotlight" aria-hidden="true"></div>
-          <div class="card-art" aria-hidden="true">
-            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="g2" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#a78bfa" stop-opacity=".95" />
-                  <stop offset="100%" stop-color="#ec4899" stop-opacity=".55" />
-                </linearGradient>
-              </defs>
-              <g fill="url(#g2)">
-                <rect x="10" y="60" width="6" height="40" rx="2" />
-                <rect x="22" y="45" width="6" height="55" rx="2" />
-                <rect x="34" y="30" width="6" height="70" rx="2" />
-                <rect x="46" y="50" width="6" height="50" rx="2" />
-                <rect x="58" y="20" width="6" height="80" rx="2" />
-                <rect x="70" y="40" width="6" height="60" rx="2" />
-                <rect x="82" y="55" width="6" height="45" rx="2" />
-                <rect x="94" y="25" width="6" height="75" rx="2" />
-                <rect x="106" y="50" width="6" height="50" rx="2" />
-                <rect x="118" y="35" width="6" height="65" rx="2" />
-                <rect x="130" y="60" width="6" height="40" rx="2" />
-                <rect x="142" y="40" width="6" height="60" rx="2" />
-                <rect x="154" y="55" width="6" height="45" rx="2" />
-                <rect x="166" y="30" width="6" height="70" rx="2" />
-                <rect x="178" y="50" width="6" height="50" rx="2" />
-              </g>
-            </svg>
-          </div>
-          <div class="card-body">
-            <span class="card-index">02</span>
-            <h2 class="card-title">Music Visualizer</h2>
-            <p class="card-desc">
-              Audio-reactive scene driven by real-time FFT — wave-distortion
-              shaders, particle aura, and a beat-synced camera.
-            </p>
-            <ul class="chips">
-              <li>R3F</li>
-              <li>Web Audio API</li>
-              <li>Postprocessing</li>
-              <li>FFT</li>
-            </ul>
-            <span class="card-cta">
-              Launch demo
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
-            </span>
-          </div>
+        <a class="btn ghost" href="https://github.com/YuraTadevosyan/three-js-and-animations" target="_blank"
+          rel="noopener noreferrer">
+          View source
         </a>
-
-        <a
-          class="card"
-          href="./gsap-animations-showcase/"
-          data-reveal
-          data-accent="amber"
-        >
-          <div class="card-spotlight" aria-hidden="true"></div>
-          <div class="card-art" aria-hidden="true">
-            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="g3" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stop-color="#fbbf24" stop-opacity=".95" />
-                  <stop offset="100%" stop-color="#f97316" stop-opacity=".55" />
-                </linearGradient>
-              </defs>
-              <g stroke="url(#g3)" stroke-width="1.4" fill="none" stroke-linecap="round">
-                <path d="M10 90 C 50 90, 50 30, 100 30 S 150 90, 190 90" />
-                <path d="M10 70 C 50 70, 60 50, 100 50 S 160 70, 190 70" opacity=".55" />
-              </g>
-              <g fill="url(#g3)">
-                <circle cx="10" cy="90" r="2.2" />
-                <circle cx="100" cy="30" r="2.8" />
-                <circle cx="190" cy="90" r="2.2" />
-              </g>
-            </svg>
-          </div>
-          <div class="card-body">
-            <span class="card-index">03</span>
-            <h2 class="card-title">GSAP Animations Showcase</h2>
-            <p class="card-desc">
-              A curated set of high-performance GSAP patterns — scroll
-              reveals, text splits, magnetic cursors, page transitions.
-            </p>
-            <ul class="chips">
-              <li>GSAP</li>
-              <li>ScrollTrigger</li>
-              <li>React Router</li>
-              <li>shadcn/ui</li>
-            </ul>
-            <span class="card-cta">
-              Launch demo
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
-            </span>
-          </div>
-        </a>
-
-        <a
-          class="card"
-          href="/three-js-and-animations/shader-lab/"
-          data-reveal
-          data-accent="pink"
-        >
-          <div class="card-spotlight" aria-hidden="true"></div>
-          <div class="card-art" aria-hidden="true">
-            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="g4" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#ec4899" stop-opacity=".9" />
-                  <stop offset="50%" stop-color="#a78bfa" stop-opacity=".7" />
-                  <stop offset="100%" stop-color="#22d3ee" stop-opacity=".55" />
-                </linearGradient>
-                <radialGradient id="g4r" cx="50%" cy="50%" r="60%">
-                  <stop offset="0%" stop-color="#f472b6" stop-opacity=".55" />
-                  <stop offset="100%" stop-color="#f472b6" stop-opacity="0" />
-                </radialGradient>
-              </defs>
-              <g fill="url(#g4r)">
-                <ellipse cx="65" cy="60" rx="55" ry="38" />
-                <ellipse cx="135" cy="55" rx="60" ry="42" />
-              </g>
-              <g stroke="url(#g4)" stroke-width="1.1" fill="none" stroke-linecap="round">
-                <path d="M0 75 Q 35 45 65 60 T 135 55 T 200 70" />
-                <path d="M0 90 Q 40 65 70 75 T 130 70 T 200 88" />
-                <path d="M0 60 Q 45 30 75 45 T 140 40 T 200 55" opacity=".55" />
-              </g>
-              <g fill="url(#g4)">
-                <circle cx="40" cy="60" r="1.6" />
-                <circle cx="100" cy="50" r="1.8" />
-                <circle cx="160" cy="65" r="1.4" />
-              </g>
-            </svg>
-          </div>
-          <div class="card-body">
-            <span class="card-index">04</span>
-            <h2 class="card-title">Shader Lab</h2>
-            <p class="card-desc">
-              Eleven hand-written GLSL demos on one fullscreen canvas —
-              water, aurora, plasma, voronoi, truchet, tunnel, raymarched
-              SDF, hologram, GPU particles and more.
-            </p>
-            <ul class="chips">
-              <li>R3F</li>
-              <li>GLSL ES</li>
-              <li>WebGL2</li>
-              <li>Web Audio</li>
-            </ul>
-            <span class="card-cta">
-              Launch demo
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
-            </span>
-          </div>
-        </a>
-
-        <a
-          class="card"
-          href="./physics-playground/"
-          data-reveal
-          data-accent="lime"
-        >
-          <div class="card-spotlight" aria-hidden="true"></div>
-          <div class="card-art" aria-hidden="true">
-            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="g5" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#a3e635" stop-opacity=".95" />
-                  <stop offset="55%" stop-color="#22d3ee" stop-opacity=".7" />
-                  <stop offset="100%" stop-color="#818cf8" stop-opacity=".55" />
-                </linearGradient>
-              </defs>
-              <path d="M0 102 Q 100 92 200 102" stroke="url(#g5)" stroke-width="0.8" fill="none" opacity="0.4" />
-              <rect x="58" y="30" width="58" height="34" rx="6" fill="none" stroke="url(#g5)" stroke-width="1.6" transform="rotate(-14 87 47)" />
-              <g fill="url(#g5)">
-                <circle cx="42" cy="92" r="6.5" />
-                <circle cx="78" cy="98" r="4.5" opacity="0.75" />
-                <circle cx="120" cy="94" r="7.5" opacity="0.85" />
-                <circle cx="156" cy="100" r="5" opacity="0.7" />
-                <circle cx="184" cy="92" r="3.5" opacity="0.6" />
-              </g>
-              <g stroke="url(#g5)" stroke-width="1" stroke-linecap="round" fill="none">
-                <path d="M120 84 L 134 70" opacity="0.5" />
-                <path d="M44 80 L 32 64" opacity="0.4" />
-              </g>
-            </svg>
-          </div>
-          <div class="card-body">
-            <span class="card-index">05</span>
-            <h2 class="card-title">Physics Playground</h2>
-            <p class="card-desc">
-              Draggable Matter.js cards with elastic GSAP hover — a
-              magnetic cursor, dynamic collisions, slow-motion, and a
-              drifting particle field. Mouse, touch, and keyboard.
-            </p>
-            <ul class="chips">
-              <li>Matter.js</li>
-              <li>GSAP</li>
-              <li>React</li>
-              <li>TypeScript</li>
-            </ul>
-            <span class="card-cta">
-              Launch demo
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
-            </span>
-          </div>
-        </a>
-
-        <a
-          class="card"
-          href="./immersive-story/"
-          data-reveal
-          data-accent="ember"
-        >
-          <div class="card-spotlight" aria-hidden="true"></div>
-          <div class="card-art" aria-hidden="true">
-            <svg viewBox="0 0 200 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="g6" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#004D98" />
-                  <stop offset="50%" stop-color="#004D98" />
-                  <stop offset="50%" stop-color="#A50044" />
-                  <stop offset="100%" stop-color="#A50044" />
-                </linearGradient>
-              </defs>
-              <rect width="200" height="120" fill="#05080f" />
-              <rect x="20" y="18" width="160" height="84" fill="url(#g6)" opacity="0.55" />
-              <g stroke="#f3f0e6" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.85">
-                <rect x="28" y="26" width="144" height="68" />
-                <line x1="100" y1="26" x2="100" y2="94" />
-                <circle cx="100" cy="60" r="12" />
-                <circle cx="100" cy="60" r="1.6" fill="#f3f0e6" />
-              </g>
-              <g fill="#EDBB00">
-                <circle cx="100" cy="60" r="2.4" />
-              </g>
-              <g fill="#f3f0e6" opacity="0.9">
-                <rect x="40" y="42" width="6" height="36" rx="1" />
-                <rect x="154" y="42" width="6" height="36" rx="1" />
-              </g>
-            </svg>
-          </div>
-          <div class="card-body">
-            <span class="card-index">06</span>
-            <h2 class="card-title">Camp Nou — A Matchday Story</h2>
-            <p class="card-desc">
-              A blaugrana-styled scroll story at Camp Nou — full-bleed
-              hero, a pinned in-place carousel that cycles the 23-man
-              squad (roster + photos sourced live from Wikipedia / Commons),
-              a coaching-staff grid, and a parallax fans bleed. All-DOM,
-              GSAP ScrollTrigger + Lenis, IntersectionObserver-driven
-              text reveals.
-            </p>
-            <ul class="chips">
-              <li>React</li>
-              <li>GSAP ScrollTrigger</li>
-              <li>Lenis</li>
-              <li>IntersectionObserver</li>
-              <li>Tailwind</li>
-            </ul>
-            <span class="card-cta">
-              Launch demo
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M7 17 17 7M9 7h8v8" />
-              </svg>
-            </span>
-          </div>
-        </a>
-      </section>
-
-      <section id="stack" class="stack" data-reveal>
-        <h2>Built with</h2>
-        <ul class="stack-grid">
-          <li>React 18/19</li>
-          <li>TypeScript</li>
-          <li>Vite</li>
-          <li>Tailwind CSS</li>
-          <li>three.js</li>
-          <li>@react-three/fiber</li>
-          <li>GSAP</li>
-          <li>ScrollTrigger</li>
-          <li>Lenis</li>
-          <li>Matter.js</li>
-          <li>TanStack Router</li>
-          <li>Web Audio API</li>
-          <li>IntersectionObserver</li>
-          <li>GLSL</li>
-        </ul>
-      </section>
-    </main>
-
-    <footer class="foot">
-      <div class="foot-row">
-        <span>&copy; <span id="year"></span> Yura Tadevosyan</span>
-        <a
-          href="https://github.com/YuraTadevosyan/three-js-and-animations"
-          target="_blank"
-          rel="noopener noreferrer"
-          >github.com/YuraTadevosyan/three-js-and-animations</a
-        >
       </div>
-    </footer>
+    </section>
 
-    <script src="./script.js" defer></script>
-  </body>
+    <section id="showcases" class="cards" aria-label="Showcases">
+      <a class="card" href="./three-webgl-showcase/" data-reveal data-accent="cyan">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#22d3ee" stop-opacity=".9" />
+                <stop offset="100%" stop-color="#6366f1" stop-opacity=".5" />
+              </linearGradient>
+            </defs>
+            <g stroke="url(#g1)" stroke-width="1.1" fill="none">
+              <path d="M0 90 Q 50 30 100 70 T 200 50" />
+              <path d="M0 100 Q 50 50 100 80 T 200 70" />
+              <path d="M0 110 Q 50 70 100 90 T 200 90" />
+            </g>
+            <g fill="url(#g1)">
+              <circle cx="40" cy="70" r="1.6" />
+              <circle cx="80" cy="55" r="1.4" />
+              <circle cx="120" cy="78" r="1.8" />
+              <circle cx="160" cy="60" r="1.2" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">01</span>
+          <h2 class="card-title">Three.js WebGL Showcase</h2>
+          <p class="card-desc">
+            GPU particles, custom GLSL shaders, and GLTF viewers — routed
+            with TanStack Router, lazy-loaded per scene.
+          </p>
+          <ul class="chips">
+            <li>three</li>
+            <li>@react-three/fiber</li>
+            <li>GLSL</li>
+            <li>TanStack</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="./music-visualizer/" data-reveal data-accent="violet">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g2" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#a78bfa" stop-opacity=".95" />
+                <stop offset="100%" stop-color="#ec4899" stop-opacity=".55" />
+              </linearGradient>
+            </defs>
+            <g fill="url(#g2)">
+              <rect x="10" y="60" width="6" height="40" rx="2" />
+              <rect x="22" y="45" width="6" height="55" rx="2" />
+              <rect x="34" y="30" width="6" height="70" rx="2" />
+              <rect x="46" y="50" width="6" height="50" rx="2" />
+              <rect x="58" y="20" width="6" height="80" rx="2" />
+              <rect x="70" y="40" width="6" height="60" rx="2" />
+              <rect x="82" y="55" width="6" height="45" rx="2" />
+              <rect x="94" y="25" width="6" height="75" rx="2" />
+              <rect x="106" y="50" width="6" height="50" rx="2" />
+              <rect x="118" y="35" width="6" height="65" rx="2" />
+              <rect x="130" y="60" width="6" height="40" rx="2" />
+              <rect x="142" y="40" width="6" height="60" rx="2" />
+              <rect x="154" y="55" width="6" height="45" rx="2" />
+              <rect x="166" y="30" width="6" height="70" rx="2" />
+              <rect x="178" y="50" width="6" height="50" rx="2" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">02</span>
+          <h2 class="card-title">Music Visualizer</h2>
+          <p class="card-desc">
+            Audio-reactive scene driven by real-time FFT — wave-distortion
+            shaders, particle aura, and a beat-synced camera.
+          </p>
+          <ul class="chips">
+            <li>R3F</li>
+            <li>Web Audio API</li>
+            <li>Postprocessing</li>
+            <li>FFT</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="./gsap-animations-showcase/" data-reveal data-accent="amber">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g3" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="#fbbf24" stop-opacity=".95" />
+                <stop offset="100%" stop-color="#f97316" stop-opacity=".55" />
+              </linearGradient>
+            </defs>
+            <g stroke="url(#g3)" stroke-width="1.4" fill="none" stroke-linecap="round">
+              <path d="M10 90 C 50 90, 50 30, 100 30 S 150 90, 190 90" />
+              <path d="M10 70 C 50 70, 60 50, 100 50 S 160 70, 190 70" opacity=".55" />
+            </g>
+            <g fill="url(#g3)">
+              <circle cx="10" cy="90" r="2.2" />
+              <circle cx="100" cy="30" r="2.8" />
+              <circle cx="190" cy="90" r="2.2" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">03</span>
+          <h2 class="card-title">GSAP Animations Showcase</h2>
+          <p class="card-desc">
+            A curated set of high-performance GSAP patterns — scroll
+            reveals, text splits, magnetic cursors, page transitions.
+          </p>
+          <ul class="chips">
+            <li>GSAP</li>
+            <li>ScrollTrigger</li>
+            <li>React Router</li>
+            <li>shadcn/ui</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="/three-js-and-animations/shader-lab/" data-reveal data-accent="pink">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g4" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#ec4899" stop-opacity=".9" />
+                <stop offset="50%" stop-color="#a78bfa" stop-opacity=".7" />
+                <stop offset="100%" stop-color="#22d3ee" stop-opacity=".55" />
+              </linearGradient>
+              <radialGradient id="g4r" cx="50%" cy="50%" r="60%">
+                <stop offset="0%" stop-color="#f472b6" stop-opacity=".55" />
+                <stop offset="100%" stop-color="#f472b6" stop-opacity="0" />
+              </radialGradient>
+            </defs>
+            <g fill="url(#g4r)">
+              <ellipse cx="65" cy="60" rx="55" ry="38" />
+              <ellipse cx="135" cy="55" rx="60" ry="42" />
+            </g>
+            <g stroke="url(#g4)" stroke-width="1.1" fill="none" stroke-linecap="round">
+              <path d="M0 75 Q 35 45 65 60 T 135 55 T 200 70" />
+              <path d="M0 90 Q 40 65 70 75 T 130 70 T 200 88" />
+              <path d="M0 60 Q 45 30 75 45 T 140 40 T 200 55" opacity=".55" />
+            </g>
+            <g fill="url(#g4)">
+              <circle cx="40" cy="60" r="1.6" />
+              <circle cx="100" cy="50" r="1.8" />
+              <circle cx="160" cy="65" r="1.4" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">04</span>
+          <h2 class="card-title">Shader Lab</h2>
+          <p class="card-desc">
+            Eleven hand-written GLSL demos on one fullscreen canvas —
+            water, aurora, plasma, voronoi, truchet, tunnel, raymarched
+            SDF, hologram, GPU particles and more.
+          </p>
+          <ul class="chips">
+            <li>R3F</li>
+            <li>GLSL ES</li>
+            <li>WebGL2</li>
+            <li>Web Audio</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="./physics-playground/" data-reveal data-accent="lime">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g5" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#a3e635" stop-opacity=".95" />
+                <stop offset="55%" stop-color="#22d3ee" stop-opacity=".7" />
+                <stop offset="100%" stop-color="#818cf8" stop-opacity=".55" />
+              </linearGradient>
+            </defs>
+            <path d="M0 102 Q 100 92 200 102" stroke="url(#g5)" stroke-width="0.8" fill="none" opacity="0.4" />
+            <rect x="58" y="30" width="58" height="34" rx="6" fill="none" stroke="url(#g5)" stroke-width="1.6"
+              transform="rotate(-14 87 47)" />
+            <g fill="url(#g5)">
+              <circle cx="42" cy="92" r="6.5" />
+              <circle cx="78" cy="98" r="4.5" opacity="0.75" />
+              <circle cx="120" cy="94" r="7.5" opacity="0.85" />
+              <circle cx="156" cy="100" r="5" opacity="0.7" />
+              <circle cx="184" cy="92" r="3.5" opacity="0.6" />
+            </g>
+            <g stroke="url(#g5)" stroke-width="1" stroke-linecap="round" fill="none">
+              <path d="M120 84 L 134 70" opacity="0.5" />
+              <path d="M44 80 L 32 64" opacity="0.4" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">05</span>
+          <h2 class="card-title">Physics Playground</h2>
+          <p class="card-desc">
+            Draggable Matter.js cards with elastic GSAP hover — a
+            magnetic cursor, dynamic collisions, slow-motion, and a
+            drifting particle field. Mouse, touch, and keyboard.
+          </p>
+          <ul class="chips">
+            <li>Matter.js</li>
+            <li>GSAP</li>
+            <li>React</li>
+            <li>TypeScript</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="./immersive-story/" data-reveal data-accent="ember">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g6" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#004D98" />
+                <stop offset="50%" stop-color="#004D98" />
+                <stop offset="50%" stop-color="#A50044" />
+                <stop offset="100%" stop-color="#A50044" />
+              </linearGradient>
+            </defs>
+            <rect width="200" height="120" fill="#05080f" />
+            <rect x="20" y="18" width="160" height="84" fill="url(#g6)" opacity="0.55" />
+            <g stroke="#f3f0e6" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.85">
+              <rect x="28" y="26" width="144" height="68" />
+              <line x1="100" y1="26" x2="100" y2="94" />
+              <circle cx="100" cy="60" r="12" />
+              <circle cx="100" cy="60" r="1.6" fill="#f3f0e6" />
+            </g>
+            <g fill="#EDBB00">
+              <circle cx="100" cy="60" r="2.4" />
+            </g>
+            <g fill="#f3f0e6" opacity="0.9">
+              <rect x="40" y="42" width="6" height="36" rx="1" />
+              <rect x="154" y="42" width="6" height="36" rx="1" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">06</span>
+          <h2 class="card-title">Camp Nou — A Matchday Story</h2>
+          <p class="card-desc">
+            A blaugrana-styled scroll story at Camp Nou — full-bleed
+            hero, a pinned in-place carousel that cycles the 23-man
+            squad (roster + photos sourced live from Wikipedia / Commons),
+            a coaching-staff grid, and a parallax fans bleed. All-DOM,
+            GSAP ScrollTrigger + Lenis, IntersectionObserver-driven
+            text reveals.
+          </p>
+          <ul class="chips">
+            <li>React</li>
+            <li>GSAP ScrollTrigger</li>
+            <li>Lenis</li>
+            <li>IntersectionObserver</li>
+            <li>Tailwind</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="./car-configurator/" data-reveal data-accent="cyan">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 192.756 192.756" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <g fill-rule="evenodd" clip-rule="evenodd">
+                <path fill="transparent" d="M0 0h192.756v192.756H0V0z"></path>
+                <path fill="#33a0d1" d="M41.517 65.083H63.49l-33.012 59.935H8.504l33.013-59.935z"></path>
+                <path fill="#373485" d="M63.49 65.083h23.718l-33.012 59.935H30.478L63.49 65.083z"></path>
+                <path fill="#c52b30" d="M87.208 65.083h23.626l-33.011 59.935H54.196l33.012-59.935z"></path>
+                <path fill="#e6e6e7"
+                  d="M118.26 65.083h22.043l.687 26.952 14.844-26.952h19.463l1.498 59.935h-20.609V97.532l-13.793 27.486h-19.571l.315-26.782-14.117 26.782H85.248l33.012-59.935z">
+                </path>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">07</span>
+          <h2 class="card-title">Car Configurator</h2>
+          <p class="card-desc">
+            A premium BMW M3 GTR E46 configurator in a Need-for-Speed garage —
+            a real 3D model with GSAP paint transitions, wheel &amp; caliper
+            finishes, angel-eye headlights, cinematic camera presets, and a
+            reflective stage with bloom.
+          </p>
+          <ul class="chips">
+            <li>R3F</li>
+            <li>drei</li>
+            <li>GSAP</li>
+            <li>postprocessing</li>
+            <li>TypeScript</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
+    </section>
+
+    <section id="stack" class="stack" data-reveal>
+      <h2>Built with</h2>
+      <ul class="stack-grid">
+        <li>React 18/19</li>
+        <li>TypeScript</li>
+        <li>Vite</li>
+        <li>Tailwind CSS</li>
+        <li>three.js</li>
+        <li>@react-three/fiber</li>
+        <li>GSAP</li>
+        <li>ScrollTrigger</li>
+        <li>Lenis</li>
+        <li>Matter.js</li>
+        <li>TanStack Router</li>
+        <li>Web Audio API</li>
+        <li>IntersectionObserver</li>
+        <li>GLSL</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-row">
+      <span>&copy; <span id="year"></span> Yura Tadevosyan</span>
+      <a href="https://github.com/YuraTadevosyan/three-js-and-animations" target="_blank"
+        rel="noopener noreferrer">github.com/YuraTadevosyan/three-js-and-animations</a>
+    </div>
+  </footer>
+
+  <script src="./script.js" defer></script>
+</body>
+
 </html>
