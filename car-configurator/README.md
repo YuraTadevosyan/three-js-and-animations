@@ -24,9 +24,12 @@ finishes, angel-eye headlights, cinematic camera presets, reflections and bloom.
   chosen wheel is centred, scaled to the hub radius, axle-oriented onto the
   car's wheel axis, and tinted with the finish. Drop more wheel GLBs into
   `public/models/wheels/` and add an entry to `WHEEL_STYLES` to extend the list.
-- **Wheel / caliper finish** — nine alloy finishes plus a **custom rim colour
-  picker**. On this model the rims and calipers share one material, so the finish
-  applies to both together (and to any procedural/loaded rims).
+- **Wheel / caliper finish** — nine rim colours plus a **custom rim colour
+  picker**, and an independent **surface type** (Gloss, Metallic, Satin, Matte,
+  Brushed, Chrome) that drives metalness/roughness/reflections. Colour and
+  surface are separate, so any colour can pair with any finish (e.g. Bronze
+  Matte, Silver Chrome). On this model the rims and calipers share one material,
+  so both apply to them together (and to any procedural/loaded rims).
 - **Angel-eye headlights** — toggles the headlight material's emissive plus two
   forward spotlights, animated on together via GSAP.
 - **Cinematic camera** — a sweeping intro fly-in and six GSAP-tweened presets
@@ -52,7 +55,7 @@ React 18 · TypeScript · Vite · Tailwind CSS · three.js · @react-three/fiber
 
 ```
 src/
-├── state/configStore.tsx     React context: paint, wheel style/finish, view, toggles
+├── state/configStore.tsx     React context: paint, wheel style/finish/surface, view, toggles
 ├── lib/config.ts             model urls + material ids + paint/wheel/camera tables
 ├── components/
 │   ├── CarConfigurator.tsx    layout + GSAP entrance timeline

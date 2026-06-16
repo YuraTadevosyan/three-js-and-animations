@@ -19,6 +19,7 @@ import {
   DEFAULT_VIEW,
   DEFAULT_WHEEL_FINISH,
   DEFAULT_WHEEL_STYLE,
+  DEFAULT_WHEEL_SURFACE,
   DEFAULT_WINDOW_TINT,
   HEADLIGHT_COLORS,
   PAINT_FINISHES,
@@ -27,6 +28,7 @@ import {
   TAILLIGHT_COLORS,
   WHEEL_FINISHES,
   WHEEL_STYLES,
+  WHEEL_SURFACES,
   type CameraViewId,
   type PaintFinish,
   type PaintOption,
@@ -34,6 +36,7 @@ import {
   type SimpleColor,
   type WheelFinish,
   type WheelStyle,
+  type WheelSurface,
 } from '@/lib/config';
 
 interface ConfigState {
@@ -41,6 +44,7 @@ interface ConfigState {
   paintFinish: PaintFinish;
   wheelStyle: WheelStyle;
   wheelFinish: WheelFinish;
+  wheelSurface: WheelSurface;
   headlightColor: SimpleColor;
   taillightColor: SimpleColor;
   windowTint: number;
@@ -61,6 +65,7 @@ interface ConfigActions {
   setWheelStyle: (style: WheelStyle) => void;
   setWheelFinish: (finish: WheelFinish) => void;
   setCustomFinish: (hex: string) => void;
+  setWheelSurface: (surface: WheelSurface) => void;
   setHeadlightColor: (color: SimpleColor) => void;
   setCustomHeadlight: (hex: string) => void;
   setTaillightColor: (color: SimpleColor) => void;
@@ -87,6 +92,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [paintFinish, setPaintFinish] = useState<PaintFinish>(DEFAULT_PAINT_FINISH);
   const [wheelStyle, setWheelStyle] = useState<WheelStyle>(DEFAULT_WHEEL_STYLE);
   const [wheelFinish, setWheelFinish] = useState<WheelFinish>(DEFAULT_WHEEL_FINISH);
+  const [wheelSurface, setWheelSurface] = useState<WheelSurface>(DEFAULT_WHEEL_SURFACE);
   const [headlightColor, setHeadlightColor] = useState<SimpleColor>(DEFAULT_HEADLIGHT);
   const [taillightColor, setTaillightColor] = useState<SimpleColor>(DEFAULT_TAILLIGHT);
   const [windowTint, setWindowTint] = useState(DEFAULT_WINDOW_TINT);
@@ -125,6 +131,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     setPaintFinish(pick(PAINT_FINISHES));
     setWheelStyle(pick(WHEEL_STYLES));
     setWheelFinish(pick(WHEEL_FINISHES));
+    setWheelSurface(pick(WHEEL_SURFACES));
     setHeadlightColor(pick(HEADLIGHT_COLORS));
     setTaillightColor(pick(TAILLIGHT_COLORS));
     setScene(pick(SCENES));
@@ -136,6 +143,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       paintFinish,
       wheelStyle,
       wheelFinish,
+      wheelSurface,
       headlightColor,
       taillightColor,
       windowTint,
@@ -151,6 +159,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       setWheelStyle,
       setWheelFinish,
       setCustomFinish,
+      setWheelSurface,
       setHeadlightColor,
       setCustomHeadlight,
       setTaillightColor,
@@ -168,6 +177,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       paintFinish,
       wheelStyle,
       wheelFinish,
+      wheelSurface,
       headlightColor,
       taillightColor,
       windowTint,

@@ -16,6 +16,8 @@ interface ProceduralWheelProps {
   color: string;
   metalness: number;
   roughness: number;
+  /** Environment-reflection intensity (set by the surface type). */
+  env?: number;
 }
 
 /**
@@ -34,6 +36,7 @@ export function ProceduralWheel({
   color,
   metalness,
   roughness,
+  env = 1,
 }: ProceduralWheelProps) {
   const rim = useMemo(() => new Color(color), [color]);
 
@@ -77,7 +80,12 @@ export function ProceduralWheel({
         {/* Outer rim lip */}
         <mesh rotation={[0, Math.PI / 2, 0]} position={[faceX, 0, 0]}>
           <torusGeometry args={[rimOuter, radius * 0.08, 16, 48]} />
-          <meshStandardMaterial color={rim} metalness={metalness} roughness={roughness * 0.7} />
+          <meshStandardMaterial
+            color={rim}
+            metalness={metalness}
+            roughness={roughness * 0.7}
+            envMapIntensity={env}
+          />
         </mesh>
 
         {/* Spokes */}
@@ -85,7 +93,12 @@ export function ProceduralWheel({
           <group key={i} rotation={[a, 0, 0]}>
             <mesh position={[faceX, spokeMid, 0]} castShadow>
               <boxGeometry args={[radius * 0.14, spokeLen, spokeW]} />
-              <meshStandardMaterial color={rim} metalness={metalness} roughness={roughness} />
+              <meshStandardMaterial
+                color={rim}
+                metalness={metalness}
+                roughness={roughness}
+                envMapIntensity={env}
+              />
             </mesh>
           </group>
         ))}
@@ -93,7 +106,12 @@ export function ProceduralWheel({
         {/* Hub + roundel */}
         <mesh rotation={[0, 0, Math.PI / 2]} position={[faceX + radius * 0.03, 0, 0]}>
           <cylinderGeometry args={[hubR, hubR, radius * 0.16, 24]} />
-          <meshStandardMaterial color={rim} metalness={metalness} roughness={roughness} />
+          <meshStandardMaterial
+            color={rim}
+            metalness={metalness}
+            roughness={roughness}
+            envMapIntensity={env}
+          />
         </mesh>
         <mesh rotation={[0, Math.PI / 2, 0]} position={[faceX + radius * 0.12, 0, 0]}>
           <circleGeometry args={[hubR * 0.62, 24]} />

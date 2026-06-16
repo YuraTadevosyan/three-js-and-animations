@@ -134,6 +134,28 @@ export function customFinish(hex: string): WheelFinish {
 }
 export const CUSTOM_FINISH_DEFAULT = '#c0392b';
 
+// Wheel surface — the *type* of finish (gloss / metallic / matte …), independent
+// of the rim colour. Mirrors the body PAINT_FINISHES and overrides the
+// metalness / roughness / reflections applied to the rim + caliper materials.
+export interface WheelSurface {
+  id: string;
+  name: string;
+  metalness: number;
+  roughness: number;
+  env: number;
+}
+
+export const WHEEL_SURFACES: WheelSurface[] = [
+  { id: 'gloss', name: 'Gloss', metalness: 0.9, roughness: 0.18, env: 1.5 },
+  { id: 'metallic', name: 'Metallic', metalness: 1.0, roughness: 0.34, env: 1.7 },
+  { id: 'satin', name: 'Satin', metalness: 0.7, roughness: 0.52, env: 1.0 },
+  { id: 'matte', name: 'Matte', metalness: 0.15, roughness: 0.88, env: 0.4 },
+  { id: 'brushed', name: 'Brushed', metalness: 1.0, roughness: 0.6, env: 1.15 },
+  { id: 'chrome', name: 'Chrome', metalness: 1.0, roughness: 0.04, env: 2.2 },
+];
+
+export const DEFAULT_WHEEL_SURFACE = WHEEL_SURFACES[0];
+
 // ---- Simple colour options (headlights, taillights) ----
 
 export interface SimpleColor {

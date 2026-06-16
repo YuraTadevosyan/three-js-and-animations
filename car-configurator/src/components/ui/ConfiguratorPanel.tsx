@@ -9,6 +9,7 @@ import {
   TAILLIGHT_COLORS,
   WHEEL_FINISHES,
   WHEEL_STYLES,
+  WHEEL_SURFACES,
 } from '@/lib/config';
 import { useConfig } from '@/state/configStore';
 import { cn } from '@/lib/cn';
@@ -69,6 +70,8 @@ export function ConfiguratorPanel() {
     wheelFinish,
     setWheelFinish,
     setCustomFinish,
+    wheelSurface,
+    setWheelSurface,
     headlightColor,
     setHeadlightColor,
     setCustomHeadlight,
@@ -228,7 +231,7 @@ export function ConfiguratorPanel() {
         </Section>
 
         {/* Wheel + caliper finish */}
-        <Section index="03" title="Finish" hint={wheelFinish.name}>
+        <Section index="03" title="Finish" hint={`${wheelFinish.name} · ${wheelSurface.name}`}>
           <div className="grid grid-cols-9 gap-2 lg:grid-cols-6">
             {WHEEL_FINISHES.map((f) => {
               const active = f.id === wheelFinish.id;
@@ -290,8 +293,35 @@ export function ConfiguratorPanel() {
             </span>
           </label>
 
+          {/* Wheel surface (finish type) */}
+          <div className="mt-3">
+            <p className="mb-2 text-[11px] uppercase tracking-[0.15em] text-white/40">
+              Surface · <span className="text-white/70">{wheelSurface.name}</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {WHEEL_SURFACES.map((s) => {
+                const active = s.id === wheelSurface.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setWheelSurface(s)}
+                    className={cn(
+                      'rounded-lg border px-2.5 py-1 text-[12px] font-medium transition-all duration-200',
+                      active
+                        ? 'border-neon/50 bg-neon/10 text-neon'
+                        : 'border-white/10 bg-white/[0.02] text-white/60 hover:border-white/20 hover:text-white',
+                    )}
+                  >
+                    {s.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <p className="mt-2.5 text-[11px] leading-relaxed text-white/35">
-            Finish applies to the rims and the brake calipers together.
+            Colour &amp; surface apply to the rims and the brake calipers together.
           </p>
         </Section>
 

@@ -20,6 +20,8 @@ interface WheelModelProps {
   color: string;
   metalness: number;
   roughness: number;
+  /** Environment-reflection intensity (set by the surface type). */
+  env: number;
 }
 
 // Materials that take the finish colour.
@@ -42,6 +44,7 @@ export function WheelModel({
   color,
   metalness,
   roughness,
+  env,
 }: WheelModelProps) {
   const { scene } = useGLTF(url);
 
@@ -109,9 +112,10 @@ export function WheelModel({
       m.color.copy(col);
       m.metalness = metalness;
       m.roughness = roughness;
+      if ('envMapIntensity' in m) m.envMapIntensity = env;
       m.needsUpdate = true;
     });
-  }, [color, metalness, roughness, finishMats]);
+  }, [color, metalness, roughness, env, finishMats]);
 
   return (
     <group position={position} rotation={rotation} scale={scale}>

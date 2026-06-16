@@ -72,6 +72,7 @@ export function CarModel() {
     paintFinish,
     wheelStyle,
     wheelFinish,
+    wheelSurface,
     headlightColor,
     taillightColor,
     windowTint,
@@ -274,6 +275,8 @@ export function CarModel() {
   }, [paint, paintFinish, prepared, reducedMotion]);
 
   // ---- Wheel / caliper finish (OEM material) ----
+  // Colour comes from the rim finish; metalness / roughness / reflections come
+  // from the chosen surface type (gloss, matte, chrome …).
   useEffect(() => {
     const target = new Color(wheelFinish.hex).convertSRGBToLinear();
     const duration = reducedMotion ? 0 : 0.6;
@@ -281,13 +284,14 @@ export function CarModel() {
       m.map = null;
       gsap.to(m.color, { r: target.r, g: target.g, b: target.b, duration, ease: 'power2.inOut' });
       gsap.to(m, {
-        metalness: wheelFinish.metalness,
-        roughness: wheelFinish.roughness,
+        metalness: wheelSurface.metalness,
+        roughness: wheelSurface.roughness,
+        envMapIntensity: wheelSurface.env,
         duration,
         ease: 'power2.inOut',
       });
     });
-  }, [wheelFinish, prepared, reducedMotion]);
+  }, [wheelFinish, wheelSurface, prepared, reducedMotion]);
 
   // ---- Headlight colour (emissive; beams take it via the colour prop) ----
   useEffect(() => {
@@ -391,8 +395,9 @@ export function CarModel() {
             spokes={wheelStyle.spokes ?? 5}
             split={wheelStyle.split ?? false}
             color={wheelFinish.hex}
-            metalness={wheelFinish.metalness}
-            roughness={wheelFinish.roughness}
+            metalness={wheelSurface.metalness}
+            roughness={wheelSurface.roughness}
+            env={wheelSurface.env}
           />
         ))}
 
@@ -406,8 +411,9 @@ export function CarModel() {
               targetRadius={h.radius}
               side={h.side}
               color={wheelFinish.hex}
-              metalness={wheelFinish.metalness}
-              roughness={wheelFinish.roughness}
+              metalness={wheelSurface.metalness}
+              roughness={wheelSurface.roughness}
+              env={wheelSurface.env}
             />
           ))}
         </Suspense>
