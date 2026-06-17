@@ -2,6 +2,8 @@ import { Check, Pipette } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import {
+  BEAM_MODES,
+  beamSetting,
   HEADLIGHT_COLORS,
   PAINT_FINISHES,
   PAINTS,
@@ -75,8 +77,8 @@ export function ConfiguratorPanel() {
     headlightColor,
     setHeadlightColor,
     setCustomHeadlight,
-    headlightsOn,
-    toggleHeadlights,
+    beamMode,
+    setBeamMode,
     taillightColor,
     setTaillightColor,
     setCustomTaillight,
@@ -325,11 +327,27 @@ export function ConfiguratorPanel() {
           </p>
         </Section>
 
-        {/* Headlight colour */}
-        <Section index="04" title="Headlights" hint={headlightColor.name}>
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-[11px] text-white/45">Beam &amp; angel-eye colour</span>
-            <TogglePill on={headlightsOn} onClick={toggleHeadlights} />
+        {/* Headlight beam mode + colour */}
+        <Section index="04" title="Headlights" hint={beamSetting(beamMode).full}>
+          <div className="mb-3 flex items-center gap-1.5">
+            {BEAM_MODES.map((b) => {
+              const active = b.id === beamMode;
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setBeamMode(b.id)}
+                  className={cn(
+                    'flex-1 rounded-lg border px-2 py-1.5 text-[12px] font-semibold transition-all duration-200',
+                    active
+                      ? 'border-neon/50 bg-neon/10 text-neon'
+                      : 'border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white',
+                  )}
+                >
+                  {b.name}
+                </button>
+              );
+            })}
           </div>
           <ColorField
             colors={HEADLIGHT_COLORS}

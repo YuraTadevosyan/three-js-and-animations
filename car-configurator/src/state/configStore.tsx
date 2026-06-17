@@ -11,6 +11,7 @@ import {
   customColor,
   customFinish,
   customPaint,
+  DEFAULT_BEAM_MODE,
   DEFAULT_HEADLIGHT,
   DEFAULT_PAINT,
   DEFAULT_PAINT_FINISH,
@@ -22,6 +23,7 @@ import {
   DEFAULT_WHEEL_SURFACE,
   DEFAULT_WINDOW_TINT,
   HEADLIGHT_COLORS,
+  nextBeamMode,
   PAINT_FINISHES,
   PAINTS,
   SCENES,
@@ -29,6 +31,7 @@ import {
   WHEEL_FINISHES,
   WHEEL_STYLES,
   WHEEL_SURFACES,
+  type BeamMode,
   type CameraViewId,
   type PaintFinish,
   type PaintOption,
@@ -51,7 +54,7 @@ interface ConfigState {
   carbonOn: boolean;
   scene: SceneOption;
   view: CameraViewId;
-  headlightsOn: boolean;
+  beamMode: BeamMode;
   autoSpin: boolean;
   /** Bumped each time the user explicitly picks a view, even the current one,
    *  so the camera rig can re-fly even when the id does not change. */
@@ -74,7 +77,9 @@ interface ConfigActions {
   toggleCarbon: () => void;
   setScene: (scene: SceneOption) => void;
   setView: (view: CameraViewId) => void;
-  toggleHeadlights: () => void;
+  setBeamMode: (mode: BeamMode) => void;
+  /** Cycle off → low → high → off (toolbar button). */
+  cycleBeam: () => void;
   toggleAutoSpin: () => void;
   randomize: () => void;
 }
@@ -100,7 +105,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [scene, setScene] = useState<SceneOption>(DEFAULT_SCENE);
   const [view, setViewState] = useState<CameraViewId>(DEFAULT_VIEW);
   const [viewNonce, setViewNonce] = useState(0);
-  const [headlightsOn, setHeadlightsOn] = useState(false);
+  const [beamMode, setBeamMode] = useState<BeamMode>(DEFAULT_BEAM_MODE);
   const [autoSpin, setAutoSpin] = useState(false);
 
   const setCustomPaint = useCallback((hex: string) => setPaint(customPaint(hex)), []);
@@ -123,7 +128,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     setViewNonce((n) => n + 1);
   }, []);
 
-  const toggleHeadlights = useCallback(() => setHeadlightsOn((on) => !on), []);
+  const cycleBeam = useCallback(() => setBeamMode((m) => nextBeamMode(m)), []);
   const toggleAutoSpin = useCallback(() => setAutoSpin((on) => !on), []);
 
   const randomize = useCallback(() => {
@@ -151,7 +156,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       scene,
       view,
       viewNonce,
-      headlightsOn,
+      beamMode,
       autoSpin,
       setPaint,
       setCustomPaint,
@@ -168,7 +173,8 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       toggleCarbon,
       setScene,
       setView,
-      toggleHeadlights,
+      setBeamMode,
+      cycleBeam,
       toggleAutoSpin,
       randomize,
     }),
@@ -185,7 +191,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       scene,
       view,
       viewNonce,
-      headlightsOn,
+      beamMode,
       autoSpin,
       setCustomPaint,
       setCustomFinish,
@@ -193,7 +199,8 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       setCustomTaillight,
       toggleCarbon,
       setView,
-      toggleHeadlights,
+      setBeamMode,
+      cycleBeam,
       toggleAutoSpin,
       randomize,
     ],

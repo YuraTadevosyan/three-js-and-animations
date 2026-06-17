@@ -30,8 +30,12 @@ finishes, angel-eye headlights, cinematic camera presets, reflections and bloom.
   surface are separate, so any colour can pair with any finish (e.g. Bronze
   Matte, Silver Chrome). On this model the rims and calipers share one material,
   so both apply to them together (and to any procedural/loaded rims).
-- **Angel-eye headlights** — toggles the headlight material's emissive plus two
-  forward spotlights, animated on together via GSAP.
+- **Angel-eye headlights** — a three-way **Off / Low / High** beam control
+  (ближний / дальний): low beam is dimmer, wider and aimed down at the road,
+  high beam is brighter, tighter, and flattened out so it throws further. Drives
+  the headlight material's emissive plus two forward spotlights (intensity, cone
+  angle, reach and aim), all animated via GSAP. The toolbar bulb cycles the
+  modes; the panel has a segmented selector.
 - **Cinematic camera** — a sweeping intro fly-in and six GSAP-tweened presets
   (Hero / Front / Profile / Rear / Wheel / Overhead) over damped `OrbitControls`.
 - **Reflections & shadows** — a `MeshReflectorMaterial` floor, soft

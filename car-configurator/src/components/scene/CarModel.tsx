@@ -14,7 +14,7 @@ import {
   Vector3,
 } from 'three';
 
-import { CAR_MODEL_URL, MAT, WHEEL_MODEL_URLS } from '@/lib/config';
+import { beamSetting, CAR_MODEL_URL, MAT, WHEEL_MODEL_URLS } from '@/lib/config';
 import { useConfig } from '@/state/configStore';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ProceduralWheel } from './ProceduralWheel';
@@ -77,7 +77,7 @@ export function CarModel() {
     taillightColor,
     windowTint,
     carbonOn,
-    headlightsOn,
+    beamMode,
     autoSpin,
   } = useConfig();
   const reducedMotion = useReducedMotion();
@@ -299,17 +299,32 @@ export function CarModel() {
     prepared.lightMats.forEach((m) => m.emissive.copy(c));
   }, [headlightColor, prepared]);
 
-  // ---- Headlights on/off ----
+  // ---- Headlights: off / low (ближний) / high (дальний) ----
+  // Low beam is dimmer, wider and aimed down at the road; high beam is brighter,
+  // tighter and flattened out so it throws further.
   useEffect(() => {
+    const beam = beamSetting(beamMode);
+    const on = beam.id !== 'off';
     const duration = reducedMotion ? 0 : 0.5;
     gsap.to(prepared.lightMats, {
-      emissiveIntensity: headlightsOn ? 3 : 0,
+      emissiveIntensity: beam.emissive,
       duration,
-      ease: headlightsOn ? 'power2.out' : 'power2.in',
+      ease: on ? 'power2.out' : 'power2.in',
     });
     const beams = [leftBeam.current, rightBeam.current].filter(Boolean);
-    gsap.to(beams, { intensity: headlightsOn ? 24 : 0, duration, ease: 'power2.out' });
-  }, [headlightsOn, prepared, reducedMotion]);
+    gsap.to(beams, {
+      intensity: beam.beam,
+      angle: beam.angle,
+      distance: beam.distance,
+      duration,
+      ease: 'power2.out',
+    });
+    gsap.to([beamTargets.l.position, beamTargets.r.position], {
+      y: beam.aimY,
+      duration,
+      ease: 'power2.out',
+    });
+  }, [beamMode, prepared, reducedMotion, beamTargets]);
 
   // ---- Taillight colour ----
   useEffect(() => {

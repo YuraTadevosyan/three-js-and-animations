@@ -1,19 +1,21 @@
-import { Lightbulb, Rotate3d, Shuffle } from 'lucide-react';
+import { Lightbulb, LightbulbOff, Rotate3d, Shuffle } from 'lucide-react';
 
+import { beamSetting } from '@/lib/config';
 import { useConfig } from '@/state/configStore';
 import { IconButton } from './IconButton';
 
 export function Toolbar() {
-  const { headlightsOn, toggleHeadlights, autoSpin, toggleAutoSpin, randomize } =
-    useConfig();
+  const { beamMode, cycleBeam, autoSpin, toggleAutoSpin, randomize } = useConfig();
+  const beam = beamSetting(beamMode);
+  const beamOn = beamMode !== 'off';
 
   return (
     <div data-ui-enter="toolbar" className="flex items-center gap-2">
       <IconButton
-        icon={<Lightbulb size={18} strokeWidth={2} />}
-        label="Toggle headlights"
-        active={headlightsOn}
-        onClick={toggleHeadlights}
+        icon={beamOn ? <Lightbulb size={18} strokeWidth={2} /> : <LightbulbOff size={18} strokeWidth={2} />}
+        label={`Headlights: ${beam.full}`}
+        active={beamOn}
+        onClick={cycleBeam}
       />
       <IconButton
         icon={<Rotate3d size={18} strokeWidth={2} />}

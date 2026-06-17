@@ -192,6 +192,48 @@ export const DEFAULT_TAILLIGHT = TAILLIGHT_COLORS[0];
 /** Window tint, 0 = factory glass … 1 = blacked-out limo. */
 export const DEFAULT_WINDOW_TINT = 0.3;
 
+// ---- Headlight beam mode: off / low (ближний) / high (дальний) ----
+
+export type BeamMode = 'off' | 'low' | 'high';
+
+export interface BeamSetting {
+  id: BeamMode;
+  /** Short label for the segmented control. */
+  name: string;
+  /** Full label for the section hint. */
+  full: string;
+  /** Headlight material emissive intensity. */
+  emissive: number;
+  /** Forward spotlight intensity. */
+  beam: number;
+  /** Spot cone half-angle (rad) — high beam is tighter for a longer throw. */
+  angle: number;
+  /** Beam reach in world units. */
+  distance: number;
+  /** Vertical aim of the beam target: low beam dips toward the road, high
+   *  beam flattens out and reaches further. */
+  aimY: number;
+}
+
+export const BEAM_MODES: BeamSetting[] = [
+  { id: 'off', name: 'Off', full: 'Off', emissive: 0, beam: 0, angle: 0.5, distance: 18, aimY: -0.4 },
+  { id: 'low', name: 'Low', full: 'Low beam', emissive: 2.2, beam: 16, angle: 0.6, distance: 13, aimY: -1.6 },
+  { id: 'high', name: 'High', full: 'High beam', emissive: 3.8, beam: 32, angle: 0.42, distance: 28, aimY: 0.4 },
+];
+
+export const DEFAULT_BEAM_MODE: BeamMode = 'off';
+
+/** Next mode in the off → low → high → off cycle (used by the toolbar button). */
+export function nextBeamMode(mode: BeamMode): BeamMode {
+  const order: BeamMode[] = ['off', 'low', 'high'];
+  return order[(order.indexOf(mode) + 1) % order.length];
+}
+
+/** Look up a beam setting by id (falls back to Off). */
+export function beamSetting(mode: BeamMode): BeamSetting {
+  return BEAM_MODES.find((b) => b.id === mode) ?? BEAM_MODES[0];
+}
+
 // ---- Background scenes (garage moods) ----
 
 export interface SceneOption {
