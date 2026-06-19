@@ -16,7 +16,7 @@ the same GitHub Pages site.
 | [`shader-lab`](./shader-lab) | [/shader-lab/](https://yuratadevosyan.github.io/three-js-and-animations/shader-lab/) | React, R3F, GLSL ES (WebGL2), Web Audio API, Tailwind |
 | [`physics-playground`](./physics-playground) | [/physics-playground/](https://yuratadevosyan.github.io/three-js-and-animations/physics-playground/) | React, Matter.js, GSAP, TypeScript, Tailwind |
 | [`immersive-story`](./immersive-story) | [/immersive-story/](https://yuratadevosyan.github.io/three-js-and-animations/immersive-story/) | React, GSAP ScrollTrigger, Lenis, Tailwind |
-| [`car-configurator`](./car-configurator) | [/car-configurator/](https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/) | React, R3F, @react-three/drei, GSAP, postprocessing, TypeScript |
+| [`car-configurator`](./car-configurator) | [/car-configurator/](https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/) | React, TypeScript, three.js, R3F, drei, postprocessing, GSAP, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
