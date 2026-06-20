@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  /* Fonts are loaded via <link> in layout.tsx; these map them to the Tailwind
+     font families with solid fallbacks if the network is blocked. */
+  --font-display: 'Orbitron', system-ui, sans-serif;
+  --font-mono: 'Share Tech Mono', ui-monospace, 'SFMono-Regular', monospace;
+}
+
+@layer base {
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    scroll-behavior: auto; /* Lenis owns smooth scrolling */
+  }
+
+  body {
+    @apply bg-void font-mono text-white antialiased;
+    background-image:
+      radial-gradient(80% 60% at 50% 0%, rgba(27, 107, 255, 0.12), transparent 60%),
+      radial-gradient(60% 50% at 100% 100%, rgba(255, 43, 214, 0.1), transparent 60%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    @apply bg-neon-cyan/30 text-white;
+  }
+
+  /* Neon scrollbar */
+  ::-webkit-scrollbar {
+    width: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #04060d;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(#00f0ff, #9d4dff);
+    border-radius: 9px;
+  }
+}
+
+@layer components {
+  /* Glassmorphism: clipped HUD corners on a panel. */
+  .cyber-corners {
+    clip-path: polygon(
+      14px 0,
+      100% 0,
+      100% calc(100% - 14px),
+      calc(100% - 14px) 100%,
+      0 100%,
+      0 14px
+    );
+  }
+
+  /* Smaller clipped corner for buttons/chips. */
+  .clip-corner {
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  /* CRT scanlines overlay. */
+  .scanlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.25) 3px,
+      rgba(0, 0, 0, 0.25) 4px
+    );
+  }
+}
+
+/* Don't flash unstyled, un-revealed text before GSAP/JS hydrates. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
