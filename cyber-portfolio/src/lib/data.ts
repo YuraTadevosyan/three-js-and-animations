@@ -135,3 +135,55 @@ export const NAV_LINKS = [
   { id: 'skills', label: 'Stack' },
   { id: 'contact', label: 'Contact' },
 ] as const;
+
+/**
+ * The actual technologies this site is built with — surfaced in the
+ * "about / colophon" modal so visitors can inspect the toolchain.
+ */
+export type Tech = { name: string; role: string; href: string };
+export type TechGroup = {
+  title: string;
+  accent: 'cyan' | 'magenta' | 'violet' | 'amber';
+  items: Tech[];
+};
+
+export const TECH_STACK: TechGroup[] = [
+  {
+    title: 'Framework & Language',
+    accent: 'cyan',
+    items: [
+      { name: 'Next.js', role: 'App Router · static export', href: 'https://nextjs.org' },
+      { name: 'React 18', role: 'UI runtime', href: 'https://react.dev' },
+      { name: 'TypeScript', role: 'Type-safe everything', href: 'https://www.typescriptlang.org' },
+    ],
+  },
+  {
+    title: 'Real-time 3D',
+    accent: 'magenta',
+    items: [
+      { name: 'Three.js', role: 'WebGL engine', href: 'https://threejs.org' },
+      { name: 'React Three Fiber', role: 'React renderer for three', href: 'https://r3f.docs.pmnd.rs' },
+      { name: 'drei', role: 'R3F helpers (Grid, perf)', href: 'https://github.com/pmndrs/drei' },
+      { name: 'postprocessing', role: 'Bloom · CRT · vignette', href: 'https://github.com/pmndrs/react-postprocessing' },
+      { name: 'GLSL', role: 'Particle & screen shaders', href: 'https://thebookofshaders.com' },
+    ],
+  },
+  {
+    title: 'Motion & Scroll',
+    accent: 'violet',
+    items: [
+      { name: 'GSAP', role: 'Timelines & tweening', href: 'https://gsap.com' },
+      { name: 'ScrollTrigger', role: 'Scroll-driven reveals', href: 'https://gsap.com/docs/v3/Plugins/ScrollTrigger/' },
+      { name: 'Lenis', role: 'Inertia smooth scroll', href: 'https://github.com/darkroomengineering/lenis' },
+    ],
+  },
+  {
+    title: 'UI & State',
+    accent: 'amber',
+    items: [
+      { name: 'Tailwind CSS', role: 'Utility-first styling', href: 'https://tailwindcss.com' },
+      { name: 'zustand', role: 'Scene & UI state', href: 'https://github.com/pmndrs/zustand' },
+      { name: 'lucide-react', role: 'Icon set', href: 'https://lucide.dev' },
+    ],
+  },
+];

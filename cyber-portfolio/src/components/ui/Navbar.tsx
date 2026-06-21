@@ -1,6 +1,8 @@
 'use client';
 
+import { Info } from 'lucide-react';
 import { useScene } from '@/store/useScene';
+import { useUI } from '@/store/useUI';
 import { scrollToSection } from '@/components/providers/SmoothScroll';
 import { NAV_LINKS, PROFILE } from '@/lib/data';
 import { cn } from '@/lib/cn';
@@ -12,6 +14,7 @@ import { cn } from '@/lib/cn';
  */
 export function Navbar() {
   const active = useScene((s) => s.active);
+  const openAbout = useUI((s) => s.openAbout);
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 flex justify-center px-4 pt-4">
@@ -45,12 +48,22 @@ export function Navbar() {
           ))}
         </ul>
 
-        <button
-          onClick={() => scrollToSection('contact')}
-          className="clip-corner bg-neon-cyan/10 px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-neon-cyan transition-colors hover:bg-neon-cyan/20"
-        >
-          Connect
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={openAbout}
+            aria-label="About this build — technologies used"
+            title="Built with…"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/60 transition-colors hover:border-neon-cyan/60 hover:text-neon-cyan"
+          >
+            <Info className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => scrollToSection('contact')}
+            className="clip-corner bg-neon-cyan/10 px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-neon-cyan transition-colors hover:bg-neon-cyan/20"
+          >
+            Connect
+          </button>
+        </div>
       </nav>
     </header>
   );

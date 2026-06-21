@@ -9,6 +9,7 @@ import { SceneCanvas } from '@/components/canvas/SceneCanvas';
 import { Navbar } from '@/components/ui/Navbar';
 import { Hud } from '@/components/ui/Hud';
 import { IntroOverlay } from '@/components/ui/IntroOverlay';
+import { TechModal } from '@/components/ui/TechModal';
 import { Hero } from '@/components/sections/Hero';
 import { About } from '@/components/sections/About';
 import { Projects } from '@/components/sections/Projects';
@@ -36,6 +37,7 @@ export function Portfolio() {
       <SceneCanvas />
       <Navbar />
       <Hud />
+      <TechModal />
 
       <SmoothScroll>
         <main className="relative z-10">

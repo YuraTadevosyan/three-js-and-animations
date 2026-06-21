@@ -6,11 +6,13 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Reveal } from '@/components/ui/Reveal';
 import { NeonButton } from '@/components/ui/NeonButton';
+import { useUI } from '@/store/useUI';
 import { PROFILE, SOCIALS } from '@/lib/data';
 
 const ICONS: Record<string, LucideIcon> = { github: Github, mail: Mail, globe: Globe };
 
 export function Contact() {
+  const openAbout = useUI((s) => s.openAbout);
   return (
     <Section id="contact" align="center" className="items-center text-center">
       <div className="w-full max-w-2xl">
@@ -51,9 +53,16 @@ export function Contact() {
             })}
           </div>
 
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
-            {PROFILE.name} // built with next.js · r3f · gsap // {new Date().getFullYear()}
-          </p>
+          <button
+            onClick={openAbout}
+            className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30 transition-colors hover:text-neon-cyan"
+          >
+            {PROFILE.name} //{' '}
+            <span className="underline decoration-dotted underline-offset-4">
+              built with next.js · r3f · gsap
+            </span>{' '}
+            // {new Date().getFullYear()}
+          </button>
         </Reveal>
       </div>
     </Section>

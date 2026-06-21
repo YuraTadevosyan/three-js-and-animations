@@ -24,6 +24,9 @@ night scene while the camera dollies between sections as you scroll.
   inertia share one clock ([SmoothScroll](src/components/providers/SmoothScroll.tsx)).
 - **Animated text reveal** — masked per-word/char rises ([RevealText](src/components/ui/RevealText.tsx)).
 - **Glassmorphism UI** — blurred, clipped-corner HUD panels ([GlassCard](src/components/ui/GlassCard.tsx)).
+- **About / colophon modal** — a glass dialog listing the exact tech stack
+  (Escape / backdrop close, scroll-lock, GSAP transitions), opened from the
+  navbar info button or the contact footer ([TechModal](src/components/ui/TechModal.tsx)).
 - **Responsive design** — particle count, antialiasing and DPR adapt to mobile.
 - **High-FPS optimized** — adaptive DPR via `<PerformanceMonitor>`, GPU shaders,
   a store-driven render loop (the R3F tree never re-renders on scroll), and full

@@ -17,6 +17,13 @@ export function scrollToSection(id: string) {
   else target.scrollIntoView({ behavior: 'smooth' });
 }
 
+/** Pause/resume inertia scrolling — used to lock the page behind modals. */
+export function setScrollEnabled(enabled: boolean) {
+  if (!lenisInstance) return;
+  if (enabled) lenisInstance.start();
+  else lenisInstance.stop();
+}
+
 /**
  * Lenis smooth scrolling, hooked into GSAP's ticker so ScrollTrigger and the
  * inertia scroll share one clock (no double RAF, no jitter). Also publishes
