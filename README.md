@@ -17,6 +17,7 @@ the same GitHub Pages site.
 | [`physics-playground`](./physics-playground) | [/physics-playground/](https://yuratadevosyan.github.io/three-js-and-animations/physics-playground/) | React, Matter.js, GSAP, TypeScript, Tailwind |
 | [`immersive-story`](./immersive-story) | [/immersive-story/](https://yuratadevosyan.github.io/three-js-and-animations/immersive-story/) | React, GSAP ScrollTrigger, Lenis, Tailwind |
 | [`car-configurator`](./car-configurator) | [/car-configurator/](https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/) | React, TypeScript, three.js, R3F, drei, postprocessing, GSAP, Tailwind |
+| [`cyber-portfolio`](./cyber-portfolio) | [/cyber-portfolio/](https://yuratadevosyan.github.io/three-js-and-animations/cyber-portfolio/) | Next.js (static export), R3F, drei, postprocessing, GSAP, Lenis, Tailwind, zustand |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -30,7 +31,8 @@ the same GitHub Pages site.
 ├── shader-lab/                 GLSL shader experimentation lab
 ├── physics-playground/         Matter.js + GSAP physics UI playground
 ├── immersive-story/            FC Barcelona-styled scroll matchday story (GSAP + Lenis)
-└── car-configurator/           BMW M3 GTR E46 car configurator (R3F + drei + GSAP, GLB model)
+├── car-configurator/           BMW M3 GTR E46 car configurator (R3F + drei + GSAP, GLB model)
+└── cyber-portfolio/            Cyberpunk developer portfolio (Next.js static export + R3F + GSAP)
 ```
 
 ## Hosting model
@@ -45,6 +47,10 @@ with `-e <app>` to publish into its own subfolder, so deploys don't clobber
 the others. The landing page deploys with `--add` so it merges into the root
 without touching the app subfolders.
 
+The Vite apps publish their `dist/` output; `cyber-portfolio` is a Next.js
+app that statically exports to `out/` (via `output: 'export'` + a `basePath`),
+so it slots into the same subpath model.
+
 ## Local development
 
 Each app is independent:
@@ -57,6 +63,7 @@ cd shader-lab               && npm install && npm run dev
 cd physics-playground       && npm install && npm run dev
 cd immersive-story          && npm install && npm run dev
 cd car-configurator         && npm install && npm run dev
+cd cyber-portfolio          && npm install && npm run dev   # Next.js, http://localhost:3000
 ```
 
 For the landing page:
@@ -78,6 +85,7 @@ cd shader-lab               && npm run deploy
 cd physics-playground       && npm run deploy
 cd immersive-story          && npm run deploy
 cd car-configurator         && npm run deploy
+cd cyber-portfolio          && npm run deploy   # Next.js static export → out/
 ```
 
 To publish the landing page:

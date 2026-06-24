@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node -e \"require('fs').writeFileSync('out/.nojekyll','')\"",
     "preview": "npx --yes serve -l 5181 out",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d out -e cyber-portfolio"
+    "deploy": "gh-pages -d out -e cyber-portfolio -t"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",

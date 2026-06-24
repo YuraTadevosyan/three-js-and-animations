@@ -50,11 +50,29 @@ with `/three-js-and-animations/cyber-portfolio`.
 ```bash
 npm run build    # → ./out (static)
 npm run preview  # serve ./out locally on :5181
-npm run deploy   # gh-pages -d out -e cyber-portfolio
+npm run deploy   # build → out/, then gh-pages -d out -e cyber-portfolio -t
 ```
 
 > Locally the `basePath` is empty, so `npm run dev` and the production export
 > behave identically apart from the URL prefix.
+
+### `.nojekyll` (important for GitHub Pages)
+
+GitHub Pages runs Jekyll, which **silently deletes any folder starting with
+`_`** — including Next.js's `_next/`, where every JS/CSS chunk lives. Without a
+fix the deployed page renders as unstyled HTML with no scripts.
+
+To disable Jekyll, the gh-pages branch needs a **`.nojekyll` file at its root**
+(a copy inside a subfolder is *not* enough). The root is published by the
+`landing` app, so `landing/public/.nojekyll` is committed and `landing`'s
+deploy uses `-t` (include dotfiles). This app also writes its own
+`out/.nojekyll` on `postbuild` and deploys with `-t` for good measure.
+
+If the deployed page ever looks unstyled, redeploy the landing page once:
+
+```bash
+cd ../landing && npm install && npm run deploy   # puts .nojekyll at the root
+```
 
 ## Project structure
 
