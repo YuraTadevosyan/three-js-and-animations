@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, Mail, Globe, type LucideIcon } from 'lucide-react';
+import { Github, Mail, Globe, Send, Briefcase, type LucideIcon } from 'lucide-react';
 import { Section } from '@/components/ui/Section';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -9,7 +9,13 @@ import { NeonButton } from '@/components/ui/NeonButton';
 import { useUI } from '@/store/useUI';
 import { PROFILE, SOCIALS } from '@/lib/data';
 
-const ICONS: Record<string, LucideIcon> = { github: Github, mail: Mail, globe: Globe };
+const ICONS: Record<string, LucideIcon> = {
+  github: Github,
+  mail: Mail,
+  globe: Globe,
+  upwork: Briefcase,
+  telegram: Send,
+};
 
 export function Contact() {
   const openAbout = useUI((s) => s.openAbout);

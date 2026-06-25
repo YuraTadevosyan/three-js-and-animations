@@ -1,32 +1,32 @@
 /**
  * All portfolio copy lives here so sections stay presentational and the
- * content is easy to swap. The projects intentionally point at the sibling
- * showcases in this repo.
+ * content is easy to swap. Content is sourced from Yura's main portfolio.
  */
 
 export const PROFILE = {
   name: 'YURA TADEVOSYAN',
-  handle: '@nightcity.dev',
-  role: 'Creative Front-End & WebGL Engineer',
-  tagline: 'I build immersive, high-FPS interfaces where the web meets real-time 3D.',
-  location: 'Night City // Remote',
+  handle: '@yuratadevosyan',
+  role: 'Front-End Developer · React / Vue / WebGL',
+  tagline:
+    "A dedicated front-end developer from Armenia 🇦🇲 — I build fast, responsive, interactive web apps with React, Vue and a love for real-time 3D.",
+  location: 'Armenia 🇦🇲 // Remote',
   status: 'Available for contracts',
   email: 'yuratadevosyan01@gmail.com',
 } as const;
 
 export const ABOUT = {
   intro:
-    'Front-end engineer specialising in interactive 3D and motion. I turn product ideas into cinematic, performance-obsessed web experiences using React, Three.js and GSAP.',
+    'I specialise in HTML, CSS and JavaScript with deep experience in modern frameworks like React and Vue, and their meta-frameworks Next.js and Nuxt. I write clean, maintainable code, keep up with best practices, and build responsive, interactive web and mobile applications.',
   bullets: [
-    'Real-time 3D & shader work with React Three Fiber and GLSL.',
-    'Scroll-driven storytelling and choreography with GSAP + Lenis.',
-    'Design-systems thinking: modular, reusable, accessible components.',
-    'Relentless about frame budgets, bundle size and 60fps on mid-range hardware.',
+    '5+ years building production front-ends with React, Vue and their ecosystems.',
+    'Single-page (SPA) and server-side-rendered (SSR) apps with Next.js and Nuxt.',
+    'Freelancing on Upwork since 2023 — shipping for founders and product teams.',
+    'Performance- and cross-browser-focused; clean, maintainable, responsive code.',
   ],
   stats: [
-    { label: 'Years shipping', value: '6+' },
-    { label: 'Showcases built', value: '8' },
-    { label: 'Target frame time', value: '16ms' },
+    { label: 'Years shipping', value: '5+' },
+    { label: 'Projects shipped', value: '8+' },
+    { label: 'Core technologies', value: '13' },
   ],
 } as const;
 
@@ -39,57 +39,78 @@ export type Project = {
   accent: 'cyan' | 'magenta' | 'violet' | 'amber';
 };
 
-// Live siblings in this monorepo — relative links resolve on GitHub Pages.
-const SITE = 'https://yuratadevosyan.github.io/three-js-and-animations';
-
 export const PROJECTS: Project[] = [
   {
-    id: 'webgl',
-    title: 'WebGL Showcase',
-    blurb: 'A gallery of Three.js + GLSL scenes wired through TanStack Router.',
-    stack: ['three.js', 'R3F', 'GLSL'],
-    href: `${SITE}/three-webgl-showcase/`,
+    id: 'euka',
+    title: 'Euka.ai',
+    blurb:
+      'AI infrastructure for social commerce — helps leading TikTok Shop brands discover, connect with and manage creators at scale.',
+    stack: ['Next.js', 'Supabase', 'AI'],
+    href: 'https://www.euka.ai/',
     accent: 'cyan',
   },
   {
-    id: 'visualizer',
-    title: 'Music Visualizer',
-    blurb: 'Audio-reactive geometry driven by a live Web Audio FFT pipeline.',
-    stack: ['Web Audio', 'R3F', 'postprocessing'],
-    href: `${SITE}/music-visualizer/`,
+    id: 'live-dox',
+    title: 'Live Dox',
+    blurb:
+      'Real-time collaborative document editing — multiple users, live updates and seamless sync for teams.',
+    stack: ['Next.js', 'shadcn', 'Liveblocks'],
+    href: 'https://live-docs-eight-rouge.vercel.app/',
     accent: 'magenta',
   },
   {
-    id: 'car',
-    title: 'Car Configurator',
-    blurb: 'Cinematic BMW configurator: paint swaps, wheels and angel-eye lights.',
-    stack: ['R3F', 'drei', 'GSAP'],
-    href: `${SITE}/car-configurator/`,
+    id: 'article-builder',
+    title: 'Article Builder',
+    blurb:
+      'Block-based long-form editor with live preview and an AI assistant wired to OpenAI / Anthropic, themeable and WCAG-AA.',
+    stack: ['React 19', 'Vite', 'shadcn'],
+    href: 'https://yuratadevosyan.github.io/article-builder/#/dashboard',
     accent: 'violet',
   },
   {
-    id: 'shaders',
-    title: 'Shader Lab',
-    blurb: 'A sandbox for GLSL ES experiments on WebGL2 with audio hooks.',
-    stack: ['GLSL', 'WebGL2', 'R3F'],
-    href: `${SITE}/shader-lab/`,
+    id: 'text-comparer',
+    title: 'Text Comparer',
+    blurb:
+      'Fully client-side text diffing with similarity scoring, history and a polished, animated UI.',
+    stack: ['React 19', 'TypeScript', 'Vite'],
+    href: 'https://yuratadevosyan.github.io/text-comparer/',
     accent: 'amber',
   },
   {
-    id: 'physics',
-    title: 'Physics Playground',
-    blurb: 'A Matter.js + GSAP UI playground full of springy, tactile motion.',
-    stack: ['Matter.js', 'GSAP', 'TS'],
-    href: `${SITE}/physics-playground/`,
+    id: 'image-picker',
+    title: 'Image Picker',
+    blurb:
+      'Pulls high-quality images from Unsplash, Pexels and Pixabay from a single prompt — fast visual sourcing.',
+    stack: ['Nuxt.js', 'Unsplash', 'SCSS'],
+    href: 'https://rainbow-khapse-ae92c4.netlify.app/',
     accent: 'cyan',
   },
   {
-    id: 'story',
-    title: 'Immersive Story',
-    blurb: 'A scroll-driven matchday narrative built with ScrollTrigger + Lenis.',
-    stack: ['GSAP', 'Lenis', 'Tailwind'],
-    href: `${SITE}/immersive-story/`,
+    id: 'aquiz',
+    title: 'a Quiz',
+    blurb:
+      'A quiz platform with categories, competitive leaderboards and a free book library — log in, compete and climb the ranks.',
+    stack: ['Nuxt.js', 'Vue 3', 'Vuetify'],
+    href: 'https://github.com/aquizadmin/aQuiz',
     accent: 'magenta',
+  },
+  {
+    id: 'aninfo',
+    title: 'aninfo',
+    blurb:
+      'A paginated anime database — episode guides and character profiles with smooth browsing over a REST API.',
+    stack: ['Next.js', 'REST API', 'TypeScript'],
+    href: 'https://github.com/YuraTadevosyan/aninfo',
+    accent: 'violet',
+  },
+  {
+    id: 'three-animations',
+    title: 'Three.js & Animations',
+    blurb:
+      'A collection of front-end showcases — GSAP-powered motion, Three.js / WebGL scenes and an audio-reactive visualizer.',
+    stack: ['GSAP', 'Three.js', 'WebGL'],
+    href: 'https://yuratadevosyan.github.io/three-js-and-animations/',
+    accent: 'amber',
   },
 ];
 
@@ -97,35 +118,36 @@ export type SkillGroup = { title: string; items: { name: string; level: number }
 
 export const SKILLS: SkillGroup[] = [
   {
-    title: 'Core',
+    title: 'Languages',
     items: [
-      { name: 'TypeScript', level: 95 },
+      { name: 'JavaScript', level: 95 },
+      { name: 'TypeScript', level: 92 },
+      { name: 'HTML5 / CSS3', level: 95 },
+    ],
+  },
+  {
+    title: 'Frameworks',
+    items: [
       { name: 'React / Next.js', level: 93 },
-      { name: 'CSS / Tailwind', level: 90 },
+      { name: 'Vue / Nuxt.js', level: 88 },
+      { name: 'Redux / Vuex', level: 85 },
     ],
   },
   {
-    title: 'Real-time 3D',
+    title: 'Craft',
     items: [
-      { name: 'Three.js / R3F', level: 90 },
-      { name: 'GLSL Shaders', level: 78 },
-      { name: 'Blender (web assets)', level: 65 },
-    ],
-  },
-  {
-    title: 'Motion',
-    items: [
-      { name: 'GSAP / ScrollTrigger', level: 92 },
-      { name: 'Lenis / smooth scroll', level: 88 },
-      { name: 'Perf profiling', level: 85 },
+      { name: 'Tailwind CSS', level: 92 },
+      { name: 'Three.js / WebGL', level: 78 },
+      { name: 'Git & workflow', level: 88 },
     ],
   },
 ];
 
 export const SOCIALS = [
   { label: 'GitHub', href: 'https://github.com/YuraTadevosyan', icon: 'github' as const },
+  { label: 'Upwork', href: 'https://www.upwork.com/freelancers/~0134a92d367ebe3df8', icon: 'upwork' as const },
+  { label: 'Telegram', href: 'https://t.me/YuraTadevosyan', icon: 'telegram' as const },
   { label: 'Email', href: `mailto:${PROFILE.email}`, icon: 'mail' as const },
-  { label: 'Live demos', href: SITE, icon: 'globe' as const },
 ];
 
 export const NAV_LINKS = [
