@@ -46,7 +46,7 @@ function ProjectCard({ project }: { project: Project }) {
 export function Projects() {
   return (
     <Section id="projects" align="center">
-      <SectionHeading index="02" kicker="selected work" title="Builds & experiments" />
+      <SectionHeading index="03" kicker="selected work" title="Builds & experiments" />
       <Reveal
         className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
         stagger={0.1}

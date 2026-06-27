@@ -82,7 +82,7 @@ src/
 ├── components/
 │   ├── canvas/               R3F scene: Scene, CameraRig, Particles, Workspace, Floor, Effects
 │   ├── providers/            Lenis smooth-scroll provider
-│   ├── sections/             Hero, About, Projects, Skills, Contact
+│   ├── sections/             Hero, About, Experience, Projects, Skills, Testimonials, Contact
 │   ├── ui/                   GlassCard, RevealText, NeonButton, Navbar, Hud, Section, …
 │   └── Portfolio.tsx         client root wiring it all together
 ├── hooks/                    pointer tracker, media queries, isomorphic layout effect

@@ -23,7 +23,7 @@ export function Contact() {
     <Section id="contact" align="center" className="items-center text-center">
       <div className="w-full max-w-2xl">
         <SectionHeading
-          index="04"
+          index="06"
           kicker="uplink"
           title="Let's build something loud"
           className="text-center"

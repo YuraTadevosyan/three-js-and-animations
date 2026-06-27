@@ -55,7 +55,7 @@ function SkillBar({ name, level }: { name: string; level: number }) {
 export function Skills() {
   return (
     <Section id="skills" align="center">
-      <SectionHeading index="03" kicker="capabilities" title="The stack I wield" />
+      <SectionHeading index="04" kicker="capabilities" title="The stack I wield" />
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
         {SKILLS.map((group) => (
           <GlassCard key={group.title} accent="violet">

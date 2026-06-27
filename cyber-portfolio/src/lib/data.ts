@@ -150,11 +150,77 @@ export const SOCIALS = [
   { label: 'Email', href: `mailto:${PROFILE.email}`, icon: 'mail' as const },
 ];
 
+export type Experience = {
+  role: string;
+  company: string;
+  period: string;
+  points: string[];
+  accent: 'cyan' | 'magenta' | 'violet' | 'amber';
+};
+
+export const EXPERIENCES: Experience[] = [
+  {
+    role: 'Front-End Developer',
+    company: 'Upwork — Freelance',
+    period: 'Apr 2023 — Now',
+    accent: 'cyan',
+    points: [
+      'Building single-page (SPA) and server-side-rendered (SSR) applications.',
+      'Optimised web apps for performance and cross-browser compatibility.',
+      'Collaborated closely with designers and backend developers to deliver high-quality products.',
+      'Continuously learned and adapted to emerging technologies and best practices in front-end.',
+    ],
+  },
+  {
+    role: 'Front-End Developer',
+    company: 'Esterox LLC',
+    period: 'Jan 2021 — Apr 2023',
+    accent: 'magenta',
+    points: [
+      'Developed and maintained web applications using React.js, Vue.js and related technologies.',
+      'Collaborated with designers, product managers and developers to ship high-quality products.',
+      'Implemented responsive design and ensured cross-browser compatibility.',
+      'Participated in code reviews and gave constructive feedback to other developers.',
+    ],
+  },
+];
+
+export type Testimonial = {
+  quote: string;
+  name: string;
+  title: string;
+};
+
+export const TESTIMONIALS: Testimonial[] = [
+  {
+    quote: 'Yura is an amazing full-stack developer who has gone above and beyond to produce great work. He helped build core features and improvements to our marketing AI SaaS.',
+    name: 'Kevin Wang',
+    title: 'Founder · Euka.ai',
+  },
+  {
+    quote: 'Yura was a diligent worker who consistently demonstrated a great work ethic. He often brought valuable ideas to the table. I only ended the contract due to budget constraints — I wish I didn’t have to let him go.',
+    name: 'Chad Michael Lawson',
+    title: 'Client · Upwork',
+  },
+  {
+    quote: 'Quick, diligent, knowledgeable. Highly recommend.',
+    name: 'Martin A. Mora III',
+    title: 'Founder · Expertise Inc',
+  },
+  {
+    quote: 'Job is well done. Second time working with this person. I recommend working with Yura.',
+    name: 'Arman M.',
+    title: 'Client · Upwork',
+  },
+];
+
 export const NAV_LINKS = [
   { id: 'hero', label: 'Home' },
   { id: 'about', label: 'About' },
+  { id: 'experience', label: 'Career' },
   { id: 'projects', label: 'Work' },
   { id: 'skills', label: 'Stack' },
+  { id: 'testimonials', label: 'Voices' },
   { id: 'contact', label: 'Contact' },
 ] as const;
 

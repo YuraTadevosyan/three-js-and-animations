@@ -2,7 +2,15 @@
 
 import { create } from 'zustand';
 
-export const SECTIONS = ['hero', 'about', 'projects', 'skills', 'contact'] as const;
+export const SECTIONS = [
+  'hero',
+  'about',
+  'experience',
+  'projects',
+  'skills',
+  'testimonials',
+  'contact',
+] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
 interface SceneState {
