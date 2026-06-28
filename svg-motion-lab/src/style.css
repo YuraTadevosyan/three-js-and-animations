@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 230 30% 5%;
+    --foreground: 220 20% 96%;
+    --card: 230 25% 8%;
+    --card-foreground: 220 20% 96%;
+    --muted: 230 16% 16%;
+    --muted-foreground: 220 12% 62%;
+    --primary: 265 90% 66%;
+    --primary-foreground: 240 30% 8%;
+    --accent: 175 84% 55%;
+    --accent-foreground: 200 40% 8%;
+    --border: 230 18% 18%;
+    --radius: 1rem;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image:
+      radial-gradient(60rem 60rem at 80% -10%, hsl(var(--primary) / 0.12), transparent 60%),
+      radial-gradient(50rem 50rem at -10% 110%, hsl(var(--accent) / 0.1), transparent 55%);
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(12px);
+  }
+
+  .text-gradient {
+    background: linear-gradient(120deg, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
