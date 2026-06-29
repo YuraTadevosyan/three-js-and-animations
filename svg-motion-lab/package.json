@@ -10,9 +10,10 @@
     "deploy": "npm run build && gh-pages -d dist -e svg-motion-lab"
   },
   "dependencies": {
-    "animejs": "^4.0.2",
+    "animejs": "^4.5.0",
     "lottie-web": "^5.12.2",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
