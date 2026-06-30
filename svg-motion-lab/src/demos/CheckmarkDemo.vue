@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { createTimeline, svg, type Timeline } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import source from './CheckmarkDemo.vue?raw'
 
 const stage = ref<SVGSVGElement | null>(null)
 let tl: Timeline | null = null
@@ -30,6 +31,8 @@ onBeforeUnmount(() => tl?.pause())
     title="Success check"
     blurb="A timeline draws the ring, then the checkmark — the classic confirmation beat."
     :tags="['anime.js', 'createTimeline', 'createDrawable']"
+    :source="source"
+    filename="CheckmarkDemo.vue"
   >
     <template #stage>
       <svg ref="stage" viewBox="0 0 200 200" class="h-full w-full">

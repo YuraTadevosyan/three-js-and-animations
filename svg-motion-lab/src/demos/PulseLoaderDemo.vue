@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { animate, stagger, type JSAnimation } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import source from './PulseLoaderDemo.vue?raw'
 
 const COUNT = 12
 const R = 60
@@ -48,6 +49,8 @@ onBeforeUnmount(() => anim?.revert())
     title="Pulse loader"
     blurb="One staggered loop sends a highlight chasing around a ring of dots — a pure-SVG spinner."
     :tags="['anime.js', 'stagger', 'loop']"
+    :source="source"
+    filename="PulseLoaderDemo.vue"
   >
     <template #stage>
       <svg ref="stage" viewBox="0 0 200 200" class="h-full w-full">

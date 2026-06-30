@@ -6,6 +6,12 @@ declare module '*.vue' {
   export default component
 }
 
+// Raw source imports (Vite `?raw`) — used to show/copy each demo's own source.
+declare module '*.vue?raw' {
+  const src: string
+  export default src
+}
+
 // Lightweight Lottie build (SVG renderer, no AE-expressions engine / no eval).
 declare module 'lottie-web/build/player/lottie_light' {
   import type { LottiePlayer } from 'lottie-web'

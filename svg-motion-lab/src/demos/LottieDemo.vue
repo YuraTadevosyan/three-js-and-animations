@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import lottie from 'lottie-web/build/player/lottie_light'
 import type { AnimationItem } from 'lottie-web'
 import orbitData from '@/animations/orbit.json'
+import source from './LottieDemo.vue?raw'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
 
@@ -43,6 +44,8 @@ onBeforeUnmount(() => anim?.destroy())
     title="Lottie playback"
     blurb="A designer-authored After Effects animation rendered to live SVG with runtime controls."
     :tags="['lottie-web', 'animationData', 'svg renderer']"
+    :source="source"
+    filename="LottieDemo.vue"
   >
     <template #stage>
       <div ref="container" class="h-full w-full max-w-[78%]" />

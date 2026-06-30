@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { animate, stagger, type JSAnimation, type Target } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import source from './EqualizerDemo.vue?raw'
 
 const BARS = 13
 const BASE = 160 // baseline y
@@ -51,6 +52,8 @@ onBeforeUnmount(() => anim?.revert())
     title="Equalizer"
     blurb="A center-out stagger animates each bar's height attribute on an alternating loop."
     :tags="['anime.js', 'attributes', 'stagger']"
+    :source="source"
+    filename="EqualizerDemo.vue"
   >
     <template #stage>
       <svg

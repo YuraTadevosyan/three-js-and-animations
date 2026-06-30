@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { createTimeline, svg, type Timeline } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import demoSource from './MorphLoopDemo.vue?raw'
 
 // All same tag (<path>) so morphTo can interpolate `d` between them.
 const shapes = [
@@ -43,6 +44,8 @@ onBeforeUnmount(() => tl?.pause())
     title="Morph loop"
     blurb="A timeline chains morphTo across four shapes and loops forever — hands-free shape-shifting."
     :tags="['anime.js', 'timeline', 'morphTo']"
+    :source="demoSource"
+    filename="MorphLoopDemo.vue"
   >
     <template #stage>
       <svg ref="stage" viewBox="0 0 200 200" class="h-full w-full">

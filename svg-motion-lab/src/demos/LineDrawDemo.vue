@@ -3,6 +3,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { animate, stagger, svg, type JSAnimation } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import source from './LineDrawDemo.vue?raw'
 
 const stage = ref<SVGSVGElement | null>(null)
 let anim: JSAnimation | null = null
@@ -29,6 +30,8 @@ onBeforeUnmount(() => anim?.pause())
     title="Line drawing"
     blurb="Self-drawing strokes via stroke-dash interpolation, staggered per path."
     :tags="['anime.js', 'svg.createDrawable', 'stagger']"
+    :source="source"
+    filename="LineDrawDemo.vue"
   >
     <template #stage>
       <svg ref="stage" viewBox="0 0 240 160" class="h-full w-full">

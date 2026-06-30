@@ -3,6 +3,7 @@ import { onBeforeUnmount, ref } from 'vue'
 import { animate, svg, type JSAnimation } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import demoSource from './MorphDemo.vue?raw'
 
 const shapes = [
   { key: 'blob', label: 'Blob' },
@@ -42,6 +43,8 @@ onBeforeUnmount(() => anim?.pause())
     title="Shape morphing"
     blurb="Interpolate one path's outline into another, even across different point counts."
     :tags="['anime.js', 'svg.morphTo', 'path d']"
+    :source="demoSource"
+    filename="MorphDemo.vue"
   >
     <template #stage>
       <svg viewBox="0 0 200 200" class="h-full w-full">

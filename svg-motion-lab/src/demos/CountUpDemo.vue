@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { createTimeline, svg, type Timeline } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import source from './CountUpDemo.vue?raw'
 
 const TARGET = 87
 
@@ -43,6 +44,8 @@ onBeforeUnmount(() => tl?.pause())
     title="Count up"
     blurb="A scalar tween drives the label via onUpdate while a drawable arc fills to match."
     :tags="['anime.js', 'onUpdate', 'createDrawable']"
+    :source="source"
+    filename="CountUpDemo.vue"
   >
     <template #stage>
       <svg ref="stage" viewBox="0 0 200 200" class="h-full w-full">

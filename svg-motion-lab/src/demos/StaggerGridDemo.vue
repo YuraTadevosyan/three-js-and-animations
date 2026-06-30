@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { animate, stagger, type JSAnimation } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import source from './StaggerGridDemo.vue?raw'
 
 const COLS = 11
 const ROWS = 8
@@ -53,6 +54,8 @@ onBeforeUnmount(() => anim?.revert())
     title="Grid stagger wave"
     blurb="One call animates 88 nodes; the grid stagger ripples delay outward from an origin."
     :tags="['anime.js', 'stagger', 'grid']"
+    :source="source"
+    filename="StaggerGridDemo.vue"
   >
     <template #stage>
       <svg

@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { animate, type JSAnimation } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
 import CtrlButton from '@/components/CtrlButton.vue'
+import source from './MotionPathDemo.vue?raw'
 
 const TRACK = 'M40 80 C 40 28 100 28 120 80 C 140 132 200 132 200 80 C 200 28 140 28 120 80 C 100 132 40 132 40 80 Z'
 
@@ -53,6 +54,8 @@ onBeforeUnmount(() => anim?.pause())
     title="Motion path"
     blurb="An element rides an SVG path, auto-rotating to follow the tangent of the curve."
     :tags="['anime.js', 'getPointAtLength', 'tangent']"
+    :source="source"
+    filename="MotionPathDemo.vue"
   >
     <template #stage>
       <svg ref="stage" viewBox="0 0 240 160" class="h-full w-full">

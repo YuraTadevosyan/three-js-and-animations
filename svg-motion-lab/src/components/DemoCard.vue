@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import SourceCode from '@/components/SourceCode.vue'
+
 defineProps<{
   title: string
   blurb: string
   tags: string[]
+  source?: string
+  filename?: string
 }>()
 </script>
 
@@ -38,5 +42,7 @@ defineProps<{
         {{ tag }}
       </span>
     </div>
+
+    <SourceCode v-if="source" :code="source" :filename="filename" />
   </article>
 </template>
