@@ -18,6 +18,7 @@ the same GitHub Pages site.
 | [`immersive-story`](./immersive-story) | [/immersive-story/](https://yuratadevosyan.github.io/three-js-and-animations/immersive-story/) | React, GSAP ScrollTrigger, Lenis, Tailwind |
 | [`car-configurator`](./car-configurator) | [/car-configurator/](https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/) | React, TypeScript, three.js, R3F, drei, postprocessing, GSAP, Tailwind |
 | [`cyber-portfolio`](./cyber-portfolio) | [/cyber-portfolio/](https://yuratadevosyan.github.io/three-js-and-animations/cyber-portfolio/) | Next.js (static export), R3F, drei, postprocessing, GSAP, Lenis, Tailwind, zustand |
+| [`svg-motion-lab`](./svg-motion-lab) | [/svg-motion-lab/](https://yuratadevosyan.github.io/three-js-and-animations/svg-motion-lab/) | Vue 3, Vite, anime.js v4 (svg helpers), Lottie (lottie-web), Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -32,7 +33,8 @@ the same GitHub Pages site.
 ├── physics-playground/         Matter.js + GSAP physics UI playground
 ├── immersive-story/            FC Barcelona-styled scroll matchday story (GSAP + Lenis)
 ├── car-configurator/           BMW M3 GTR E46 car configurator (R3F + drei + GSAP, GLB model)
-└── cyber-portfolio/            Cyberpunk developer portfolio (Next.js static export + R3F + GSAP)
+├── cyber-portfolio/            Cyberpunk developer portfolio (Next.js static export + R3F + GSAP)
+└── svg-motion-lab/             SVG animation lab (Vue 3 + anime.js v4 + Lottie)
 ```
 
 ## Hosting model
@@ -64,6 +66,7 @@ cd physics-playground       && npm install && npm run dev
 cd immersive-story          && npm install && npm run dev
 cd car-configurator         && npm install && npm run dev
 cd cyber-portfolio          && npm install && npm run dev   # Next.js, http://localhost:3000
+cd svg-motion-lab           && npm install && npm run dev
 ```
 
 For the landing page:
@@ -86,6 +89,7 @@ cd physics-playground       && npm run deploy
 cd immersive-story          && npm run deploy
 cd car-configurator         && npm run deploy
 cd cyber-portfolio          && npm run deploy   # Next.js static export → out/
+cd svg-motion-lab           && npm run deploy
 ```
 
 To publish the landing page:
