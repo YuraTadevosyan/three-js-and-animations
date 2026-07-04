@@ -6,16 +6,26 @@ import { demos } from '@/demos/registry'
 const query = ref('')
 const grid = ref<HTMLElement | null>(null)
 
+// Technology chips: 'All' + each distinct library, in registry order.
+const libs = ['All', ...Array.from(new Set(demos.map((d) => d.lib)))]
+const activeLib = ref<string>('All')
+
+function countFor(lib: string) {
+  return lib === 'All' ? demos.length : demos.filter((d) => d.lib === lib).length
+}
+
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return demos
-  return demos.filter(
-    (d) =>
+  return demos.filter((d) => {
+    if (activeLib.value !== 'All' && d.lib !== activeLib.value) return false
+    if (!q) return true
+    return (
       d.title.toLowerCase().includes(q) ||
       d.description.toLowerCase().includes(q) ||
       d.lib.toLowerCase().includes(q) ||
-      d.tags.some((t) => t.toLowerCase().includes(q)),
-  )
+      d.tags.some((t) => t.toLowerCase().includes(q))
+    )
+  })
 })
 
 function playEntrance() {
@@ -44,6 +54,27 @@ watch(filtered, () => nextTick(playEntrance))
           {{ demos.length }} interactive SVG animation techniques — search by name, tag or library.
         </p>
       </div>
+      <!-- Technology filter -->
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="lib in libs"
+          :key="lib"
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors"
+          :class="
+            activeLib === lib
+              ? 'border-primary/60 bg-primary/15 text-foreground'
+              : 'border-border/70 bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+          "
+          @click="activeLib = lib"
+        >
+          {{ lib }}
+          <span class="rounded-full bg-muted/70 px-1.5 text-[11px] font-mono text-muted-foreground">
+            {{ countFor(lib) }}
+          </span>
+        </button>
+      </div>
+
       <div class="relative max-w-md">
         <svg
           class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
