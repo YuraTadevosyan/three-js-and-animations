@@ -98,6 +98,30 @@ export const demos: DemoMeta[] = [
     lib: 'Lottie',
     component: defineAsyncComponent(() => import('@/demos/LottieDemo.vue')),
   },
+  {
+    slug: 'lottie-scrubber',
+    title: 'Lottie scrubber',
+    description: 'Drive a Lottie by frame with a slider mapped straight to goToAndStop.',
+    tags: ['lottie-web', 'goToAndStop', 'scrub'],
+    lib: 'Lottie',
+    component: defineAsyncComponent(() => import('@/demos/LottieScrubDemo.vue')),
+  },
+  {
+    slug: 'lottie-hover',
+    title: 'Hover to play',
+    description: 'Pointer-driven Lottie — hover runs it forward, leaving reverses via setDirection.',
+    tags: ['lottie-web', 'setDirection', 'interactive'],
+    lib: 'Lottie',
+    component: defineAsyncComponent(() => import('@/demos/LottieHoverDemo.vue')),
+  },
+  {
+    slug: 'lottie-segments',
+    title: 'Lottie segments',
+    description: 'Play just part of the timeline — each button fires a frame range with playSegments.',
+    tags: ['lottie-web', 'playSegments', 'timeline'],
+    lib: 'Lottie',
+    component: defineAsyncComponent(() => import('@/demos/LottieSegmentsDemo.vue')),
+  },
 ]
 
 export const demosBySlug = new Map(demos.map((d) => [d.slug, d]))
