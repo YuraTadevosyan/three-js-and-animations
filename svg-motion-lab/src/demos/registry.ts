@@ -90,6 +90,30 @@ export const demos: DemoMeta[] = [
     component: defineAsyncComponent(() => import('@/demos/PulseLoaderDemo.vue')),
   },
   {
+    slug: 'easing-lab',
+    title: 'Easing lab',
+    description: 'The same tween under six easings, side by side — compare how each curve moves.',
+    tags: ['easings', 'compare'],
+    lib: 'anime.js',
+    component: defineAsyncComponent(() => import('@/demos/EasingLabDemo.vue')),
+  },
+  {
+    slug: 'heartbeat',
+    title: 'Heartbeat',
+    description: 'A self-drawing ECG trace on an endless loop, with a pulse dot on the draw head.',
+    tags: ['createDrawable', 'loop'],
+    lib: 'anime.js',
+    component: defineAsyncComponent(() => import('@/demos/HeartbeatDemo.vue')),
+  },
+  {
+    slug: 'live-clock',
+    title: 'Live clock',
+    description: 'A real-time analog clock — one anime loop ticks per frame; the hands read the system clock.',
+    tags: ['onUpdate', 'transform'],
+    lib: 'anime.js',
+    component: defineAsyncComponent(() => import('@/demos/ClockDemo.vue')),
+  },
+  {
     slug: 'lottie-playback',
     title: 'Lottie playback',
     description:
