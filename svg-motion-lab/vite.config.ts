@@ -19,6 +19,8 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             if (id.includes('lottie')) return 'lottie'
             if (id.includes('animejs')) return 'anime'
+            if (id.includes('kute.js') || id.includes('svg-path-commander') || id.includes('@thednp'))
+              return 'kute'
             if (id.includes('/vue/') || id.includes('@vue') || id.includes('vue-router'))
               return 'vue-vendor'
           }

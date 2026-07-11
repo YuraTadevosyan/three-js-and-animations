@@ -6,7 +6,7 @@ export interface DemoMeta {
   description: string
   tags: string[]
   /** Primary library, used as a colour accent in the gallery. */
-  lib: 'anime.js' | 'Lottie'
+  lib: 'anime.js' | 'Lottie' | 'KUTE.js'
   component: Component
 }
 
@@ -112,6 +112,33 @@ export const demos: DemoMeta[] = [
     tags: ['onUpdate', 'transform'],
     lib: 'anime.js',
     component: defineAsyncComponent(() => import('@/demos/ClockDemo.vue')),
+  },
+  {
+    slug: 'kute-morph',
+    title: 'Path morph',
+    description:
+      "KUTE's cubic-morph plugin tweens one path outline into another, across differing point counts.",
+    tags: ['path', 'morph'],
+    lib: 'KUTE.js',
+    component: defineAsyncComponent(() => import('@/demos/KuteMorphDemo.vue')),
+  },
+  {
+    slug: 'kute-draw',
+    title: 'Stroke draw',
+    description:
+      "KUTE's draw plugin measures the path and animates stroke-dashoffset to self-draw the stroke.",
+    tags: ['draw', 'stroke'],
+    lib: 'KUTE.js',
+    component: defineAsyncComponent(() => import('@/demos/KuteDrawDemo.vue')),
+  },
+  {
+    slug: 'kute-transform',
+    title: 'SVG transform',
+    description:
+      'Rotate and scale an SVG group about a bbox-relative origin in a single transform attribute.',
+    tags: ['svgTransform', 'origin'],
+    lib: 'KUTE.js',
+    component: defineAsyncComponent(() => import('@/demos/KuteTransformDemo.vue')),
   },
   {
     slug: 'lottie-playback',
