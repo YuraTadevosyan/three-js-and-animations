@@ -141,6 +141,33 @@ export const demos: DemoMeta[] = [
     component: defineAsyncComponent(() => import('@/demos/KuteTransformDemo.vue')),
   },
   {
+    slug: 'kute-morph-chain',
+    title: 'Morph sequence',
+    description:
+      "Four shapes on a loop — each tween's onComplete kicks off the next hop, since KUTE has no timeline.",
+    tags: ['path', 'onComplete'],
+    lib: 'KUTE.js',
+    component: defineAsyncComponent(() => import('@/demos/KuteMorphChainDemo.vue')),
+  },
+  {
+    slug: 'kute-attr',
+    title: 'Attribute tween',
+    description:
+      'Animate raw SVG attributes — geometry and colour together, as a square becomes a rounded pill.',
+    tags: ['attr', 'color'],
+    lib: 'KUTE.js',
+    component: defineAsyncComponent(() => import('@/demos/KuteAttrDemo.vue')),
+  },
+  {
+    slug: 'kute-wave',
+    title: 'Collection stagger',
+    description:
+      "One allFromTo call animates every dot; KUTE's offset option cascades the delay into a rolling wave.",
+    tags: ['allFromTo', 'offset'],
+    lib: 'KUTE.js',
+    component: defineAsyncComponent(() => import('@/demos/KuteWaveDemo.vue')),
+  },
+  {
     slug: 'lottie-playback',
     title: 'Lottie playback',
     description:

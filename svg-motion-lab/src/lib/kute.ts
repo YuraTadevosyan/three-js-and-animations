@@ -20,14 +20,16 @@ export interface KuteTween {
 }
 
 type Target = Element | string
+/** The `all*` methods build one tween per element (a TweenCollection). */
+type Targets = ArrayLike<Element> | string
 type Props = Record<string, unknown>
 type Options = Record<string, unknown>
 
 export interface KuteStatic {
   fromTo: (el: Target, from: Props, to: Props, options?: Options) => KuteTween
   to: (el: Target, to: Props, options?: Options) => KuteTween
-  allFromTo: (el: Target, from: Props, to: Props, options?: Options) => KuteTween
-  allTo: (el: Target, to: Props, options?: Options) => KuteTween
+  allFromTo: (els: Targets, from: Props, to: Props, options?: Options) => KuteTween
+  allTo: (els: Targets, to: Props, options?: Options) => KuteTween
 }
 
 export default KUTE as KuteStatic
