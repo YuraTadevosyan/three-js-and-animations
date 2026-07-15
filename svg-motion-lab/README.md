@@ -1,6 +1,6 @@
 # SVG Motion Lab
 
-A small lab of interactive **SVG animation** techniques, built with **Vue 3** + **Vite**. Five demos showcase code-driven vector motion with **[anime.js v4](https://animejs.com/)** and designer-authored playback with **[Lottie](https://airbnb.io/lottie/)** — line drawing, shape morphing, grid staggers, motion paths and a runtime-controlled Lottie player, all on a minimal dark UI.
+A small lab of interactive **SVG animation** techniques, built with **Vue 3** + **Vite**. It showcases code-driven vector motion across three animation engines — **[anime.js v4](https://animejs.com/)** (svg helpers, staggers, timelines), **[KUTE.js](https://thednp.github.io/kute.js/)** (path morphing, stroke draw, SVG transforms) and designer-authored playback with **[Lottie](https://airbnb.io/lottie/)** — all on a minimal dark UI.
 
 **Live demo:** <https://yuratadevosyan.github.io/three-js-and-animations/svg-motion-lab/>
 
@@ -21,6 +21,7 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 
 - **Vue 3** (`<script setup>`) + **Vite** + **TypeScript**
 - **anime.js v4** — `animate`, `stagger`, and the `svg` helpers (`createDrawable`, `morphTo`), plus path-following via native `getPointAtLength`
+- **KUTE.js** — the *extra* build for SVG path morphing (`path`), stroke draw (`draw`), transforms (`svgTransform`) and attribute tweens (`attr`); `svg-path-commander` pinned to `2.1.11` via `overrides` so KUTE's named imports resolve
 - **lottie-web** — imported as `lottie_light` (SVG renderer, no AE-expressions engine, so no `eval` and ~half the bundle)
 - **Tailwind CSS** with HSL CSS-variable theming
 

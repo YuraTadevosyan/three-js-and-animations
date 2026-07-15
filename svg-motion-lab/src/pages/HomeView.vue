@@ -28,7 +28,7 @@ onMounted(() => {
         <p
           class="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/40 px-3 py-1 font-mono text-xs text-muted-foreground"
         >
-          Vue 3 · anime.js v4 · Lottie
+          Vue 3 · anime.js · KUTE.js · Lottie
         </p>
         <h1 class="text-balance text-4xl font-extrabold tracking-tight sm:text-6xl">
           Vector motion, <span class="text-gradient">drawn in code</span>
@@ -53,7 +53,8 @@ onMounted(() => {
 
         <p class="mx-auto mt-6 max-w-xl text-pretty text-muted-foreground">
           A lab of interactive SVG animation techniques — line drawing, shape morphing,
-          grid staggers and motion paths with anime.js v4, plus runtime-controlled Lottie.
+          grid staggers and motion paths with anime.js, path morphing and transforms with
+          KUTE.js, plus runtime-controlled Lottie.
         </p>
 
         <div class="mt-8 flex items-center justify-center gap-3">

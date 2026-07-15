@@ -2,11 +2,13 @@
 import { RouterLink } from 'vue-router'
 
 const techniques = [
-  ['createDrawable', 'Stroke-dash line drawing'],
-  ['morphTo', 'Path / polygon shape morphing'],
+  ['createDrawable', 'Stroke-dash line drawing (anime.js)'],
+  ['morphTo', 'Path / polygon morphing (anime.js)'],
   ['stagger', 'Grid & sequential stagger waves'],
   ['createTimeline', 'Chained, looping sequences'],
   ['onUpdate', 'Scalar tweens (counters, motion paths)'],
+  ['path', 'Cubic path morphing (KUTE.js)'],
+  ['svgTransform', 'SVG transform about an origin (KUTE.js)'],
   ['lottie-web', 'After Effects vector playback'],
 ]
 </script>
@@ -32,6 +34,7 @@ const techniques = [
       <li>· <strong class="text-foreground">Vue 3</strong> (<code class="font-mono text-sm">&lt;script setup&gt;</code>) + Vite + TypeScript</li>
       <li>· <strong class="text-foreground">vue-router</strong> with hash history (GitHub Pages friendly)</li>
       <li>· <strong class="text-foreground">anime.js v4</strong> — the <code class="font-mono text-sm">svg</code> helpers, staggers and timelines</li>
+      <li>· <strong class="text-foreground">KUTE.js</strong> — SVG path morphing, stroke draw and transforms (extra build)</li>
       <li>· <strong class="text-foreground">lottie-web</strong> — light build, SVG renderer</li>
       <li>· <strong class="text-foreground">Tailwind CSS</strong> with HSL CSS-variable theming</li>
     </ul>
