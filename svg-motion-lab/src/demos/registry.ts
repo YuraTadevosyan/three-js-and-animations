@@ -200,6 +200,30 @@ export const demos: DemoMeta[] = [
     lib: 'Lottie',
     component: defineAsyncComponent(() => import('@/demos/LottieSegmentsDemo.vue')),
   },
+  {
+    slug: 'lottie-progress',
+    title: 'Frame readout',
+    description: 'The enterFrame event fires each rendered frame; here it feeds a live progress bar and counter.',
+    tags: ['lottie-web', 'enterFrame', 'progress'],
+    lib: 'Lottie',
+    component: defineAsyncComponent(() => import('@/demos/LottieProgressDemo.vue')),
+  },
+  {
+    slug: 'lottie-pingpong',
+    title: 'Ping-pong loop',
+    description: 'loop:false makes the complete event fire; flipping setDirection each boundary yields an endless there-and-back.',
+    tags: ['lottie-web', 'complete', 'setDirection'],
+    lib: 'Lottie',
+    component: defineAsyncComponent(() => import('@/demos/LottiePingPongDemo.vue')),
+  },
+  {
+    slug: 'lottie-speed',
+    title: 'Speed compare',
+    description: 'The same clip in three players — setSpeed runs them at 0.5×, 1× and 2× so the tempo difference is obvious.',
+    tags: ['lottie-web', 'setSpeed', 'multi-instance'],
+    lib: 'Lottie',
+    component: defineAsyncComponent(() => import('@/demos/LottieSpeedDemo.vue')),
+  },
 ]
 
 export const demosBySlug = new Map(demos.map((d) => [d.slug, d]))
