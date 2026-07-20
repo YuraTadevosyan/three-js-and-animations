@@ -18,7 +18,7 @@ the same GitHub Pages site.
 | [`immersive-story`](./immersive-story) | [/immersive-story/](https://yuratadevosyan.github.io/three-js-and-animations/immersive-story/) | React, GSAP ScrollTrigger, Lenis, Tailwind |
 | [`car-configurator`](./car-configurator) | [/car-configurator/](https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/) | React, TypeScript, three.js, R3F, drei, postprocessing, GSAP, Tailwind |
 | [`cyber-portfolio`](./cyber-portfolio) | [/cyber-portfolio/](https://yuratadevosyan.github.io/three-js-and-animations/cyber-portfolio/) | Next.js (static export), R3F, drei, postprocessing, GSAP, Lenis, Tailwind, zustand |
-| [`svg-motion-lab`](./svg-motion-lab) | [/svg-motion-lab/](https://yuratadevosyan.github.io/three-js-and-animations/svg-motion-lab/) | Vue 3, Vite, anime.js v4 (svg helpers), Lottie (lottie-web), Tailwind |
+| [`svg-motion-lab`](./svg-motion-lab) | [/svg-motion-lab/](https://yuratadevosyan.github.io/three-js-and-animations/svg-motion-lab/) | Vue 3, Vite, anime.js v4 (svg helpers), KUTE.js (morph/draw/transform), Lottie (lottie-web), Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -34,7 +34,7 @@ the same GitHub Pages site.
 ├── immersive-story/            FC Barcelona-styled scroll matchday story (GSAP + Lenis)
 ├── car-configurator/           BMW M3 GTR E46 car configurator (R3F + drei + GSAP, GLB model)
 ├── cyber-portfolio/            Cyberpunk developer portfolio (Next.js static export + R3F + GSAP)
-└── svg-motion-lab/             SVG animation lab (Vue 3 + anime.js v4 + Lottie)
+└── svg-motion-lab/             SVG animation lab (Vue 3 + anime.js + KUTE.js + Lottie)
 ```
 
 ## Hosting model
