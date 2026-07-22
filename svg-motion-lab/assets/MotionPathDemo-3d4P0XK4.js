@@ -1,4 +1,4 @@
-import{E as e,M as t,O as n,_ as r,b as i,f as a,h as o,k as s,l as c,m as l,u,x as d,y as f}from"./vue-vendor-DyLt9Y6i.js";import{a as p}from"./anime-DrPEU4hz.js";import{t as m}from"./DemoCard-RFjb2ej6.js";import{t as h}from"./CtrlButton-D1GZ7NyK.js";var g=`<script setup lang="ts">
+import{E as e,M as t,O as n,_ as r,b as i,f as a,h as o,k as s,l as c,m as l,u,x as d,y as f}from"./vue-vendor-DyLt9Y6i.js";import{o as p}from"./anime-B_7VONm0.js";import{t as m}from"./DemoCard-RFjb2ej6.js";import{t as h}from"./CtrlButton-D1GZ7NyK.js";var g=`<script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { animate, type JSAnimation } from 'animejs'
 import DemoCard from '@/components/DemoCard.vue'
