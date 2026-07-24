@@ -7,8 +7,12 @@ import {
   EffectComposer,
   Vignette,
 } from '@react-three/postprocessing';
-import type { BloomEffect, ChromaticAberrationEffect } from 'postprocessing';
 import { useUniverse } from '@/state/universeStore';
+
+// Structural types for just the bits we drive per frame — avoids depending on
+// `postprocessing` directly (it's a transitive dep of the R3F wrapper).
+type BloomHandle = { intensity: number };
+type ChromaHandle = { offset: THREE.Vector2 };
 
 /**
  * Post pipeline that sells the dynamic lighting: bloom lifts every emissive
@@ -17,8 +21,8 @@ import { useUniverse } from '@/state/universeStore';
  */
 export function Effects() {
   const { shared } = useUniverse();
-  const bloom = useRef<BloomEffect | null>(null);
-  const chroma = useRef<ChromaticAberrationEffect | null>(null);
+  const bloom = useRef<BloomHandle | null>(null);
+  const chroma = useRef<ChromaHandle | null>(null);
   const baseOffset = useMemo(() => new THREE.Vector2(0.0006, 0.0006), []);
 
   useFrame(() => {

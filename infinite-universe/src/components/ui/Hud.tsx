@@ -4,6 +4,7 @@ import { cn, formatLightYears } from '@/lib/cn';
 import { useUniverse } from '@/state/universeStore';
 import { useTelemetry } from '@/hooks/useTelemetry';
 import { Brand } from './Brand';
+import { About } from './About';
 
 const SPEED_LABELS = ['Slow', 'Cruise', 'Fast', 'Blink'];
 
@@ -31,8 +32,9 @@ export function Hud() {
   return (
     <>
       {/* Top-left brand */}
-      <div className="pointer-events-none absolute left-5 top-5 z-20">
+      <div className="pointer-events-none absolute left-5 top-5 z-20 flex items-center gap-3">
         <Brand />
+        <About />
       </div>
 
       {/* Top-right telemetry */}

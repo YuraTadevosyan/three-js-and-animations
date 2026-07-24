@@ -37,6 +37,8 @@ frame, so the far distance is never any closer.
   derivatives, fresnel atmospheres, an infinite nebula and warp streaks.
 - **Hidden easter eggs** — the Konami code triggers a warp; rare **monolith**
   worlds decode a secret when scanned; the logo remembers seven clicks.
+- **About panel** — the ⓘ button beside the wordmark opens a modal listing every
+  technology used, how the infinity works, and a nudge toward the secrets.
 
 ## Controls
 
