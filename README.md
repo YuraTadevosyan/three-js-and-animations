@@ -19,6 +19,7 @@ the same GitHub Pages site.
 | [`car-configurator`](./car-configurator) | [/car-configurator/](https://yuratadevosyan.github.io/three-js-and-animations/car-configurator/) | React, TypeScript, three.js, R3F, drei, postprocessing, GSAP, Tailwind |
 | [`cyber-portfolio`](./cyber-portfolio) | [/cyber-portfolio/](https://yuratadevosyan.github.io/three-js-and-animations/cyber-portfolio/) | Next.js (static export), R3F, drei, postprocessing, GSAP, Lenis, Tailwind, zustand |
 | [`svg-motion-lab`](./svg-motion-lab) | [/svg-motion-lab/](https://yuratadevosyan.github.io/three-js-and-animations/svg-motion-lab/) | Vue 3, Vite, anime.js v4 (svg helpers), KUTE.js (morph/draw/transform), Lottie (lottie-web), Tailwind |
+| [`infinite-universe`](./infinite-universe) | [/infinite-universe/](https://yuratadevosyan.github.io/three-js-and-animations/infinite-universe/) | React, TypeScript, three.js, R3F, postprocessing, GSAP, simplex-noise, GLSL ES 3.0, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -34,7 +35,8 @@ the same GitHub Pages site.
 ├── immersive-story/            FC Barcelona-styled scroll matchday story (GSAP + Lenis)
 ├── car-configurator/           BMW M3 GTR E46 car configurator (R3F + drei + GSAP, GLB model)
 ├── cyber-portfolio/            Cyberpunk developer portfolio (Next.js static export + R3F + GSAP)
-└── svg-motion-lab/             SVG animation lab (Vue 3 + anime.js + KUTE.js + Lottie)
+├── svg-motion-lab/             SVG animation lab (Vue 3 + anime.js + KUTE.js + Lottie)
+└── infinite-universe/          Endless procedural cosmos — streamed floating worlds, fly-between camera, warp (R3F + GSAP + simplex + GLSL)
 ```
 
 ## Hosting model
@@ -67,6 +69,7 @@ cd immersive-story          && npm install && npm run dev
 cd car-configurator         && npm install && npm run dev
 cd cyber-portfolio          && npm install && npm run dev   # Next.js, http://localhost:3000
 cd svg-motion-lab           && npm install && npm run dev
+cd infinite-universe        && npm install && npm run dev
 ```
 
 For the landing page:
@@ -90,6 +93,7 @@ cd immersive-story          && npm run deploy
 cd car-configurator         && npm run deploy
 cd cyber-portfolio          && npm run deploy   # Next.js static export → out/
 cd svg-motion-lab           && npm run deploy
+cd infinite-universe        && npm run deploy
 ```
 
 To publish the landing page:
