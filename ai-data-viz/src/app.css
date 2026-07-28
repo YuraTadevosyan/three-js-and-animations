@@ -1,0 +1,222 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Chart tokens.
+ *
+ * The categorical slots, sequential ramp, diverging pair and status scale below
+ * are the validated dataviz palette. Both modes were run through the six checks
+ * against this app's own surfaces (light #fcfcfb, dark #141821):
+ *
+ *   light  adjacent   CVD ΔE 9.1  · normal-vision ΔE 19.6 · contrast WARN (3 slots)
+ *   dark   adjacent   CVD ΔE 8.4  · normal-vision ΔE 19.3 · contrast PASS
+ *   both   all-pairs  first 3 slots only — the cap for the force graph / scatter
+ *
+ * The light-mode contrast WARN (aqua, yellow, magenta below 3:1) is relieved by
+ * the table view every chart card ships with, plus direct labels — never
+ * dismissed. Slots are assigned in fixed order and follow the entity, never its
+ * rank: filtering a series never repaints the survivors.
+ */
+@layer base {
+  :root {
+    --background: 60 20% 97%;
+    --foreground: 0 0% 4%;
+    --card: 60 20% 99%;
+    --card-foreground: 0 0% 4%;
+    --muted: 48 12% 93%;
+    --muted-foreground: 40 4% 42%;
+    --primary: 213 68% 50%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 48 14% 90%;
+    --accent-foreground: 0 0% 4%;
+    --border: 45 13% 87%;
+    --radius: 0.75rem;
+
+    /* ---- chart chrome ---- */
+    --viz-surface: #fcfcfb;
+    --viz-plane: #f9f9f7;
+    --viz-ink: #0b0b0b;
+    --viz-ink-2: #52514e;
+    --viz-muted: #6e6c67;
+    --viz-grid: #e1e0d9;
+    --viz-axis: #c3c2b7;
+    --viz-ring: rgba(11, 11, 11, 0.1);
+
+    /* ---- categorical, fixed order ---- */
+    --series-1: #2a78d6; /* blue */
+    --series-2: #eb6834; /* orange */
+    --series-3: #1baf7a; /* aqua */
+    --series-4: #eda100; /* yellow */
+    --series-5: #e87ba4; /* magenta */
+    --series-6: #008300; /* green */
+    --series-7: #4a3aa7; /* violet */
+    --series-8: #e34948; /* red */
+
+    /* ---- sequential blue, light -> dark ---- */
+    --seq-100: #cde2fb;
+    --seq-200: #9ec5f4;
+    --seq-300: #6da7ec;
+    --seq-400: #3987e5;
+    --seq-500: #256abf;
+    --seq-600: #184f95;
+    --seq-700: #0d366b;
+
+    /* ---- ordinal steps (5, validated --ordinal for this mode) ---- */
+    --ord-1: #86b6ef;
+    --ord-2: #5598e7;
+    --ord-3: #2a78d6;
+    --ord-4: #1c5cab;
+    --ord-5: #104281;
+
+    /* ---- diverging: blue <-> red with a neutral gray midpoint ---- */
+    --div-neg-3: #184f95;
+    --div-neg-2: #2a78d6;
+    --div-neg-1: #86b6ef;
+    --div-mid: #f0efec;
+    --div-pos-1: #ec9897;
+    --div-pos-2: #e34948;
+    --div-pos-3: #a02423;
+
+    /* ---- status (fixed, never themed) ---- */
+    --status-good: #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical: #d03b3b;
+    --status-good-text: #006300;
+  }
+
+  .dark {
+    --background: 222 24% 6%;
+    --foreground: 0 0% 100%;
+    --card: 221 25% 10%;
+    --card-foreground: 0 0% 100%;
+    --muted: 220 18% 15%;
+    --muted-foreground: 219 11% 55%;
+    --primary: 213 77% 56%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 220 18% 16%;
+    --accent-foreground: 0 0% 100%;
+    --border: 220 16% 19%;
+
+    --viz-surface: #141821;
+    --viz-plane: #0b0d12;
+    --viz-ink: #ffffff;
+    --viz-ink-2: #b9c0cf;
+    --viz-muted: #7e8799;
+    --viz-grid: #20252f;
+    --viz-axis: #2f3541;
+    --viz-ring: rgba(255, 255, 255, 0.1);
+
+    /* the same eight hues, re-stepped for the dark surface — not a flip */
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    --ord-1: #9ec5f4;
+    --ord-2: #6da7ec;
+    --ord-3: #3987e5;
+    --ord-4: #256abf;
+    --ord-5: #184f95;
+
+    --div-mid: #383835;
+    --div-pos-1: #8f3130;
+    --div-pos-2: #e66767;
+    --div-pos-3: #f3a9a8;
+    --div-neg-1: #215489;
+    --div-neg-2: #3987e5;
+    --div-neg-3: #9ec5f4;
+
+    --status-good-text: #0ca30c;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04';
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.28);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border bg-card;
+  }
+
+  /* Every axis rule and gridline is a solid hairline, one step off the surface. */
+  .viz-grid line {
+    stroke: var(--viz-grid);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+
+  .viz-axis-line {
+    stroke: var(--viz-axis);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+
+  /* Axis text wears a text token, never a series color. */
+  .viz-tick {
+    fill: var(--viz-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .viz-axis-title {
+    fill: var(--viz-muted);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium
+           text-muted-foreground transition-colors;
+  }
+
+  .chip[aria-pressed='true'],
+  .chip[data-active='true'] {
+    @apply bg-accent text-accent-foreground border-transparent;
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.45);
+  }
+
+  .chip:hover {
+    @apply text-foreground;
+  }
+}
+
+/* The scrollbar of a data app should not be the loudest thing on screen. */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
