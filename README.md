@@ -20,6 +20,7 @@ the same GitHub Pages site.
 | [`cyber-portfolio`](./cyber-portfolio) | [/cyber-portfolio/](https://yuratadevosyan.github.io/three-js-and-animations/cyber-portfolio/) | Next.js (static export), R3F, drei, postprocessing, GSAP, Lenis, Tailwind, zustand |
 | [`svg-motion-lab`](./svg-motion-lab) | [/svg-motion-lab/](https://yuratadevosyan.github.io/three-js-and-animations/svg-motion-lab/) | Vue 3, Vite, anime.js v4 (svg helpers), KUTE.js (morph/draw/transform), Lottie (lottie-web), Tailwind |
 | [`infinite-universe`](./infinite-universe) | [/infinite-universe/](https://yuratadevosyan.github.io/three-js-and-animations/infinite-universe/) | React, TypeScript, three.js, R3F, postprocessing, GSAP, simplex-noise, GLSL ES 3.0, Tailwind |
+| [`ai-data-viz`](./ai-data-viz) | [/ai-data-viz/](https://yuratadevosyan.github.io/three-js-and-animations/ai-data-viz/) | Svelte 5 (runes), TypeScript, D3 (scale/shape/force), Canvas, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -36,7 +37,8 @@ the same GitHub Pages site.
 ├── car-configurator/           BMW M3 GTR E46 car configurator (R3F + drei + GSAP, GLB model)
 ├── cyber-portfolio/            Cyberpunk developer portfolio (Next.js static export + R3F + GSAP)
 ├── svg-motion-lab/             SVG animation lab (Vue 3 + anime.js + KUTE.js + Lottie)
-└── infinite-universe/          Endless procedural cosmos — streamed floating worlds, fly-between camera, warp (R3F + GSAP + simplex + GLSL)
+├── infinite-universe/          Endless procedural cosmos — streamed floating worlds, fly-between camera, warp (R3F + GSAP + simplex + GLSL)
+└── ai-data-viz/                Six generated datasets — flowing graphs, morphing charts, animated node networks, plus a client-side statistical analyst (Svelte 5 + D3)
 ```
 
 ## Hosting model
@@ -70,6 +72,7 @@ cd car-configurator         && npm install && npm run dev
 cd cyber-portfolio          && npm install && npm run dev   # Next.js, http://localhost:3000
 cd svg-motion-lab           && npm install && npm run dev
 cd infinite-universe        && npm install && npm run dev
+cd ai-data-viz              && npm install && npm run dev
 ```
 
 For the landing page:
@@ -94,6 +97,7 @@ cd car-configurator         && npm run deploy
 cd cyber-portfolio          && npm run deploy   # Next.js static export → out/
 cd svg-motion-lab           && npm run deploy
 cd infinite-universe        && npm run deploy
+cd ai-data-viz              && npm run deploy
 ```
 
 To publish the landing page:
