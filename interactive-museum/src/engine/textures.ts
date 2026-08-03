@@ -25,7 +25,10 @@ function ctxOf(tex: DynamicTexture) {
 }
 
 function finish(tex: DynamicTexture) {
-  tex.update(false)
+  // update() must keep its default invertY of true — that is the canvas
+  // convention (y increasing downwards). Passing false uploads every canvas
+  // upside-down, which on a plaque or a label reads as mirrored text.
+  tex.update()
   tex.hasAlpha = false
   return tex
 }
@@ -206,7 +209,7 @@ export function makeLabelTexture(
       .forEach((line, i) => ctx.fillText(line, w / 2, 168 + i * 42))
   }
 
-  tex.update(false)
+  tex.update()
   tex.hasAlpha = !opts.bg
   return tex
 }
@@ -225,7 +228,7 @@ export function makeDotTexture(scene: Scene): Texture {
   ctx.fillStyle = g
   ctx.fillRect(0, 0, size, size)
 
-  tex.update(false)
+  tex.update()
   tex.hasAlpha = true
   return tex
 }

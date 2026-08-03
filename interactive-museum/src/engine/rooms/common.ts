@@ -12,6 +12,14 @@ import { makeLabelTexture, makePlaqueTexture } from '../textures'
 
 /** Bits every room needs: signage, spots, and the labels under things. */
 
+/**
+ * Babylon builds planes with a normal of (0, 0, -1) — the visible face points
+ * down -Z, not +Z. So a plane whose `rotation.y` is θ actually faces
+ * -(sinθ, 0, cosθ). Everything here takes the direction the surface should face
+ * and adds the half turn, so callers can pass the intuitive angle.
+ */
+const facing = (rotationY: number) => rotationY + Math.PI
+
 export interface Spot {
   light: SpotLight
   /** Base intensity, so effects can scale relative to the room's design. */
@@ -79,7 +87,7 @@ export function addPlaque(
 
   const plate = CreatePlane(`plaque-${room.id}`, { width: 3.4, height: 1.7 }, scene)
   plate.position.copyFrom(position)
-  plate.rotation.y = rotationY
+  plate.rotation.y = facing(rotationY)
   plate.material = signMaterial(scene, `plaque-mat-${room.id}`, texture)
 
   // A shallow surround so the plate reads as mounted rather than painted on.
@@ -158,7 +166,7 @@ export function addFramedCanvas(
   // Sit the canvas just proud of the frame's front face.
   const forward = new Vector3(Math.sin(rotationY), 0, Math.cos(rotationY)).scale(frameDepth / 2 + 0.005)
   canvas.position.copyFrom(position).addInPlace(forward)
-  canvas.rotation.y = rotationY
+  canvas.rotation.y = facing(rotationY)
   canvas.material = canvasMaterial
   canvas.freezeWorldMatrix()
 
