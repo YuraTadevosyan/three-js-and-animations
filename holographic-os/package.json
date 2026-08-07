@@ -1,0 +1,32 @@
+{
+  "name": "holographic-os",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Holographic OS — a futuristic desktop environment running in the browser. Draggable and resizable glass windows, animated folders, a scripted AI assistant, live GPU/CPU telemetry graphs, a simulated weather system and animated widgets, projected over a volumetric WebGL hologram. Preact + @preact/signals + OGL.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --force",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist -e holographic-os"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.0",
+    "interactjs": "^1.10.28",
+    "ogl": "^1.0.11",
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.1.2",
+    "autoprefixer": "^10.5.4",
+    "gh-pages": "^6.3.0",
+    "postcss": "^8.5.23",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.5"
+  }
+}

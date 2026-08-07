@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 205 62% 3%;
+    --foreground: 190 55% 90%;
+    --card: 202 55% 6%;
+    --card-foreground: 190 55% 90%;
+    --muted: 200 30% 14%;
+    --muted-foreground: 195 22% 60%;
+    --primary: 190 96% 72%;
+    --primary-foreground: 205 62% 5%;
+    --accent: 152 90% 68%;
+    --accent-foreground: 205 62% 5%;
+    --warn: 33 100% 66%;
+    --danger: 348 95% 68%;
+    --border: 190 60% 24%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: default;
+  }
+
+  canvas {
+    display: block;
+    outline: none;
+  }
+
+  /* Thin cyan scrollbars so panel overflow stays in-world. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.28);
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer components {
+  /* ---- Core glass surface -------------------------------------------- */
+
+  /* The projected-panel look: tinted glass, a lit top edge, an outer bloom. */
+  .glass {
+    background: linear-gradient(
+      160deg,
+      hsl(var(--primary) / 0.09) 0%,
+      hsl(202 60% 8% / 0.72) 42%,
+      hsl(205 62% 4% / 0.82) 100%
+    );
+    backdrop-filter: blur(18px) saturate(1.25);
+    -webkit-backdrop-filter: blur(18px) saturate(1.25);
+    border: 1px solid hsl(var(--primary) / 0.26);
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--primary) / 0.22),
+      inset 0 0 34px -14px hsl(var(--primary) / 0.5),
+      0 0 0 1px hsl(205 62% 2% / 0.55),
+      0 26px 70px -28px hsl(190 96% 40% / 0.35),
+      0 18px 60px -30px rgb(0 0 0 / 0.95);
+  }
+
+  /* Denser variant for chrome that must stay readable over bright shader. */
+  .glass-solid {
+    background: linear-gradient(
+      160deg,
+      hsl(var(--primary) / 0.07) 0%,
+      hsl(202 58% 6% / 0.9) 45%,
+      hsl(205 62% 3% / 0.94) 100%
+    );
+    backdrop-filter: blur(22px) saturate(1.2);
+    -webkit-backdrop-filter: blur(22px) saturate(1.2);
+    border: 1px solid hsl(var(--primary) / 0.22);
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--primary) / 0.18),
+      0 20px 60px -30px rgb(0 0 0 / 0.95);
+  }
+
+  /* ---- Holographic decoration ---------------------------------------- */
+
+  /* Four corner brackets, drawn with a conic-free double gradient. */
+  .brackets::before,
+  .brackets::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    border-color: hsl(var(--primary) / 0.75);
+  }
+
+  .brackets::before {
+    top: 5px;
+    left: 5px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .brackets::after {
+    right: 5px;
+    bottom: 5px;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
+  }
+
+  /* CRT-ish line grid laid over a panel. */
+  .scanlines {
+    position: relative;
+  }
+
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      hsl(var(--primary) / 0.05) 0px,
+      hsl(var(--primary) / 0.05) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: screen;
+    opacity: calc(var(--os-scanline, 1) * 0.9);
+  }
+
+  /* A single bright band that sweeps down a surface. */
+  .sweep {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sweep::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    height: 28%;
+    background: linear-gradient(to bottom, transparent, hsl(var(--primary) / 0.13), transparent);
+    animation: scan-sweep 5.5s linear infinite;
+    pointer-events: none;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.55);
+  }
+
+  .text-glow-soft {
+    text-shadow: 0 0 18px hsl(var(--primary) / 0.3);
+  }
+
+  /* A 1px gradient rule that fades out to the right. */
+  .hairline {
+    @apply block h-px w-full;
+    background: linear-gradient(
+      to right,
+      hsl(var(--primary) / 0.6),
+      hsl(var(--primary) / 0.16),
+      transparent
+    );
+  }
+
+  /* ---- Controls ------------------------------------------------------- */
+
+  .holo-btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded border px-2.5 py-1
+           font-mono text-[0.68rem] uppercase tracking-[0.14em] transition-all duration-150;
+    border-color: hsl(var(--primary) / 0.3);
+    background: hsl(var(--primary) / 0.07);
+    color: hsl(var(--primary));
+  }
+
+  .holo-btn:hover:not(:disabled) {
+    border-color: hsl(var(--primary) / 0.6);
+    background: hsl(var(--primary) / 0.16);
+    box-shadow: 0 0 18px -4px hsl(var(--primary) / 0.55);
+  }
+
+  .holo-btn:disabled {
+    @apply cursor-not-allowed opacity-35;
+  }
+
+  .holo-btn[data-active='true'] {
+    border-color: hsl(var(--primary) / 0.75);
+    background: hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 18px -4px hsl(var(--primary) / 0.6);
+  }
+
+  .holo-input {
+    @apply w-full rounded border bg-transparent px-2.5 py-1.5 font-mono text-xs outline-none transition;
+    border-color: hsl(var(--primary) / 0.24);
+    background: hsl(205 62% 2% / 0.5);
+    color: hsl(var(--foreground));
+  }
+
+  .holo-input::placeholder {
+    color: hsl(var(--muted-foreground) / 0.75);
+  }
+
+  .holo-input:focus {
+    border-color: hsl(var(--primary) / 0.65);
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+  }
+
+  /* Desktop folder sheets fan out when the folder's lid opens. The offsets are
+     authored per-sheet as custom properties on the element itself. */
+  .group:hover [data-sheet] {
+    transform: translateX(calc(-50% + var(--fan-x, 0px))) translateY(var(--fan-y, 0px))
+      rotate(var(--fan-r, 0deg));
+  }
+
+  /* Range input styled as a lit track. The filled portion is driven by a
+     `--fill` percentage the component sets, since there is no cross-browser
+     pseudo-element for "the part before the thumb". */
+  .holo-range {
+    @apply h-1.5 w-full cursor-pointer appearance-none rounded-full bg-transparent;
+    background: linear-gradient(
+      to right,
+      hsl(var(--primary) / 0.85) 0%,
+      hsl(var(--primary) / 0.85) var(--fill, 50%),
+      hsl(var(--primary) / 0.12) var(--fill, 50%),
+      hsl(var(--primary) / 0.12) 100%
+    );
+  }
+
+  .holo-range::-webkit-slider-thumb {
+    @apply h-3.5 w-3.5 appearance-none rounded-full;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.9);
+    border: 2px solid hsl(var(--background));
+  }
+
+  .holo-range::-moz-range-thumb {
+    @apply h-3 w-3 rounded-full border-0;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.9);
+  }
+
+  .holo-range:focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 3px;
+  }
+
+  .key {
+    @apply inline-flex min-w-[1.4rem] items-center justify-center rounded border px-1 py-0.5
+           font-mono text-[0.55rem] not-italic;
+    border-color: hsl(var(--primary) / 0.3);
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+  }
+
+  /* Section label used above every panel group. */
+  .label {
+    @apply font-mono text-[0.6rem] uppercase tracking-[0.22em];
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+@layer utilities {
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Windows are transformed during drag; keep them on their own layer. */
+  .gpu {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+}
+
+/* While a window is being dragged or resized, suppress hover/anim churn and
+   keep the pointer consistent across the whole document. */
+body.os-dragging {
+  cursor: grabbing !important;
+}
+
+body.os-dragging * {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+body.os-resizing {
+  user-select: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
