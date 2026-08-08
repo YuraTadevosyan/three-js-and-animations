@@ -1,6 +1,7 @@
 import type { ComponentChildren, JSX } from 'preact'
 import { projection, resetProjection, setProjection, type Projection } from '@/state/os'
 import { STATIONS, setStation, station } from '@/state/weather'
+import { resetIconLayout } from '@/state/desktop'
 
 const SCENES: Array<{ id: Projection['scene']; label: string; hint: string }> = [
   { id: 'lattice', label: 'Lattice', hint: 'Volumetric floor and ceiling grid' },
@@ -86,9 +87,19 @@ export function Settings(): JSX.Element {
           </p>
         </Group>
 
-        <button type="button" class="holo-btn w-full !py-2" onClick={resetProjection}>
-          Reset projection
-        </button>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button type="button" class="holo-btn !py-2" onClick={resetProjection}>
+            Reset projection
+          </button>
+          <button
+            type="button"
+            class="holo-btn !py-2"
+            onClick={resetIconLayout}
+            title="Return dragged desktop icons to the default grid"
+          >
+            Reset icons
+          </button>
+        </div>
       </div>
     </div>
   )

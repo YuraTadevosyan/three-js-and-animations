@@ -8,12 +8,13 @@ import {
   searchFiles,
   type FsNode,
 } from '@/state/fs'
-import { openApp, setWindowTitle, type WindowProps } from '@/state/windows'
+import { closeWindow, openApp, setWindowTitle, type WindowProps } from '@/state/windows'
 import { pulseLoad } from '@/state/telemetry'
 import {
   IconArrowLeft,
   IconArrowUp,
   IconChevronRight,
+  IconClose,
   IconFile,
   IconFolder,
   IconGrid,
@@ -68,6 +69,28 @@ export function Files({ winId, props }: { winId: string; props: WindowProps }): 
     }
   }
 
+  /**
+   * Escalating close, so the control is never a dead affordance: search results
+   * collapse back to the folder they were run from, an open folder closes out
+   * to the vault root, and at the root there is nothing left to close but the
+   * window itself. Folder closes route through `navigate` so the jump lands in
+   * history and the back arrow still returns here.
+   */
+  const closeLabel = results ? 'Clear search' : path !== ROOT.path ? `Close ${folder.name}` : 'Close File Vault'
+
+  const closeCrumbs = () => {
+    if (results) {
+      setQuery('')
+      setSelected(null)
+      return
+    }
+    if (path !== ROOT.path) {
+      navigate(ROOT.path)
+      return
+    }
+    closeWindow(winId)
+  }
+
   return (
     <div class="flex h-full flex-col">
       {/* Toolbar */}
@@ -118,32 +141,44 @@ export function Files({ winId, props }: { winId: string; props: WindowProps }): 
       </div>
 
       {/* Breadcrumbs */}
-      <div class="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-primary/10 px-2.5 py-1.5 font-mono text-[0.6rem] uppercase tracking-[0.14em]">
-        {results ? (
-          <span class="text-primary/70">
-            {results.length} result{results.length === 1 ? '' : 's'} for “{query}”
-          </span>
-        ) : (
-          breadcrumbs(path).map((crumb, i, arr) => (
-            <span key={crumb.path} class="flex shrink-0 items-center gap-1">
-              <button
-                type="button"
-                class={cx(
-                  'transition-colors',
-                  i === arr.length - 1 ? 'text-primary text-glow' : 'text-muted-foreground hover:text-primary',
-                )}
-                onClick={() => i < arr.length - 1 && navigate(crumb.path)}
-              >
-                {crumb.name}
-              </button>
-              {i < arr.length - 1 && (
-                <span class="text-primary/30">
-                  <IconChevronRight size={10} />
-                </span>
-              )}
+      <div class="flex shrink-0 items-center gap-2 border-b border-primary/10 px-2.5 py-1.5">
+        <div class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto font-mono text-[0.6rem] uppercase tracking-[0.14em]">
+          {results ? (
+            <span class="text-primary/70">
+              {results.length} result{results.length === 1 ? '' : 's'} for “{query}”
             </span>
-          ))
-        )}
+          ) : (
+            breadcrumbs(path).map((crumb, i, arr) => (
+              <span key={crumb.path} class="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  class={cx(
+                    'transition-colors',
+                    i === arr.length - 1 ? 'text-primary text-glow' : 'text-muted-foreground hover:text-primary',
+                  )}
+                  onClick={() => i < arr.length - 1 && navigate(crumb.path)}
+                >
+                  {crumb.name}
+                </button>
+                {i < arr.length - 1 && (
+                  <span class="text-primary/30">
+                    <IconChevronRight size={10} />
+                  </span>
+                )}
+              </span>
+            ))
+          )}
+        </div>
+
+        <button
+          type="button"
+          class="grid h-5 w-5 shrink-0 place-items-center rounded text-primary/50 transition-colors hover:bg-danger/20 hover:text-danger"
+          aria-label={closeLabel}
+          title={closeLabel}
+          onClick={closeCrumbs}
+        >
+          <IconClose size={11} />
+        </button>
       </div>
 
       {/* Entries */}

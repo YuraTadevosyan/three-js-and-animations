@@ -4,9 +4,11 @@ import { HoloBackground } from '@/gl/background'
 import { bootPhase, launcherOpen, notify, projection, startClock, startPointerTracking } from '@/state/os'
 import { startTelemetry } from '@/state/telemetry'
 import { startWeather } from '@/state/weather'
+import { reflowIcons } from '@/state/desktop'
 import {
   closeWindow,
   cycleFocus,
+  desktopBounds,
   focusedId,
   minimizeAll,
   minimizeWindow,
@@ -65,6 +67,7 @@ export function App(): JSX.Element {
     const onResize = () => {
       updateDesktopBounds()
       reflowWindows()
+      reflowIcons(desktopBounds.peek())
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)

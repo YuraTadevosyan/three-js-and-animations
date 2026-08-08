@@ -69,6 +69,7 @@ assumption that something is being measured.
 
 | | |
 | --- | --- |
+| Drag a desktop icon | Rearrange the desktop (Settings → Reset icons to undo) |
 | Drag a titlebar | Move a window |
 | …to a screen edge | Snap left / right |
 | …to a corner | Snap to a quadrant |
