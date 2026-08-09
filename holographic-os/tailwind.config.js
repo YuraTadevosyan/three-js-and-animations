@@ -36,6 +36,12 @@ export default {
         sans: ['"Chakra Petch"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
+      // WARNING: these entrance animations run with `fill-mode: both`, so the
+      // final keyframe persists forever. CSS animations outrank inline styles
+      // in the cascade, which means any keyframe touching `transform` will
+      // permanently override a positional `transform` on the same element.
+      // Never put `window-in` / `rail-in` / `dock-in` on an element that is
+      // positioned by transform (a window, a dragged icon) — animate a child.
       keyframes: {
         'fade-in': {
           from: { opacity: '0' },

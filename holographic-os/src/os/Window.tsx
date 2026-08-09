@@ -161,15 +161,20 @@ export function Window({ win, focused, children }: WindowProps): JSX.Element {
   const hue = BASE_HUE + win.hue + projection.value.hue
 
   return (
+    /*
+     * Two layers on purpose. The outer shell owns geometry — and nothing else
+     * may touch its `transform`, because CSS animations outrank inline styles
+     * in the cascade: a keyframe that animates `transform` with `fill-mode:
+     * both` would pin the shell at its final keyframe forever and discard the
+     * position we write here. The entrance animation therefore lives on the
+     * inner chrome, which has no positional transform of its own.
+     */
     <div
       ref={ref}
       role="dialog"
       aria-label={win.title}
       aria-hidden={win.minimized}
-      class={cx(
-        'glass brackets absolute left-0 top-0 flex flex-col overflow-hidden rounded-lg gpu animate-window-in',
-        win.minimized && 'pointer-events-none',
-      )}
+      class={cx('absolute left-0 top-0 gpu', win.minimized && 'pointer-events-none')}
       style={{
         // Every surface in the window reads `--primary`, so overriding it here
         // re-tints the whole app without touching a single component.
@@ -184,65 +189,71 @@ export function Window({ win, focused, children }: WindowProps): JSX.Element {
         width: `${win.w}px`,
         height: `${win.h}px`,
         transition: 'opacity 0.18s ease, visibility 0.18s',
-        boxShadow: focused
-          ? undefined
-          : 'inset 0 1px 0 0 hsl(var(--primary) / 0.1), 0 18px 50px -30px rgb(0 0 0 / 0.9)',
       }}
       onPointerDown={() => focusWindow(win.id)}
     >
-      {/* Title bar */}
       <div
-        data-drag-handle
-        class={cx(
-          'flex h-9 shrink-0 cursor-grab items-center gap-2 border-b px-2.5 no-select active:cursor-grabbing',
-          focused ? 'border-primary/25' : 'border-primary/10',
-        )}
+        class="glass brackets relative flex h-full w-full flex-col overflow-hidden rounded-lg animate-window-in"
         style={{
-          background: focused
-            ? 'linear-gradient(to bottom, hsl(var(--primary) / 0.16), hsl(var(--primary) / 0.04))'
-            : 'hsl(var(--primary) / 0.04)',
+          boxShadow: focused
+            ? undefined
+            : 'inset 0 1px 0 0 hsl(var(--primary) / 0.1), 0 18px 50px -30px rgb(0 0 0 / 0.9)',
         }}
-        onDblClick={() => toggleMaximize(win.id)}
       >
-        <span class={cx('shrink-0 transition-opacity', focused ? 'text-primary' : 'text-primary/50')}>
-          <AppIcon icon={manifest.icon} size={14} />
-        </span>
-
-        <span
+        {/* Title bar */}
+        <div
+          data-drag-handle
           class={cx(
-            'min-w-0 flex-1 truncate font-mono text-[0.7rem] uppercase tracking-[0.16em]',
-            focused ? 'text-primary text-glow' : 'text-primary/45',
+            'flex h-9 shrink-0 cursor-grab items-center gap-2 border-b px-2.5 no-select active:cursor-grabbing',
+            focused ? 'border-primary/25' : 'border-primary/10',
           )}
+          style={{
+            background: focused
+              ? 'linear-gradient(to bottom, hsl(var(--primary) / 0.16), hsl(var(--primary) / 0.04))'
+              : 'hsl(var(--primary) / 0.04)',
+          }}
+          onDblClick={() => toggleMaximize(win.id)}
         >
-          {win.title}
-        </span>
+          <span class={cx('shrink-0 transition-opacity', focused ? 'text-primary' : 'text-primary/50')}>
+            <AppIcon icon={manifest.icon} size={14} />
+          </span>
 
-        {focused && <span class="h-1 w-1 shrink-0 rounded-full bg-accent animate-breathe" aria-hidden="true" />}
+          <span
+            class={cx(
+              'min-w-0 flex-1 truncate font-mono text-[0.7rem] uppercase tracking-[0.16em]',
+              focused ? 'text-primary text-glow' : 'text-primary/45',
+            )}
+          >
+            {win.title}
+          </span>
 
-        <div class="flex shrink-0 items-center gap-0.5" data-no-drag>
-          <WindowButton label="Minimise" onClick={() => minimizeWindow(win.id)}>
-            <IconMinimize size={13} />
-          </WindowButton>
-          <WindowButton label={win.maximized ? 'Restore' : 'Maximise'} onClick={() => toggleMaximize(win.id)}>
-            {win.maximized ? <IconRestore size={12} /> : <IconMaximize size={12} />}
-          </WindowButton>
-          <WindowButton label="Close" danger onClick={() => closeWindow(win.id)}>
-            <IconClose size={13} />
-          </WindowButton>
+          {focused && <span class="h-1 w-1 shrink-0 rounded-full bg-accent animate-breathe" aria-hidden="true" />}
+
+          <div class="flex shrink-0 items-center gap-0.5" data-no-drag>
+            <WindowButton label="Minimise" onClick={() => minimizeWindow(win.id)}>
+              <IconMinimize size={13} />
+            </WindowButton>
+            <WindowButton label={win.maximized ? 'Restore' : 'Maximise'} onClick={() => toggleMaximize(win.id)}>
+              {win.maximized ? <IconRestore size={12} /> : <IconMaximize size={12} />}
+            </WindowButton>
+            <WindowButton label="Close" danger onClick={() => closeWindow(win.id)}>
+              <IconClose size={13} />
+            </WindowButton>
+          </div>
         </div>
+
+        {/* Body */}
+        <div class="relative min-h-0 flex-1 overflow-hidden">{children}</div>
+
+        {/* Resize affordance in the bottom-right corner */}
+        <span
+          class="pointer-events-none absolute bottom-1 right-1 h-3 w-3 opacity-40"
+          style={{
+            background: `repeating-linear-gradient(135deg, hsl(var(--primary)) 0 1px, transparent 1px 3px)`,
+          }}
+          aria-hidden="true"
+        />
       </div>
-
-      {/* Body */}
-      <div class="relative min-h-0 flex-1 overflow-hidden">{children}</div>
-
-      {/* Resize affordance in the bottom-right corner */}
-      <span
-        class="pointer-events-none absolute bottom-1 right-1 h-3 w-3 opacity-40"
-        style={{
-          background: `repeating-linear-gradient(135deg, hsl(var(--primary)) 0 1px, transparent 1px 3px)`,
-        }}
-        aria-hidden="true"
-      />
     </div>
   )
 }
