@@ -22,6 +22,7 @@ the same GitHub Pages site.
 | [`infinite-universe`](./infinite-universe) | [/infinite-universe/](https://yuratadevosyan.github.io/three-js-and-animations/infinite-universe/) | React, TypeScript, three.js, R3F, postprocessing, GSAP, simplex-noise, GLSL ES 3.0, Tailwind |
 | [`ai-data-viz`](./ai-data-viz) | [/ai-data-viz/](https://yuratadevosyan.github.io/three-js-and-animations/ai-data-viz/) | Svelte 5 (runes), TypeScript, D3 (scale/shape/force), Canvas, Tailwind |
 | [`interactive-museum`](./interactive-museum) | [/interactive-museum/](https://yuratadevosyan.github.io/three-js-and-animations/interactive-museum/) | Babylon.js 9, SolidJS, TypeScript, Web Audio (synthesis + spatial), Tailwind |
+| [`holographic-os`](./holographic-os) | [/holographic-os/](https://yuratadevosyan.github.io/three-js-and-animations/holographic-os/) | Preact, @preact/signals, OGL (WebGL2), interact.js, GLSL ES 3.0, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -40,7 +41,8 @@ the same GitHub Pages site.
 ├── svg-motion-lab/             SVG animation lab (Vue 3 + anime.js + KUTE.js + Lottie)
 ├── infinite-universe/          Endless procedural cosmos — streamed floating worlds, fly-between camera, warp (R3F + GSAP + simplex + GLSL)
 ├── ai-data-viz/                Six generated datasets — flowing graphs, morphing charts, animated node networks, plus a client-side statistical analyst (Svelte 5 + D3)
-└── interactive-museum/         A portfolio you walk through — six rooms, first-person controls, per-room lighting and synthesized spatial ambience, six hidden interactions (Babylon.js 9 + SolidJS)
+├── interactive-museum/         A portfolio you walk through — six rooms, first-person controls, per-room lighting and synthesized spatial ambience, six hidden interactions (Babylon.js 9 + SolidJS)
+└── holographic-os/             A futuristic desktop — draggable/snapping glass windows, 3D folders, magnifying dock, live GPU graphs, a simulated weather system and a local assistant, over a volumetric WebGL lattice (Preact + signals + OGL)
 ```
 
 ## Hosting model
@@ -76,6 +78,7 @@ cd svg-motion-lab           && npm install && npm run dev
 cd infinite-universe        && npm install && npm run dev
 cd ai-data-viz              && npm install && npm run dev
 cd interactive-museum       && npm install && npm run dev
+cd holographic-os           && npm install && npm run dev
 ```
 
 For the landing page:
@@ -102,6 +105,7 @@ cd svg-motion-lab           && npm run deploy
 cd infinite-universe        && npm run deploy
 cd ai-data-viz              && npm run deploy
 cd interactive-museum       && npm run deploy
+cd holographic-os           && npm run deploy
 ```
 
 To publish the landing page:
