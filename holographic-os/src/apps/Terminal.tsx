@@ -1,10 +1,16 @@
 import type { JSX } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { getNode, resolvePath, ROOT, searchFiles, type FolderNode } from '@/state/fs'
-import { openApp, windows } from '@/state/windows'
+import {
+  activeWorkspace,
+  openApp,
+  switchWorkspace,
+  windows,
+  WORKSPACE_COUNT,
+} from '@/state/windows'
 import { processes, stats, TOTAL_RAM_GB, TOTAL_VRAM_GB } from '@/state/telemetry'
 import { CONDITION_LABEL, current as weather, station } from '@/state/weather'
-import { projection, setProjection } from '@/state/os'
+import { lockScreen, projection, setProjection } from '@/state/os'
 import { APPS, type AppId } from '@/apps/manifest'
 import { respond } from '@/lib/ai'
 import { formatBytes, formatUptime, uid } from '@/lib/util'
@@ -223,9 +229,34 @@ export function Terminal(): JSX.Element {
       case 'windows': {
         const open = windows.value
         if (!open.length) return push('no open surfaces', 'dim')
-        pushAll(open.map((w) => `${w.id.padEnd(16)} ${w.title}${w.minimized ? '  (minimised)' : ''}`))
+        pushAll(
+          open.map(
+            (w) =>
+              `${w.id.padEnd(16)} desk${w.workspace + 1} ${w.title}` +
+              `${w.minimized ? '  (minimised)' : ''}${w.pinned ? '  (pinned)' : ''}`,
+          ),
+        )
         break
       }
+
+      case 'desk': {
+        if (!arg) {
+          push(`on desk ${activeWorkspace.value + 1} of ${WORKSPACE_COUNT}`)
+          return
+        }
+        const n = Number(arg)
+        if (!Number.isInteger(n) || n < 1 || n > WORKSPACE_COUNT) {
+          return push(`desk: expected 1..${WORKSPACE_COUNT}`, 'err')
+        }
+        switchWorkspace(n - 1)
+        push(`switched to desk ${n}`, 'dim')
+        break
+      }
+
+      case 'lock':
+        push('locking…', 'dim')
+        window.setTimeout(lockScreen, 350)
+        break
 
       case 'pwd':
         push(cwd)

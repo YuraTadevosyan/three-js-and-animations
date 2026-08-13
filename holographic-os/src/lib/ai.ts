@@ -1,8 +1,15 @@
 import { APPS, type AppId } from '@/apps/manifest'
-import { minimizeAll, openApp, windows } from '@/state/windows'
+import {
+  activeWorkspace,
+  minimizeAll,
+  openApp,
+  switchWorkspace,
+  windows,
+  WORKSPACE_COUNT,
+} from '@/state/windows'
 import { processes, stats, TOTAL_RAM_GB, TOTAL_VRAM_GB } from '@/state/telemetry'
 import { CONDITION_LABEL, current as weather, daily, setStation, station, STATIONS } from '@/state/weather'
-import { notify, projection, setProjection } from '@/state/os'
+import { lockScreen, notify, projection, setProjection } from '@/state/os'
 import { allFiles, searchFiles } from '@/state/fs'
 import { formatUptime } from '@/lib/util'
 
@@ -75,6 +82,8 @@ const INTENTS: Intent[] = [
         '• `set the scene to nebula` — retune projection',
         '• `find kernel` — search the vault',
         '• `close everything` — park all surfaces',
+        '• `go to desk 2` — switch virtual desktop',
+        '• `lock the screen`',
         '• `who built this` — project details',
       ],
     }),
@@ -246,6 +255,37 @@ const INTENTS: Intent[] = [
       }
       openApp('settings')
       return { lines: ['Opening the projection settings — every control there is live.'], action: 'opened Settings' }
+    },
+  },
+
+  {
+    id: 'workspace',
+    groups: [['desk', 'desktop', 'workspace', 'switch desk', 'go to desk']],
+    run: (input) => {
+      const match = input.match(/\b([1-9])\b/)
+      if (!match) {
+        return {
+          lines: [
+            `There are ${WORKSPACE_COUNT} desks. You are on Desk ${activeWorkspace.value + 1}. Say "go to desk 2".`,
+          ],
+        }
+      }
+      const index = Number(match[1]) - 1
+      if (index < 0 || index >= WORKSPACE_COUNT) {
+        return { lines: [`Only Desk 1 through ${WORKSPACE_COUNT} exist.`] }
+      }
+      switchWorkspace(index)
+      return { lines: [`Switched to Desk ${index + 1}.`], action: `desk → ${index + 1}` }
+    },
+  },
+
+  {
+    id: 'lock',
+    groups: [['lock', 'lock screen', 'sleep', 'stand by', 'standby']],
+    run: () => {
+      // Give the reply a beat to render before the plate covers it.
+      window.setTimeout(lockScreen, 400)
+      return { lines: ['Locking the projection. Any key resumes.'], action: 'locked screen' }
     },
   },
 

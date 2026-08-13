@@ -79,6 +79,65 @@ export function dismissNotice(id: string): void {
   notices.value = notices.value.filter((n) => n.id !== id)
 }
 
+// --- lock screen ------------------------------------------------------------
+
+export const locked = signal(false)
+
+/** Idle delay before auto-locking, in ms. `0` disables it. */
+export const lockDelayMs = signal(180_000)
+
+export const LOCK_DELAYS: Array<{ label: string; ms: number }> = [
+  { label: 'Never', ms: 0 },
+  { label: '1 min', ms: 60_000 },
+  { label: '3 min', ms: 180_000 },
+  { label: '10 min', ms: 600_000 },
+]
+
+export function lockScreen(): void {
+  locked.value = true
+}
+
+export function unlockScreen(): void {
+  locked.value = false
+}
+
+/**
+ * Auto-lock after a stretch of no input.
+ *
+ * A single timer reset on activity, rather than a polling interval — the
+ * listeners are passive and capture-phase so they still see events that inner
+ * handlers stop propagating.
+ */
+export function startIdleWatch(): () => void {
+  let timer = 0
+
+  const arm = () => {
+    window.clearTimeout(timer)
+    const delay = lockDelayMs.peek()
+    if (delay <= 0 || locked.peek()) return
+    timer = window.setTimeout(lockScreen, delay)
+  }
+
+  const onActivity = () => {
+    if (locked.peek()) return
+    arm()
+  }
+
+  const events: Array<keyof WindowEventMap> = ['pointermove', 'pointerdown', 'keydown', 'wheel']
+  events.forEach((e) => window.addEventListener(e, onActivity, { passive: true, capture: true }))
+
+  // Re-arm when the delay setting changes or the screen is unlocked.
+  const stopWatching = locked.subscribe(() => arm())
+  const stopDelay = lockDelayMs.subscribe(() => arm())
+
+  return () => {
+    window.clearTimeout(timer)
+    events.forEach((e) => window.removeEventListener(e, onActivity, { capture: true }))
+    stopWatching()
+    stopDelay()
+  }
+}
+
 // --- pointer ----------------------------------------------------------------
 
 /** Normalised pointer position (-1 … 1), read by the background shader. */

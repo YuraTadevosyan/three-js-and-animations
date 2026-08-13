@@ -62,7 +62,7 @@ assumption that something is being measured.
 | **Atmospherics** | Current conditions over a live canvas sky, a 24-hour curve and a 7-day outlook. |
 | **Shell** | ~18 commands over the same filesystem, plus `neofetch`, `scene`, `hue` and `ask`. |
 | **Holo Projector** | Four procedurally generated wireframe solids, spun with the pointer. |
-| **Settings** | Every control writes straight into a live shader uniform. |
+| **Settings** | Every control writes straight into a live shader uniform, plus auto-lock. |
 | **About** | What you're looking at. |
 
 ## Controls
@@ -70,16 +70,42 @@ assumption that something is being measured.
 | | |
 | --- | --- |
 | Drag a desktop icon | Rearrange the desktop (Settings → Reset icons to undo) |
+| Right-click | Context menu — on a titlebar, dock tile, icon or empty desktop |
 | Drag a titlebar | Move a window |
 | …to a screen edge | Snap left / right |
 | …to a corner | Snap to a quadrant |
 | …to the top edge | Maximise |
 | Double-click a titlebar | Maximise / restore |
 | Drag any border | Resize |
-| `Alt` + `Tab` | Cycle windows |
+| `Alt` + `Tab` | Cycle windows on this desk |
+| `Alt` + `1` / `2` / `3` | Switch virtual desktop |
 | `Alt` + `M` / `W` / `D` | Minimise / close focused, minimise all |
+| `Alt` + `L` | Lock the screen |
 | `Ctrl`/`Cmd` + `K` | Launcher |
 | `Esc` | Dismiss the launcher |
+
+## Desktop features
+
+**Three virtual desktops.** Windows carry a workspace and stay *mounted* when
+their desk is hidden — switching away and back preserves terminal scrollback and
+a half-typed message to NOVA. The switcher in the top bar shows how many surfaces
+each desk is holding, so a busy desk is visible without going there. The dock
+dims rather than clears for an app parked one desk over, and clicking it pulls
+the window across instead of pretending the app is closed.
+
+**Context menus everywhere** — titlebar, dock tile, desktop icon, empty desktop.
+They are described as data and rendered by one component at the root, so a menu
+escapes the `overflow: hidden` of whatever surface opened it and always stacks
+above the window layer.
+
+**Keep on top.** Pinned windows float in a z-band above unpinned ones, far enough
+that focus order can never let an ordinary window cross it, and still below the
+shell chrome.
+
+**Lock screen.** Idle auto-lock (off / 1 / 3 / 10 min, default 3) or `Alt`+`L`.
+The plate is translucent rather than opaque — the projection keeps running
+behind it, which is the point of a holographic desktop going to sleep. Nothing
+is closed; every surface is exactly where you left it.
 
 ## Notes on the build
 
@@ -102,6 +128,14 @@ re-resolved only when the global hue moves. Because it reads from the element
 rather than the root, a chart inside a hue-shifted window inherits that window's
 tint — each app overrides `--primary` on its own root, so one custom property
 re-tints an entire window.
+
+**Entrance animations never touch `transform`.** CSS animations outrank inline
+styles in the cascade, and these run with `fill-mode: both` — so a keyframe
+animating `transform` permanently overrides the inline `translate3d` that
+positions a window, pinning every surface to the top-left. Windows are therefore
+a positioning shell wrapping an animated chrome layer, and the launcher is
+centred by a flex wrapper rather than `-translate-x-1/2`. There is a warning
+comment above the keyframes in `tailwind.config.js`.
 
 **Minimised windows stay mounted** (`visibility: hidden`, so they leave the tab
 order) — terminal scrollback and a half-typed message to NOVA survive being

@@ -5,6 +5,7 @@ import {
   applySnap,
   closeWindow,
   desktopBounds,
+  effectiveZ,
   focusWindow,
   minimizeWindow,
   setWindowRect,
@@ -13,21 +14,25 @@ import {
   toggleMaximize,
   type WinState,
 } from '@/state/windows'
+import { openMenu } from '@/state/menu'
+import { windowMenu } from '@/os/menus'
 import { APPS } from '@/apps/manifest'
 import { projection } from '@/state/os'
-import { AppIcon, IconClose, IconMinimize, IconMaximize, IconRestore } from '@/ui/icons'
+import { AppIcon, IconClose, IconLayers, IconMinimize, IconMaximize, IconRestore } from '@/ui/icons'
 import { clamp, cx } from '@/lib/util'
 
 interface WindowProps {
   win: WinState
   focused: boolean
+  /** True when the window belongs to a workspace that isn't showing. */
+  hidden: boolean
   children: ComponentChildren
 }
 
 /** Base hue of the theme's `--primary`, shifted per window and per projection. */
 const BASE_HUE = 190
 
-export function Window({ win, focused, children }: WindowProps): JSX.Element {
+export function Window({ win, focused, hidden, children }: WindowProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null)
   const manifest = APPS[win.appId]
 
@@ -159,6 +164,9 @@ export function Window({ win, focused, children }: WindowProps): JSX.Element {
   }, [win.id, win.maximized, win.restore, manifest.minSize])
 
   const hue = BASE_HUE + win.hue + projection.value.hue
+  // Minimized and off-workspace windows are treated identically: still mounted
+  // (so app state survives), just not visible or reachable.
+  const parked = win.minimized || hidden
 
   return (
     /*
@@ -173,18 +181,18 @@ export function Window({ win, focused, children }: WindowProps): JSX.Element {
       ref={ref}
       role="dialog"
       aria-label={win.title}
-      aria-hidden={win.minimized}
-      class={cx('absolute left-0 top-0 gpu', win.minimized && 'pointer-events-none')}
+      aria-hidden={parked}
+      class={cx('absolute left-0 top-0 gpu', parked && 'pointer-events-none')}
       style={{
         // Every surface in the window reads `--primary`, so overriding it here
         // re-tints the whole app without touching a single component.
         '--primary': `${hue} 96% 72%`,
-        zIndex: win.z,
+        zIndex: effectiveZ(win),
         // Minimized windows stay mounted so app state (terminal scrollback, a
         // half-typed message to NOVA) survives — `visibility` keeps them out of
         // the tab order while they are parked.
-        opacity: win.minimized ? 0 : 1,
-        visibility: win.minimized ? 'hidden' : 'visible',
+        opacity: parked ? 0 : 1,
+        visibility: parked ? 'hidden' : 'visible',
         transform: `translate3d(${win.x}px, ${win.y}px, 0)`,
         width: `${win.w}px`,
         height: `${win.h}px`,
@@ -213,6 +221,10 @@ export function Window({ win, focused, children }: WindowProps): JSX.Element {
               : 'hsl(var(--primary) / 0.04)',
           }}
           onDblClick={() => toggleMaximize(win.id)}
+          onContextMenu={(e) => {
+            focusWindow(win.id)
+            openMenu(e, windowMenu(win))
+          }}
         >
           <span class={cx('shrink-0 transition-opacity', focused ? 'text-primary' : 'text-primary/50')}>
             <AppIcon icon={manifest.icon} size={14} />
@@ -226,6 +238,12 @@ export function Window({ win, focused, children }: WindowProps): JSX.Element {
           >
             {win.title}
           </span>
+
+          {win.pinned && (
+            <span class="shrink-0 text-accent" title="Kept on top">
+              <IconLayers size={11} />
+            </span>
+          )}
 
           {focused && <span class="h-1 w-1 shrink-0 rounded-full bg-accent animate-breathe" aria-hidden="true" />}
 

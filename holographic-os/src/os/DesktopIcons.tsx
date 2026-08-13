@@ -6,6 +6,8 @@ import { ROOT } from '@/state/fs'
 import { desktopBounds, openApp } from '@/state/windows'
 import { defaultIconPos, ICON_H, ICON_W, iconPositions, setIconPosition } from '@/state/desktop'
 import { pulseLoad } from '@/state/telemetry'
+import { openMenu } from '@/state/menu'
+import { shortcutMenu } from '@/os/menus'
 import { AppIcon } from '@/ui/icons'
 import { clamp, cx } from '@/lib/util'
 
@@ -170,6 +172,10 @@ function DesktopIcon({
       }}
       onDblClick={() => {
         if (!moved.current) item.onOpen()
+      }}
+      onContextMenu={(e) => {
+        onSelect(item.id)
+        openMenu(e, shortcutMenu(item.label, item.onOpen))
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {

@@ -33,10 +33,30 @@ export interface WinState extends Rect {
   props: WindowProps
   /** Per-app hue offset applied to this window's chrome. */
   hue: number
+  /** Virtual desktop this window lives on. */
+  workspace: number
+  /** Always-on-top: floats above unpinned windows on the same workspace. */
+  pinned: boolean
 }
 
 export const windows = signal<WinState[]>([])
 export const focusedId = signal<string | null>(null)
+
+/** Virtual desktops. Windows stay mounted when their workspace is hidden, so
+ *  terminal scrollback and half-typed messages survive a switch. */
+export const WORKSPACE_COUNT = 3
+export const activeWorkspace = signal(0)
+
+/**
+ * Pinned windows float in a band above unpinned ones. The offset is generous
+ * enough that focus order never lets an unpinned window cross it, while staying
+ * far below the shell chrome (snap ghost 8000, top bar and dock 9000).
+ */
+const PIN_BAND = 4000
+
+export function effectiveZ(win: WinState): number {
+  return win.pinned ? win.z + PIN_BAND : win.z
+}
 
 /** Usable desktop area, recomputed on viewport resize. */
 export const desktopBounds = signal<Rect>({
@@ -105,7 +125,7 @@ export function openApp(appId: AppId, props: WindowProps = {}, title?: string): 
   if (SINGLETON.has(appId)) {
     const existing = windows.value.find((w) => w.appId === appId)
     if (existing) {
-      restoreWindow(existing.id)
+      surfaceHere(existing.id)
       return existing.id
     }
   }
@@ -114,7 +134,7 @@ export function openApp(appId: AppId, props: WindowProps = {}, title?: string): 
   if (appId === 'viewer' && props.filePath) {
     const existing = windows.value.find((w) => w.appId === 'viewer' && w.props.filePath === props.filePath)
     if (existing) {
-      restoreWindow(existing.id)
+      surfaceHere(existing.id)
       return existing.id
     }
   }
@@ -133,6 +153,8 @@ export function openApp(appId: AppId, props: WindowProps = {}, title?: string): 
     restore: null,
     props,
     hue: manifest.hue,
+    workspace: activeWorkspace.value,
+    pinned: false,
   }
 
   batch(() => {
@@ -142,12 +164,21 @@ export function openApp(appId: AppId, props: WindowProps = {}, title?: string): 
   return id
 }
 
+/**
+ * Topmost focusable window on a workspace, or null. Used everywhere focus has
+ * to fall through — closing, minimizing, switching desktops.
+ */
+function topmostOn(list: WinState[], workspace: number): string | null {
+  const candidates = list.filter((w) => !w.minimized && w.workspace === workspace)
+  if (!candidates.length) return null
+  return candidates.reduce((a, b) => (effectiveZ(a) > effectiveZ(b) ? a : b)).id
+}
+
 export function closeWindow(id: string): void {
   batch(() => {
     windows.value = windows.value.filter((w) => w.id !== id)
     if (focusedId.value === id) {
-      const rest = windows.value.filter((w) => !w.minimized)
-      focusedId.value = rest.length ? rest.reduce((a, b) => (a.z > b.z ? a : b)).id : null
+      focusedId.value = topmostOn(windows.value, activeWorkspace.value)
     }
   })
 }
@@ -174,8 +205,7 @@ export function minimizeWindow(id: string): void {
   batch(() => {
     windows.value = windows.value.map((w) => (w.id === id ? { ...w, minimized: true } : w))
     if (focusedId.value === id) {
-      const rest = windows.value.filter((w) => !w.minimized)
-      focusedId.value = rest.length ? rest.reduce((a, b) => (a.z > b.z ? a : b)).id : null
+      focusedId.value = topmostOn(windows.value, activeWorkspace.value)
     }
   })
 }
@@ -327,17 +357,56 @@ export function reflowWindows(): void {
   })
 }
 
-/** Cycles focus through non-minimized windows (Alt+Tab). */
+/** Cycles focus through the current workspace's visible windows (Alt+Tab). */
 export function cycleFocus(): void {
-  const visible = windows.value.filter((w) => !w.minimized)
+  const ws = activeWorkspace.value
+  const visible = windows.value.filter((w) => !w.minimized && w.workspace === ws)
   if (visible.length < 2) return
-  const sorted = [...visible].sort((a, b) => a.z - b.z)
+  const sorted = [...visible].sort((a, b) => effectiveZ(a) - effectiveZ(b))
   focusWindow(sorted[0].id)
 }
 
+/** Only parks the current workspace — other desktops keep their arrangement. */
 export function minimizeAll(): void {
+  const ws = activeWorkspace.value
   batch(() => {
-    windows.value = windows.value.map((w) => ({ ...w, minimized: true }))
+    windows.value = windows.value.map((w) => (w.workspace === ws ? { ...w, minimized: true } : w))
     focusedId.value = null
   })
+}
+
+// --- workspaces -------------------------------------------------------------
+
+export function switchWorkspace(index: number): void {
+  const next = clamp(Math.trunc(index), 0, WORKSPACE_COUNT - 1)
+  if (next === activeWorkspace.value) return
+  batch(() => {
+    activeWorkspace.value = next
+    focusedId.value = topmostOn(windows.value, next)
+  })
+}
+
+/** Sends a window to another desktop and follows focus on the one we left. */
+export function moveWindowToWorkspace(id: string, workspace: number): void {
+  const ws = clamp(Math.trunc(workspace), 0, WORKSPACE_COUNT - 1)
+  batch(() => {
+    windows.value = windows.value.map((w) => (w.id === id ? { ...w, workspace: ws } : w))
+    if (focusedId.value === id && ws !== activeWorkspace.value) {
+      focusedId.value = topmostOn(windows.value, activeWorkspace.value)
+    }
+  })
+}
+
+/** Pulls a window onto the active desktop, un-minimized and focused. */
+export function surfaceHere(id: string): void {
+  batch(() => {
+    windows.value = windows.value.map((w) =>
+      w.id === id ? { ...w, workspace: activeWorkspace.value, minimized: false, z: nextZ() } : w,
+    )
+    focusedId.value = id
+  })
+}
+
+export function togglePin(id: string): void {
+  windows.value = windows.value.map((w) => (w.id === id ? { ...w, pinned: !w.pinned } : w))
 }

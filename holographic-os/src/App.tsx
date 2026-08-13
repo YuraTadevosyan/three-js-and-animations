@@ -1,11 +1,22 @@
 import type { JSX } from 'preact'
 import { useEffect, useRef } from 'preact/hooks'
 import { HoloBackground } from '@/gl/background'
-import { bootPhase, launcherOpen, notify, projection, startClock, startPointerTracking } from '@/state/os'
+import {
+  bootPhase,
+  launcherOpen,
+  locked,
+  lockScreen,
+  notify,
+  projection,
+  startClock,
+  startIdleWatch,
+  startPointerTracking,
+} from '@/state/os'
 import { startTelemetry } from '@/state/telemetry'
 import { startWeather } from '@/state/weather'
 import { reflowIcons } from '@/state/desktop'
 import {
+  activeWorkspace,
   closeWindow,
   cycleFocus,
   desktopBounds,
@@ -14,11 +25,15 @@ import {
   minimizeWindow,
   openApp,
   reflowWindows,
+  switchWorkspace,
   updateDesktopBounds,
   windows,
   DOCK_H,
   TOPBAR_H,
+  WORKSPACE_COUNT,
 } from '@/state/windows'
+import { closeMenu, openMenu } from '@/state/menu'
+import { desktopMenu } from '@/os/menus'
 import { renderApp } from '@/apps/registry'
 import { Window } from '@/os/Window'
 import { TopBar } from '@/os/TopBar'
@@ -29,6 +44,8 @@ import { Boot } from '@/os/Boot'
 import { Launcher } from '@/os/Launcher'
 import { Notifications } from '@/os/Notifications'
 import { SnapGhost } from '@/os/SnapGhost'
+import { ContextMenu } from '@/os/ContextMenu'
+import { LockScreen } from '@/os/LockScreen'
 
 export function App(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -50,7 +67,7 @@ export function App(): JSX.Element {
 
   // --- simulations and clocks ------------------------------------------------
   useEffect(() => {
-    const stops = [startTelemetry(), startWeather(), startClock(), startPointerTracking()]
+    const stops = [startTelemetry(), startWeather(), startClock(), startPointerTracking(), startIdleWatch()]
     return () => stops.forEach((stop) => stop())
   }, [])
 
@@ -90,6 +107,9 @@ export function App(): JSX.Element {
   // --- keyboard ---------------------------------------------------------------
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // The lock plate owns the keyboard; it dismisses on any key itself.
+      if (locked.value) return
+
       if (e.key === 'Escape' && launcherOpen.value) {
         launcherOpen.value = false
         return
@@ -112,6 +132,15 @@ export function App(): JSX.Element {
       } else if (e.altKey && e.key.toLowerCase() === 'd') {
         e.preventDefault()
         minimizeAll()
+      } else if (e.altKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault()
+        lockScreen()
+      } else if (e.altKey && /^[1-9]$/.test(e.key)) {
+        const index = Number(e.key) - 1
+        if (index < WORKSPACE_COUNT) {
+          e.preventDefault()
+          switchWorkspace(index)
+        }
       } else if (!typing && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         launcherOpen.value = true
@@ -124,6 +153,7 @@ export function App(): JSX.Element {
 
   const wins = windows.value
   const focused = focusedId.value
+  const workspace = activeWorkspace.value
 
   return (
     <div class="relative h-full w-full overflow-hidden">
@@ -140,6 +170,8 @@ export function App(): JSX.Element {
         class="absolute inset-x-0 overflow-hidden"
         style={{ top: `${TOPBAR_H}px`, bottom: `${DOCK_H}px` }}
         aria-label="Desktop"
+        onContextMenu={(e) => openMenu(e, desktopMenu())}
+        onPointerDown={closeMenu}
       >
         <DesktopIcons />
         <WidgetRail />
@@ -149,7 +181,12 @@ export function App(): JSX.Element {
 
       {/* Windows live above the desktop but below the chrome */}
       {wins.map((win) => (
-        <Window key={win.id} win={win} focused={focused === win.id}>
+        <Window
+          key={win.id}
+          win={win}
+          focused={focused === win.id}
+          hidden={win.workspace !== workspace}
+        >
           {renderApp(win)}
         </Window>
       ))}
@@ -157,6 +194,8 @@ export function App(): JSX.Element {
       <Dock />
       <Notifications />
       <Launcher />
+      <ContextMenu />
+      <LockScreen />
       <Boot />
     </div>
   )

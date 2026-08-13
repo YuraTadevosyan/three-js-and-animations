@@ -1,5 +1,13 @@
 import type { ComponentChildren, JSX } from 'preact'
-import { projection, resetProjection, setProjection, type Projection } from '@/state/os'
+import {
+  lockDelayMs,
+  LOCK_DELAYS,
+  lockScreen,
+  projection,
+  resetProjection,
+  setProjection,
+  type Projection,
+} from '@/state/os'
 import { STATIONS, setStation, station } from '@/state/weather'
 import { resetIconLayout } from '@/state/desktop'
 
@@ -65,6 +73,28 @@ export function Settings(): JSX.Element {
             </span>
             <Toggle checked={p.reduceMotion} onChange={(reduceMotion) => setProjection({ reduceMotion })} />
           </label>
+        </Group>
+
+        <Group title="Security">
+          <p class="mb-1.5 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-foreground/80">
+            Auto-lock after
+          </p>
+          <div class="grid grid-cols-4 gap-1.5">
+            {LOCK_DELAYS.map((d) => (
+              <button
+                key={d.ms}
+                type="button"
+                class="holo-btn !px-1"
+                data-active={lockDelayMs.value === d.ms}
+                onClick={() => (lockDelayMs.value = d.ms)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+          <button type="button" class="holo-btn mt-1.5 w-full !py-1.5" onClick={lockScreen}>
+            Lock now — Alt+L
+          </button>
         </Group>
 
         <Group title="Weather station">

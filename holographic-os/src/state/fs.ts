@@ -49,7 +49,7 @@ index to decide how much of the lattice shows through.
 
 ## Subsystems
 
-- novad          conversational agent, local intent matcher
+- novad          conversational agent, local intent matcher (16 intents)
 - volumetric     the fullscreen projection pass (WebGL2 / GLSL ES 3.00)
 - lattice        wireframe geometry projector
 - atmos-sim      atmospheric model, 4 stations
@@ -95,7 +95,7 @@ vec3 floorPass(vec2 uv, float t) {
 [0.052] volumetric pass compiled (2 programs)
 [0.088] atmos-sim: 4 stations registered
 [0.104] vault: indexed 12 documents
-[0.132] novad: intent table loaded (11 intents)
+[0.132] novad: intent table loaded (16 intents)
 [0.140] telemetry-agent: sampling at 10 Hz
 [0.161] compositor: surfaces ready
 [0.180] shell: handing off to user`,
@@ -204,10 +204,13 @@ deliberately on a stack the others don't use:
         '2026-08-06',
         `Keyboard
 --------
-  Alt + Tab        cycle windows
+  Alt + Tab        cycle windows on this desk
+  Alt + 1 / 2 / 3  switch virtual desktop
   Alt + M          minimise focused window
   Alt + W          close focused window
-  Alt + D          minimise everything
+  Alt + D          minimise everything on this desk
+  Alt + L          lock the screen
+  Ctrl/Cmd + K     launcher
   Esc              dismiss the launcher
 
 Pointer
@@ -216,7 +219,15 @@ Pointer
   drag to a corner                   snap to quadrant
   drag to the top edge               maximise
   double-click a titlebar            maximise / restore
-  drag any window border             resize`,
+  drag any window border             resize
+  drag a desktop icon                rearrange the desktop
+
+Right-click
+-----------
+  a titlebar     minimise, pin on top, send to another desk, close
+  a dock tile    new window, jump to an open one, close all
+  empty desktop  open apps, change scene, tidy icons, lock
+  an icon        open, tidy icons`,
       ),
       file(
         'nova.md',
@@ -234,6 +245,8 @@ Things it responds to:
   "how's the gpu?"          reads live telemetry
   "what's the weather"      reads the atmospheric model
   "switch to vantage ridge" moves the weather station
+  "go to desk 2"            switches virtual desktop
+  "lock the screen"         sleeps the projection
   "close everything"        minimises all surfaces
   "who built this"          project info
   "help"                    the full intent list`,

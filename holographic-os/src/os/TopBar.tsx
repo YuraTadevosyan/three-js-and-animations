@@ -1,8 +1,15 @@
 import type { JSX } from 'preact'
-import { clock, launcherOpen } from '@/state/os'
+import { clock, launcherOpen, lockScreen } from '@/state/os'
 import { stats } from '@/state/telemetry'
 import { current as weather, station } from '@/state/weather'
-import { minimizeAll, TOPBAR_H, windows } from '@/state/windows'
+import {
+  activeWorkspace,
+  minimizeAll,
+  switchWorkspace,
+  TOPBAR_H,
+  windows,
+  WORKSPACE_COUNT,
+} from '@/state/windows'
 import { formatClock, formatDate } from '@/lib/util'
 import { IconCpu, IconLayers, IconPower, IconWifi, WeatherIcon } from '@/ui/icons'
 
@@ -37,7 +44,9 @@ export function TopBar(): JSX.Element {
 
       <span class="hidden h-4 w-px bg-primary/20 sm:block" />
 
-      <span class="hidden font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground md:inline">
+      <WorkspaceSwitcher />
+
+      <span class="hidden font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground lg:inline">
         {station.value.name}
       </span>
 
@@ -64,10 +73,20 @@ export function TopBar(): JSX.Element {
 
         <button
           type="button"
-          title="Minimise all surfaces"
-          aria-label="Minimise all surfaces"
-          class="grid h-6 w-6 place-items-center rounded text-primary/60 transition-colors hover:bg-danger/20 hover:text-danger"
+          title="Minimise all surfaces on this desk"
+          aria-label="Minimise all surfaces on this desk"
+          class="grid h-6 w-6 place-items-center rounded text-primary/60 transition-colors hover:bg-primary/15 hover:text-primary"
           onClick={minimizeAll}
+        >
+          <IconLayers size={14} />
+        </button>
+
+        <button
+          type="button"
+          title="Lock screen"
+          aria-label="Lock screen"
+          class="grid h-6 w-6 place-items-center rounded text-primary/60 transition-colors hover:bg-danger/20 hover:text-danger"
+          onClick={lockScreen}
         >
           <IconPower size={14} />
         </button>
@@ -95,5 +114,52 @@ function StatusChip({
       <span class="opacity-70">{icon}</span>
       {value}
     </span>
+  )
+}
+
+/**
+ * Virtual desktop switcher. Each pip shows how many windows that desk is
+ * holding, so a populated desk is visible without switching to it.
+ */
+function WorkspaceSwitcher(): JSX.Element {
+  const active = activeWorkspace.value
+  const all = windows.value
+
+  return (
+    <div class="flex items-center gap-1" role="tablist" aria-label="Virtual desktops">
+      {Array.from({ length: WORKSPACE_COUNT }, (_, i) => {
+        const count = all.filter((w) => w.workspace === i).length
+        return (
+          <button
+            key={i}
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            title={`Desk ${i + 1}${count ? ` — ${count} surface${count === 1 ? '' : 's'}` : ' — empty'} (Alt+${i + 1})`}
+            class="group relative grid h-6 w-7 place-items-center rounded border transition-all duration-150"
+            style={{
+              borderColor: i === active ? 'hsl(var(--primary) / 0.6)' : 'hsl(var(--primary) / 0.18)',
+              background: i === active ? 'hsl(var(--primary) / 0.18)' : 'transparent',
+              boxShadow: i === active ? '0 0 12px -4px hsl(var(--primary) / 0.8)' : undefined,
+            }}
+            onClick={() => switchWorkspace(i)}
+          >
+            <span
+              class="font-mono text-[0.6rem] tabular-nums transition-colors"
+              style={{ color: i === active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' }}
+            >
+              {i + 1}
+            </span>
+            {count > 0 && (
+              <span
+                class="absolute -bottom-0.5 left-1/2 h-0.5 -translate-x-1/2 rounded-full bg-primary transition-all"
+                style={{ width: `${Math.min(count, 4) * 3 + 3}px`, opacity: i === active ? 1 : 0.45 }}
+                aria-hidden="true"
+              />
+            )}
+          </button>
+        )
+      })}
+    </div>
   )
 }
