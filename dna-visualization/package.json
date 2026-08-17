@@ -1,0 +1,36 @@
+{
+  "name": "dna-visualization",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Scale \u2014 a scroll-driven descent from tissue to the double helix. Nine continuously crossfading biological scales: a drifting cell field, a cell interior, the nucleus, a chromosome unwinding into chromatin, the B-DNA double helix with a real sequence, base-pair chemistry, transcription, translation and protein folding, and a protein interaction network. Angular 21 (zoneless, signals) over a hand-written WebGL2 / GLSL ES 3.0 renderer with no 3D engine, no math library and no binary assets.",
+  "scripts": {
+    "dev": "ng serve",
+    "start": "ng serve",
+    "build": "ng build",
+    "preview": "ng build && npx --yes http-server dist -p 4200 -c-1",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "check:glsl": "node tools/glslcheck.mjs",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist -e dna-visualization"
+  },
+  "dependencies": {
+    "@angular/common": "^21.2.20",
+    "@angular/compiler": "^21.2.20",
+    "@angular/core": "^21.2.20",
+    "@angular/platform-browser": "^21.2.20",
+    "rxjs": "^7.8.2",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.21",
+    "@angular/cli": "^21.2.21",
+    "@angular/compiler-cli": "^21.2.20",
+    "@types/node": "^26.1.2",
+    "autoprefixer": "^10.4.21",
+    "gh-pages": "^6.3.0",
+    "postcss": "^8.5.23",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~5.9.3"
+  }
+}

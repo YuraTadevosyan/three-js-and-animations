@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 68% 3%;
+    --foreground: 205 30% 92%;
+    --muted: 213 28% 12%;
+    --muted-foreground: 210 16% 62%;
+    --panel: 216 44% 7%;
+    --border: 200 42% 22%;
+    --primary: 189 92% 66%;
+    --primary-foreground: 222 68% 5%;
+    --accent: 158 82% 62%;
+
+    /* Matches BASE_COLOR in bio/sequence.ts so the DOM readout and the
+       rendered helix agree on what an adenine looks like. */
+    --base-a: 34 100% 62%;
+    --base-t: 348 100% 67%;
+    --base-g: 152 100% 64%;
+    --base-c: 206 100% 66%;
+    --base-u: 282 100% 72%;
+
+    --radius: 0.4rem;
+  }
+
+  html {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    /* min-height rather than height: the scroll track has to be able to grow
+       the document past the viewport. */
+    min-height: 100%;
+    margin: 0;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  canvas {
+    display: block;
+    outline: none;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.28);
+  }
+
+  /* The scroll track is a bare spacer element; hide its scrollbar and drive
+     everything from scroll position instead. */
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  body {
+    scrollbar-width: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-border/45 bg-panel/70 backdrop-blur-md;
+  }
+
+  .mono-label {
+    @apply font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground;
+  }
+}
