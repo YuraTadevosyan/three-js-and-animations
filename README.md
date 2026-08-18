@@ -23,6 +23,7 @@ the same GitHub Pages site.
 | [`ai-data-viz`](./ai-data-viz) | [/ai-data-viz/](https://yuratadevosyan.github.io/three-js-and-animations/ai-data-viz/) | Svelte 5 (runes), TypeScript, D3 (scale/shape/force), Canvas, Tailwind |
 | [`interactive-museum`](./interactive-museum) | [/interactive-museum/](https://yuratadevosyan.github.io/three-js-and-animations/interactive-museum/) | Babylon.js 9, SolidJS, TypeScript, Web Audio (synthesis + spatial), Tailwind |
 | [`holographic-os`](./holographic-os) | [/holographic-os/](https://yuratadevosyan.github.io/three-js-and-animations/holographic-os/) | Preact, @preact/signals, OGL (WebGL2), interact.js, GLSL ES 3.0, Tailwind |
+| [`dna-visualization`](./dna-visualization) | [/dna-visualization/](https://yuratadevosyan.github.io/three-js-and-animations/dna-visualization/) | Angular 21 (zoneless, signals), TypeScript, raw WebGL2, GLSL ES 3.0, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -42,7 +43,8 @@ the same GitHub Pages site.
 ├── infinite-universe/          Endless procedural cosmos — streamed floating worlds, fly-between camera, warp (R3F + GSAP + simplex + GLSL)
 ├── ai-data-viz/                Six generated datasets — flowing graphs, morphing charts, animated node networks, plus a client-side statistical analyst (Svelte 5 + D3)
 ├── interactive-museum/         A portfolio you walk through — six rooms, first-person controls, per-room lighting and synthesized spatial ambience, six hidden interactions (Babylon.js 9 + SolidJS)
-└── holographic-os/             A futuristic desktop — draggable/snapping glass windows, 3D folders, magnifying dock, live GPU graphs, a simulated weather system and a local assistant, over a volumetric WebGL lattice (Preact + signals + OGL)
+├── holographic-os/             A futuristic desktop — draggable/snapping glass windows, 3D folders, magnifying dock, live GPU graphs, a simulated weather system and a local assistant, over a volumetric WebGL lattice (Preact + signals + OGL)
+└── dna-visualization/          Scale — a scrolled descent through nine biological scales, tissue to hydrogen bonds and back out to the p53 interaction network (Angular 21 + hand-written WebGL2, no 3D engine)
 ```
 
 ## Hosting model
@@ -79,6 +81,7 @@ cd infinite-universe        && npm install && npm run dev
 cd ai-data-viz              && npm install && npm run dev
 cd interactive-museum       && npm install && npm run dev
 cd holographic-os           && npm install && npm run dev
+cd dna-visualization        && npm install && npm run dev   # Angular CLI, http://localhost:4210
 ```
 
 For the landing page:
@@ -106,6 +109,7 @@ cd infinite-universe        && npm run deploy
 cd ai-data-viz              && npm run deploy
 cd interactive-museum       && npm run deploy
 cd holographic-os           && npm run deploy
+cd dna-visualization        && npm run deploy
 ```
 
 To publish the landing page:
