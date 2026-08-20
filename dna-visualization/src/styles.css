@@ -78,4 +78,33 @@
   .mono-label {
     @apply font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground;
   }
+
+  /* Text over the canvas cannot rely on the scene staying dark — the nucleus
+     and helix stages are legitimately bright. These give every overlay a floor
+     of contrast without hiding the render behind a flat panel. */
+  .scrim-center {
+    background: radial-gradient(
+      ellipse 62% 58% at 50% 50%,
+      hsl(var(--background) / 0.82) 0%,
+      hsl(var(--background) / 0.55) 45%,
+      hsl(var(--background) / 0) 100%
+    );
+  }
+
+  .scrim-bottom {
+    background: linear-gradient(
+      to top,
+      hsl(var(--background) / 0.92) 0%,
+      hsl(var(--background) / 0.55) 45%,
+      hsl(var(--background) / 0) 100%
+    );
+  }
+
+  .scrim-top {
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--background) / 0.85) 0%,
+      hsl(var(--background) / 0) 100%
+    );
+  }
 }

@@ -108,15 +108,17 @@ void main() {
   // the cell, weighted by how face-on the surface is.
   float speckle = fbm(N * 5.5 + vec3(vSeed * 7.3, uTime * 0.09, vSeed), 3);
   vec3 interior = vTint * (0.35 + 0.65 * smoothstep(0.1, 0.8, speckle));
-  lit += interior * facing * facing * 0.55;
+  lit += interior * facing * facing * 0.34;
 
   // Nucleus: a single bright core seen through the membrane.
   float core = pow(facing, 7.0);
-  lit += mix(vec3(0.35, 0.72, 1.0), vTint, 0.35) * core * 0.9;
+  lit += mix(vec3(0.35, 0.72, 1.0), vTint, 0.35) * core * 0.5;
 
-  lit += vec3(0.45, 0.86, 1.0) * rim * 0.75;
+  lit += vec3(0.45, 0.86, 1.0) * rim * 0.5;
 
-  float alpha = uAlpha * vFade * (0.30 + 0.70 * rim + 0.25 * facing);
+  // Low floor on purpose: with a couple of cells overlapping on most view
+  // rays, a high constant term accumulates into a flat bright wash.
+  float alpha = uAlpha * vFade * (0.12 + 0.62 * rim + 0.14 * facing);
   fragColor = vec4(lit * vFade, clamp(alpha, 0.0, 1.0));
 }
 `;
@@ -202,7 +204,6 @@ export class TissueStage implements Stage {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.depthMask(false);
-    gl.disable(gl.CULL_FACE);
 
     const zoom = Math.pow(2, -0.9 + ctx.local * 2.4);
 
@@ -218,7 +219,6 @@ export class TissueStage implements Stage {
     this.mesh.draw(this.count);
 
     gl.depthMask(true);
-    gl.enable(gl.CULL_FACE);
   }
 
   focus(ctx: FrameContext): FocusHint {

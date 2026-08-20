@@ -28,11 +28,15 @@ void main() {
   float fast = fbm(vec3(p * 4.1 + 11.3, uTime * 0.041), 3);
   float cloud = smoothstep(-0.35, 0.75, slow * 0.75 + fast * 0.25);
 
-  base += uGlow * cloud * uDensity * 0.35;
+  // These coefficients are deliberately small. ACES plus the sRGB transfer
+  // lift dark values hard on the way to the screen — a linear 0.4 here comes
+  // out around sRGB 0.76 — so a backdrop that looks conservative in linear
+  // space still reads as a bright wash, and overlay text dies on it.
+  base += uGlow * cloud * uDensity * 0.15;
 
   // A soft off-centre light source so the frame has a direction.
   float d = length((p - uGlowPos) * vec2(1.0, 1.25));
-  base += uGlow * exp(-d * 2.4) * 0.22;
+  base += uGlow * exp(-d * 2.4) * 0.09;
 
   // Keep the corners dark; the graded vignette later reinforces this.
   base *= 1.0 - 0.35 * smoothstep(0.25, 0.95, length(p) * 1.35);

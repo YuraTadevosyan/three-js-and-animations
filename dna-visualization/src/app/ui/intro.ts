@@ -12,7 +12,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     '[style.transition]': "'opacity 900ms cubic-bezier(0.22, 1, 0.36, 1)'",
   },
   template: `
-    <div class="px-6 text-center">
+    <div class="absolute inset-0 scrim-center" aria-hidden="true"></div>
+
+    <div class="relative px-6 text-center">
       <p class="mono-label animate-fade-in">Angular 21 · WebGL2 · no 3D engine</p>
 
       <h1 class="mt-4 text-5xl font-light tracking-[-0.03em] text-foreground md:text-7xl">

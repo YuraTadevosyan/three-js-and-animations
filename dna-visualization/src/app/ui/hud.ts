@@ -20,7 +20,8 @@ const BASE_VAR: Record<string, string> = {
   selector: 'dna-hud',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'pointer-events-none fixed bottom-0 right-0 z-20 hidden p-5 text-right md:block lg:pb-8',
+    class:
+      'scrim-bottom pointer-events-none fixed bottom-0 right-0 z-20 hidden p-5 pt-16 text-right md:block lg:pb-8',
   },
   template: `
     @if (showSequence()) {

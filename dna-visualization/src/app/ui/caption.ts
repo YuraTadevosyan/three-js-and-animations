@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class:
-      'pointer-events-none fixed bottom-0 left-0 z-20 w-full max-w-[34rem] p-5 md:pl-28 lg:pl-36 lg:pb-8',
+      'scrim-bottom pointer-events-none fixed bottom-0 left-0 z-20 w-full max-w-[34rem] p-5 pt-16 md:pl-28 lg:pl-36 lg:pb-8',
   },
   template: `
     @for (key of [stageId()]; track key) {

@@ -19,7 +19,9 @@
        document enough height that the wheel has somewhere to go. -->
   <div aria-hidden="true" [style.height.vh]="trackHeight()"></div>
 
-  <header class="pointer-events-none fixed left-0 top-0 z-20 flex w-full items-start justify-between p-5 lg:p-8">
+  <header
+    class="scrim-top pointer-events-none fixed left-0 top-0 z-20 flex w-full items-start justify-between p-5 pb-16 lg:p-8 lg:pb-20"
+  >
     <div>
       <p class="font-mono text-[11px] uppercase tracking-[0.3em] text-foreground/80">Scale</p>
       <p class="mono-label mt-1">A descent into DNA</p>

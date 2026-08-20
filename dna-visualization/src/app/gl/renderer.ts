@@ -339,9 +339,9 @@ export class Renderer {
     this.resetDrawState();
     this.post.render(this.sceneTarget, {
       time: this.elapsed,
-      exposure: 1.06,
-      bloomIntensity: 0.52,
-      bloomThreshold: 0.72,
+      exposure: 0.92,
+      bloomIntensity: 0.46,
+      bloomThreshold: 0.88,
       aberration: 0.0022,
       vignette: 0.65,
       grain: 0.028,
