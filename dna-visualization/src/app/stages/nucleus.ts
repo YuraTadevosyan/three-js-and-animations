@@ -250,20 +250,14 @@ export class NucleusStage implements Stage {
   render(ctx: FrameContext): void {
     const { gl } = ctx;
 
-    this.backdrop.render(
-      gl,
-      {
-        top: [0.024, 0.036, 0.088],
-        bottom: [0.006, 0.010, 0.030],
-        glow: [0.20, 0.28, 0.76],
-        density: 1.1,
-        glowX: 0.24,
-        glowY: -0.14,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.024, 0.036, 0.088],
+      bottom: [0.006, 0.010, 0.030],
+      glow: [0.20, 0.28, 0.76],
+      density: 1.1,
+      glowX: 0.24,
+      glowY: -0.14,
+    });
 
     this.strands.draw(ctx, this.model, ctx.alpha * 0.9, { roughness: 0.5, translucency: 0.4 });
 
@@ -301,7 +295,7 @@ export class NucleusStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 5.8 - ctx.local * 0.7, aperture: 4.0 };
+    return { distance: 5.8 - ctx.local * 0.7, aperture: 6.5 };
   }
 
   dispose(): void {

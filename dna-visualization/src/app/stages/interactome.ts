@@ -361,20 +361,14 @@ export class InteractomeStage implements Stage {
   }
 
   render(ctx: FrameContext): void {
-    this.backdrop.render(
-      ctx.gl,
-      {
-        top: [0.016, 0.030, 0.070],
-        bottom: [0.003, 0.007, 0.020],
-        glow: [0.16, 0.34, 0.64],
-        density: 0.7,
-        glowX: 0.0,
-        glowY: 0.0,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.016, 0.030, 0.070],
+      bottom: [0.003, 0.007, 0.020],
+      glow: [0.16, 0.34, 0.64],
+      density: 0.7,
+      glowX: 0.0,
+      glowY: 0.0,
+    });
 
     this.edges.draw(ctx, this.model, ctx.alpha, { roughness: 0.55, translucency: 0.6 });
     this.nodes.draw(ctx, this.model, ctx.alpha, { roughness: 0.26, translucency: 0.45 });
@@ -383,7 +377,7 @@ export class InteractomeStage implements Stage {
   }
 
   focus(): FocusHint {
-    return { distance: 6.0, aperture: 5.5 };
+    return { distance: 6.0, aperture: 8.0 };
   }
 
   dispose(): void {

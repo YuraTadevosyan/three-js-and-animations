@@ -8,7 +8,7 @@ export interface RendererCallbacks {
   onStageChange?(index: number): void;
   /** Eased journey position, every frame. Throttle before writing to signals. */
   onProgress?(progress: number): void;
-  onStats?(fps: number, quality: number): void;
+  onStats?(fps: number, quality: number, renderScale: number): void;
   onContextLost?(): void;
   onContextRestored?(): void;
 }
@@ -227,24 +227,29 @@ export class Renderer {
   private trackPerformance(frameMs: number, dt: number): void {
     this.frameMs = mix(this.frameMs, clamp(frameMs, 1, 100), 0.08);
 
-    if (this.frameMs > 24) {
+    if (this.frameMs > 26) {
       this.quality = Math.max(0.45, this.quality - dt * 0.6);
-      if (this.quality <= 0.5 && this.dpr > 1) {
-        this.dpr = Math.max(1, this.dpr - dt * 0.5);
+      // Only start shedding pixels once thinning instances has failed to help,
+      // and only while frames are genuinely bad — not merely under 60fps.
+      if (this.quality <= 0.46 && this.frameMs > 32 && this.dpr > 1) {
+        this.dpr = Math.max(1, this.dpr - dt * 0.35);
         this.applySize(this.cssWidth, this.cssHeight);
       }
-    } else if (this.frameMs < 14) {
-      this.quality = Math.min(1, this.quality + dt * 0.25);
-      if (this.quality >= 0.99 && this.dpr < this.maxDpr) {
-        this.dpr = Math.min(this.maxDpr, this.dpr + dt * 0.2);
+    } else if (this.frameMs < 18) {
+      // Recover resolution before density: sharpness is worth more here than
+      // a few hundred extra particles.
+      if (this.dpr < this.maxDpr) {
+        this.dpr = Math.min(this.maxDpr, this.dpr + dt * 0.4);
         this.applySize(this.cssWidth, this.cssHeight);
+      } else {
+        this.quality = Math.min(1, this.quality + dt * 0.25);
       }
     }
 
     this.statsTimer += dt;
     if (this.statsTimer > 0.4) {
       this.statsTimer = 0;
-      this.callbacks.onStats?.(1000 / Math.max(this.frameMs, 1e-3), this.quality);
+      this.callbacks.onStats?.(1000 / Math.max(this.frameMs, 1e-3), this.quality, this.dpr);
     }
   }
 
@@ -313,6 +318,7 @@ export class Renderer {
         quality: this.quality,
         width: this.width,
         height: this.height,
+        target: this.sceneTarget.framebuffer,
       };
 
       this.resetDrawState();
@@ -342,11 +348,14 @@ export class Renderer {
       exposure: 0.92,
       bloomIntensity: 0.46,
       bloomThreshold: 0.88,
-      aberration: 0.0022,
+      aberration: 0.0013,
       vignette: 0.65,
-      grain: 0.028,
+      grain: 0.022,
       focusDistance: this.focusDistance,
+      focusRange: 2.6,
       aperture: this.aperture,
+      maxBlur: 0.6,
+      backdropBlur: 0.0,
       near: this.camera.near,
       far: this.camera.far,
     });

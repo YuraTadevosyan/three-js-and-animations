@@ -142,7 +142,10 @@ uniform float uAberration;
 uniform float uVignette;
 uniform float uGrain;
 uniform float uFocusDistance;
+uniform float uFocusRange;
 uniform float uAperture;
+uniform float uMaxBlur;
+uniform float uBackdropBlur;
 uniform float uNear;
 uniform float uFar;
 uniform vec2 uResolution;
@@ -152,13 +155,32 @@ void main() {
   vec2 centred = uv - 0.5;
   float r2 = dot(centred, centred);
 
-  // Circle of confusion from linear view depth. Sky/background (depth 1) is
-  // pinned to full blur rather than being treated as an object at the far plane.
+  // Circle of confusion: a sharp zone either side of the focus plane, then a
+  // ramp out to uAperture, capped at uMaxBlur.
+  //
+  // The dead zone is the important part. Every subject in this app is a few
+  // units deep and sits about six units from the lens, so a CoC that starts
+  // ramping at the focus plane blurs a subject's own near and far faces while
+  // leaving a thin slab through its middle sharp — which reads as a soft
+  // image, not as depth. The sharp zone has to be wider than the subject.
   float rawDepth = texture(uDepth, uv).r;
   float viewZ = linearizeDepth(rawDepth, uNear, uFar);
-  float coc = clamp(abs(viewZ - uFocusDistance) / max(uAperture, 1e-3), 0.0, 1.0);
-  coc = rawDepth >= 0.9999 ? max(coc, 0.55) : coc;
-  coc = smoothstep(0.0, 1.0, coc);
+
+  float defocus = max(abs(viewZ - uFocusDistance) - uFocusRange, 0.0);
+  float coc = smoothstep(0.0, 1.0, clamp(defocus / max(uAperture, 1e-3), 0.0, 1.0)) * uMaxBlur;
+
+  // Unwritten depth means "leave this alone", NOT "this is far away".
+  //
+  // Plenty of visible content never writes depth here: every additive particle
+  // field, the translucent membranes, the ribosome and polymerase, the network
+  // labels — and the whole tissue stage, which draws its cells depth-write-off
+  // so they blend. All of it sits at the cleared far value. Feeding that into
+  // the ramp put those pixels at maximum blur, which is why the opening scale
+  // and every particle in the piece came out soft.
+  //
+  // The backdrop is smooth noise and needs no help looking soft, so the
+  // default here is zero; the uniform stays as a knob.
+  coc = rawDepth >= 0.9999 ? uBackdropBlur : coc;
 
   // Lateral chromatic aberration: the offset grows with radius, so the centre
   // of frame — where the subject is — stays clean.
@@ -201,7 +223,13 @@ export interface CompositeParams {
   vignette: number;
   grain: number;
   focusDistance: number;
+  /** Half-width of the fully sharp zone around the focus plane, in view units. */
+  focusRange: number;
   aperture: number;
+  /** Ceiling on how much of the blurred copy any geometry can take. */
+  maxBlur: number;
+  /** Fixed softness for the backdrop, which writes no depth. */
+  backdropBlur: number;
   near: number;
   far: number;
   time: number;
@@ -313,7 +341,10 @@ export class PostProcess {
       .f('uVignette', params.vignette)
       .f('uGrain', params.grain)
       .f('uFocusDistance', params.focusDistance)
+      .f('uFocusRange', params.focusRange)
       .f('uAperture', params.aperture)
+      .f('uMaxBlur', params.maxBlur)
+      .f('uBackdropBlur', params.backdropBlur)
       .f('uNear', params.near)
       .f('uFar', params.far)
       .v2('uResolution', this.width, this.height)

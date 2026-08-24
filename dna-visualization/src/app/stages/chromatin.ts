@@ -243,22 +243,14 @@ export class ChromatinStage implements Stage {
   }
 
   render(ctx: FrameContext): void {
-    const { gl } = ctx;
-
-    this.backdrop.render(
-      gl,
-      {
-        top: [0.028, 0.030, 0.078],
-        bottom: [0.008, 0.008, 0.026],
-        glow: [0.30, 0.24, 0.72],
-        density: 0.9,
-        glowX: -0.18,
-        glowY: 0.2,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.028, 0.030, 0.078],
+      bottom: [0.008, 0.008, 0.026],
+      glow: [0.30, 0.24, 0.72],
+      density: 0.9,
+      glowX: -0.18,
+      glowY: 0.2,
+    });
 
     const curveUniforms = (program: Program): Program =>
       program
@@ -288,7 +280,7 @@ export class ChromatinStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 6.2 - ctx.local * 1.4, aperture: 3.2 };
+    return { distance: 6.2 - ctx.local * 1.4, aperture: 6.0 };
   }
 
   dispose(): void {

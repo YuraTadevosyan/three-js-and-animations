@@ -186,20 +186,14 @@ export class TissueStage implements Stage {
     const { gl } = ctx;
     if (!this.program || !this.mesh) return;
 
-    this.backdrop.render(
-      gl,
-      {
-        top: [0.016, 0.035, 0.075],
-        bottom: [0.004, 0.008, 0.02],
-        glow: [0.10, 0.30, 0.62],
-        density: 0.85,
-        glowX: 0.18,
-        glowY: 0.12,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.016, 0.035, 0.075],
+      bottom: [0.004, 0.008, 0.02],
+      glow: [0.10, 0.30, 0.62],
+      density: 0.85,
+      glowX: 0.18,
+      glowY: 0.12,
+    });
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -222,7 +216,7 @@ export class TissueStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 7.5 - ctx.local * 2.0, aperture: 7.0 };
+    return { distance: 7.5 - ctx.local * 2.0, aperture: 9.0 };
   }
 
   dispose(): void {

@@ -29,6 +29,11 @@ export interface FrameContext {
   /** Drawing-buffer size in physical pixels. */
   width: number;
   height: number;
+  /**
+   * The framebuffer stages draw into. Anything that renders to its own target
+   * mid-stage must rebind this (and reset the viewport) afterwards.
+   */
+  target: WebGLFramebuffer | null;
 }
 
 /**

@@ -169,20 +169,14 @@ export class BasePairStage implements Stage {
   }
 
   render(ctx: FrameContext): void {
-    this.backdrop.render(
-      ctx.gl,
-      {
-        top: [0.016, 0.026, 0.058],
-        bottom: [0.003, 0.006, 0.016],
-        glow: [0.10, 0.30, 0.55],
-        density: 0.6,
-        glowX: -0.3,
-        glowY: -0.1,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.016, 0.026, 0.058],
+      bottom: [0.003, 0.006, 0.016],
+      glow: [0.10, 0.30, 0.55],
+      density: 0.6,
+      glowX: -0.3,
+      glowY: -0.1,
+    });
 
     this.bonds.draw(ctx, this.model, ctx.alpha, { roughness: 0.42, translucency: 0.15 });
     this.atoms.draw(ctx, this.model, ctx.alpha, { roughness: 0.24, translucency: 0.3 });
@@ -197,7 +191,7 @@ export class BasePairStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 6.0 - ctx.local * 0.9, aperture: 1.6 };
+    return { distance: 6.0 - ctx.local * 0.9, aperture: 5.0 };
   }
 
   dispose(): void {

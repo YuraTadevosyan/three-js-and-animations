@@ -33,6 +33,7 @@ export class App implements AfterViewInit, OnDestroy {
   readonly progress = signal(0);
   readonly fps = signal(60);
   readonly quality = signal(1);
+  readonly renderScale = signal(1);
   readonly introDismissed = signal(false);
   readonly fatal = signal<string | null>(null);
 
@@ -71,9 +72,10 @@ export class App implements AfterViewInit, OnDestroy {
           this.lastPublishedProgress = value;
           this.progress.set(value);
         },
-        onStats: (fps, quality) => {
+        onStats: (fps, quality, renderScale) => {
           this.fps.set(fps);
           this.quality.set(quality);
+          this.renderScale.set(renderScale);
         },
       });
     } catch (error) {

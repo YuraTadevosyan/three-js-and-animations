@@ -243,20 +243,14 @@ export class TranslationStage implements Stage {
   render(ctx: FrameContext): void {
     const { gl } = ctx;
 
-    this.backdrop.render(
-      gl,
-      {
-        top: [0.030, 0.026, 0.058],
-        bottom: [0.008, 0.006, 0.018],
-        glow: [0.44, 0.26, 0.52],
-        density: 0.8,
-        glowX: -0.26,
-        glowY: 0.24,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.030, 0.026, 0.058],
+      bottom: [0.008, 0.006, 0.018],
+      glow: [0.44, 0.26, 0.52],
+      density: 0.8,
+      glowX: -0.26,
+      glowY: 0.24,
+    });
 
     this.mrna.draw(ctx, this.model, ctx.alpha, { roughness: 0.35, translucency: 0.4 });
     this.bonds.draw(ctx, this.model, ctx.alpha, { roughness: 0.4, translucency: 0.3 });
@@ -277,7 +271,7 @@ export class TranslationStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 6.1 - ctx.local * 0.8, aperture: 2.8 };
+    return { distance: 6.1 - ctx.local * 0.8, aperture: 5.5 };
   }
 
   dispose(): void {

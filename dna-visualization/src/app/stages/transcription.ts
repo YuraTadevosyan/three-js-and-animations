@@ -418,20 +418,14 @@ export class TranscriptionStage implements Stage {
   render(ctx: FrameContext): void {
     const { gl } = ctx;
 
-    this.backdrop.render(
-      gl,
-      {
-        top: [0.026, 0.024, 0.062],
-        bottom: [0.006, 0.005, 0.018],
-        glow: [0.36, 0.20, 0.62],
-        density: 0.8,
-        glowX: 0.3,
-        glowY: -0.2,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.026, 0.024, 0.062],
+      bottom: [0.006, 0.005, 0.018],
+      glow: [0.36, 0.20, 0.62],
+      density: 0.8,
+      glowX: 0.3,
+      glowY: -0.2,
+    });
 
     const helixUniforms = (program: Program): Program =>
       program
@@ -492,7 +486,7 @@ export class TranscriptionStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 6.0 - ctx.local * 0.6, aperture: 2.6 };
+    return { distance: 6.0 - ctx.local * 0.6, aperture: 5.5 };
   }
 
   dispose(): void {

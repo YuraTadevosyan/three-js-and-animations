@@ -39,6 +39,7 @@ const BASE_VAR: Record<string, string> = {
       <span>{{ depthLabel() }}</span>
       <span class="text-muted-foreground/40">·</span>
       <span [class.text-primary]="fps() >= 50">{{ fps().toFixed(0) }} fps</span>
+      <span class="text-muted-foreground/40">{{ renderScale().toFixed(2) }}&times;</span>
       @if (quality() < 0.98) {
         <span class="text-muted-foreground/40">q{{ (quality() * 100).toFixed(0) }}</span>
       }
@@ -49,6 +50,7 @@ export class Hud {
   readonly fps = input.required<number>();
   readonly quality = input.required<number>();
   readonly progress = input.required<number>();
+  readonly renderScale = input(1);
   readonly showSequence = input(false);
   readonly sequenceLabel = input('TP53 · coding sequence');
   /** First base of the 30-base window to print. */

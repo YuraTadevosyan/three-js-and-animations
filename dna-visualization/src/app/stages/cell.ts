@@ -219,20 +219,14 @@ export class CellStage implements Stage {
   render(ctx: FrameContext): void {
     const { gl } = ctx;
 
-    this.backdrop.render(
-      gl,
-      {
-        top: [0.020, 0.042, 0.082],
-        bottom: [0.006, 0.012, 0.028],
-        glow: [0.14, 0.34, 0.70],
-        density: 1.0,
-        glowX: -0.22,
-        glowY: 0.06,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.020, 0.042, 0.082],
+      bottom: [0.006, 0.012, 0.028],
+      glow: [0.14, 0.34, 0.70],
+      density: 1.0,
+      glowX: -0.22,
+      glowY: 0.06,
+    });
 
     this.organelles.draw(ctx, this.model, ctx.alpha, { roughness: 0.3, translucency: 0.5 });
     this.filaments.draw(ctx, this.model, ctx.alpha, { roughness: 0.45, translucency: 0.2 });
@@ -258,7 +252,7 @@ export class CellStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 6.0 - ctx.local * 0.8, aperture: 4.5 };
+    return { distance: 6.0 - ctx.local * 0.8, aperture: 7.0 };
   }
 
   dispose(): void {

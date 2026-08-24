@@ -292,22 +292,14 @@ export class HelixStage implements Stage {
   }
 
   render(ctx: FrameContext): void {
-    const { gl } = ctx;
-
-    this.backdrop.render(
-      gl,
-      {
-        top: [0.020, 0.032, 0.070],
-        bottom: [0.004, 0.008, 0.020],
-        glow: [0.12, 0.36, 0.62],
-        density: 0.75,
-        glowX: 0.28,
-        glowY: 0.18,
-      },
-      ctx.time,
-      ctx.alpha,
-      ctx.width / ctx.height,
-    );
+    this.backdrop.render(ctx, {
+      top: [0.020, 0.032, 0.070],
+      bottom: [0.004, 0.008, 0.020],
+      glow: [0.12, 0.36, 0.62],
+      density: 0.75,
+      glowX: 0.28,
+      glowY: 0.18,
+    });
 
     const bend = 0.035;
 
@@ -362,7 +354,7 @@ export class HelixStage implements Stage {
   }
 
   focus(ctx: FrameContext): FocusHint {
-    return { distance: 6.0 - ctx.local * 1.2, aperture: 2.4 };
+    return { distance: 6.0 - ctx.local * 1.2, aperture: 5.5 };
   }
 
   dispose(): void {
