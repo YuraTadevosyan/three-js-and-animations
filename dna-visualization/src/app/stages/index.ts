@@ -1,3 +1,4 @@
+import type { SequenceStore } from '../bio/store';
 import type { Stage } from '../gl/stage';
 import { BasePairStage } from './basepairs';
 import { CellStage } from './cell';
@@ -17,16 +18,18 @@ import { TranslationStage } from './translation';
  * The descent runs tissue → base pairs, then the last three stages pull back
  * out to what the sequence actually does.
  */
-export function createStages(): Stage[] {
+export function createStages(sequence: SequenceStore): Stage[] {
   return [
     new TissueStage(),
     new CellStage(),
     new NucleusStage(),
     new ChromatinStage(),
-    new HelixStage(),
-    new BasePairStage(),
-    new TranscriptionStage(),
-    new TranslationStage(),
+    // The four scales below render the active sequence, so they read from the
+    // store and rebuild their buffers when it changes.
+    new HelixStage(sequence),
+    new BasePairStage(sequence),
+    new TranscriptionStage(sequence),
+    new TranslationStage(sequence),
     new InteractomeStage(),
   ];
 }

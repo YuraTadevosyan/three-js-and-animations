@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 
+import { SequenceStore } from './bio/store';
 import { Renderer } from './gl/renderer';
 import type { Stage } from './gl/stage';
 import { HELIX_STAGE_IDS, createStages } from './stages';
@@ -16,17 +17,21 @@ import { CaptionPanel } from './ui/caption';
 import { Hud } from './ui/hud';
 import { Intro } from './ui/intro';
 import { ScaleRail, type RailItem } from './ui/scale-rail';
+import { SequencePanel, type SequencePreset } from './ui/sequence-panel';
 
 @Component({
   selector: 'dna-root',
-  imports: [ScaleRail, CaptionPanel, Hud, Intro],
+  imports: [ScaleRail, CaptionPanel, Hud, Intro, SequencePanel],
   templateUrl: './app.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App implements AfterViewInit, OnDestroy {
   private readonly canvasRef = viewChild<ElementRef<HTMLCanvasElement>>('canvas');
 
-  readonly stages: Stage[] = createStages();
+  /** The sequence four of the nine scales render. */
+  readonly sequence = new SequenceStore();
+
+  readonly stages: Stage[] = createStages(this.sequence);
   readonly railItems: RailItem[] = this.stages.map(({ id, label, scale }) => ({ id, label, scale }));
 
   readonly stageIndex = signal(0);
@@ -35,9 +40,33 @@ export class App implements AfterViewInit, OnDestroy {
   readonly quality = signal(1);
   readonly renderScale = signal(1);
   readonly introDismissed = signal(false);
+  readonly panelOpen = signal(false);
+  /** Bumped on every sequence edit so the captions re-read the store. */
+  readonly sequenceVersion = signal(0);
   readonly fatal = signal<string | null>(null);
 
-  readonly current = computed(() => this.stages[this.stageIndex()] ?? this.stages[0]!);
+  readonly current = computed(() => {
+    // Depend on the sequence version too: several stages' captions describe the
+    // active sequence, and the stage object itself never changes identity.
+    this.sequenceVersion();
+    return this.stages[this.stageIndex()] ?? this.stages[0]!;
+  });
+
+  readonly analysis = computed(() => {
+    this.sequenceVersion();
+    return this.sequence.analysis;
+  });
+
+  readonly rawSequence = computed(() => {
+    this.sequenceVersion();
+    return this.sequence.raw;
+  });
+
+  /** What the scales are actually drawing — never empty. */
+  readonly renderedSequence = computed(() => {
+    this.sequenceVersion();
+    return this.sequence.renderDna;
+  });
 
   readonly indexLabel = computed(
     () => `${String(this.stageIndex() + 1).padStart(2, '0')} / ${String(this.stages.length).padStart(2, '0')}`,
@@ -108,6 +137,25 @@ export class App implements AfterViewInit, OnDestroy {
     this.resizeObserver?.disconnect();
     this.renderer?.dispose();
     this.renderer = null;
+  }
+
+  togglePanel(): void {
+    this.panelOpen.update((open) => !open);
+    if (this.panelOpen()) this.introDismissed.set(true);
+  }
+
+  onSequenceChanged(value: string): void {
+    this.sequence.set(value);
+    // The store dedupes by rendered bases, but the panel's own readouts track
+    // the raw text, so publish on every edit.
+    this.sequenceVersion.update((v) => v + 1);
+  }
+
+  onSequencePreset(preset: SequencePreset): void {
+    if (preset === 'default') this.sequence.reset();
+    else if (preset === 'random') this.sequence.randomise();
+    else this.sequence.set('');
+    this.sequenceVersion.update((v) => v + 1);
   }
 
   /** Scroll the journey to a stage, used by the rail. */

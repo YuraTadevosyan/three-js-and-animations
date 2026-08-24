@@ -1,6 +1,7 @@
 import { C1_SPAN, buildPair } from '../bio/bases';
+import type { SequenceStore } from '../bio/store';
 import {
-  BDNA, ELEMENT_COLOR, P53_CDS, TWIST_PER_BP, complement, type Base,
+  BDNA, ELEMENT_COLOR, TWIST_PER_BP, complement, type Base,
 } from '../bio/sequence';
 import { Backdrop } from '../gl/backdrop';
 import { m4TRS, mat4, mulberry32 } from '../gl/math';
@@ -41,12 +42,15 @@ export class BasePairStage implements Stage {
     'A pairs with T across two hydrogen bonds; G pairs with C across three. A purine always faces a pyrimidine, which is why the duplex stays exactly 20 ångström wide whatever the sequence says.';
   readonly detail = 'C · N · O coloured by element · H-bonds dashed';
 
+  constructor(private readonly store: SequenceStore) {}
+
   private readonly atoms = new AtomBatch(2);
   private readonly bonds = new BondBatch(7);
   private readonly hbonds = new BondBatch(5);
   private readonly water = new ParticleField();
   private readonly backdrop = new Backdrop();
   private readonly model = mat4();
+  private sequenceVersion = -1;
 
   init(gl: WebGL2RenderingContext): void {
     this.dispose();
@@ -57,6 +61,38 @@ export class BasePairStage implements Stage {
     this.water.init(gl);
     this.backdrop.init(gl);
 
+    this.buildPairs();
+
+    // Ordered water in the minor groove.
+    const random = mulberry32(0xa71e2);
+    const drops = new Float32Array(WATER * PARTICLE_STRIDE);
+    for (let i = 0; i < WATER; i++) {
+      const bp = (random() - 0.5) * PAIRS;
+      const angle = random() * Math.PI * 2;
+      const radius = BDNA.backboneRadius * UNIT * (0.9 + random() * 1.1);
+      const p = i * PARTICLE_STRIDE;
+      drops[p] = Math.cos(angle) * radius;
+      drops[p + 1] = bp * BDNA.rise * UNIT;
+      drops[p + 2] = Math.sin(angle) * radius;
+      drops[p + 3] = 0.014 + random() * 0.016;
+      drops[p + 4] = 0.45;
+      drops[p + 5] = 0.8;
+      drops[p + 6] = 1.0;
+      drops[p + 7] = random() * 70;
+    }
+    this.water.upload(drops, WATER);
+  }
+
+  /**
+   * Build the atomic model for the visible pairs.
+   *
+   * Rebuilt whenever the sequence changes: which rings appear, how far each
+   * base reaches, and whether two or three hydrogen bonds span the gap are all
+   * decided by the bases themselves.
+   */
+  private buildPairs(): void {
+    const dna = this.store.renderDna;
+
     // Generous headroom: a G–C pair carries more atoms than an A–T one.
     const atomWriter = new AtomWriter(new Float32Array(PAIRS * 64 * ATOM_STRIDE));
     const bondWriter = new BondWriter(new Float32Array(PAIRS * 72 * BOND_STRIDE));
@@ -65,7 +101,7 @@ export class BasePairStage implements Stage {
     const middle = Math.floor(PAIRS / 2);
 
     for (let i = 0; i < PAIRS; i++) {
-      const sense = P53_CDS[(i + 12) % P53_CDS.length] as Exclude<Base, 'U'>;
+      const sense = dna[(i + 12) % dna.length] as Exclude<Base, 'U'>;
       const anti = complement(sense) as Exclude<Base, 'U'>;
       const pair = buildPair(sense, anti);
 
@@ -141,28 +177,12 @@ export class BasePairStage implements Stage {
     this.atoms.upload(atomWriter.data, atomWriter.count);
     this.bonds.upload(bondWriter.data, bondWriter.count);
     this.hbonds.upload(hbondWriter.data, hbondWriter.count);
-
-    // Ordered water in the minor groove.
-    const random = mulberry32(0xa71e2);
-    const drops = new Float32Array(WATER * PARTICLE_STRIDE);
-    for (let i = 0; i < WATER; i++) {
-      const bp = (random() - 0.5) * PAIRS;
-      const angle = random() * Math.PI * 2;
-      const radius = BDNA.backboneRadius * UNIT * (0.9 + random() * 1.1);
-      const p = i * PARTICLE_STRIDE;
-      drops[p] = Math.cos(angle) * radius;
-      drops[p + 1] = bp * BDNA.rise * UNIT;
-      drops[p + 2] = Math.sin(angle) * radius;
-      drops[p + 3] = 0.014 + random() * 0.016;
-      drops[p + 4] = 0.45;
-      drops[p + 5] = 0.8;
-      drops[p + 6] = 1.0;
-      drops[p + 7] = random() * 70;
-    }
-    this.water.upload(drops, WATER);
+    this.sequenceVersion = this.store.version;
   }
 
   update(ctx: FrameContext): void {
+    if (this.sequenceVersion !== this.store.version) this.buildPairs();
+
     const zoom = Math.pow(2, 0.4 + ctx.local * 1.2);
     const z = -0.6 + ctx.local * 3.2;
     m4TRS(this.model, 0, 0, z, ctx.time * 0.1 + ctx.local * 0.8, zoom);

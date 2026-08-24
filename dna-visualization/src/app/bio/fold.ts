@@ -2,17 +2,21 @@ import { mulberry32 } from '../gl/math';
 import { P53_PEPTIDE } from './sequence';
 
 /**
- * Cα traces for the p53 transactivation domain.
+ * Cα traces for a peptide.
  *
- * The secondary structure here is the real thing, and it is unusual: the p53
- * N-terminus is intrinsically disordered apart from a single amphipathic helix
- * around residues 17–29. That helix is the entire MDM2 binding site — F19, W23
- * and L26 drop into a hydrophobic cleft on MDM2, and drugs like nutlin work by
- * occupying that same cleft. So the fold is mostly a flailing coil with one
- * ordered stretch, which is exactly what should be on screen.
+ * For p53's transactivation domain the secondary structure is the real thing,
+ * and it is unusual: the N-terminus is intrinsically disordered apart from a
+ * single amphipathic helix around residues 17-29. That helix is the entire
+ * MDM2 binding site — F19, W23 and L26 drop into a hydrophobic cleft on MDM2,
+ * and drugs like nutlin work by occupying that same cleft.
+ *
+ * For any other peptide there is no known answer, so helices are *predicted*
+ * with Chou-Fasman propensities. That is a 1974 method and nowhere near modern
+ * accuracy; the UI labels it as a prediction rather than passing it off as
+ * structure.
  */
 
-/** Cα–Cα distance along a peptide backbone, ångström. */
+/** Cα-Cα distance along a peptide backbone, ångström. */
 export const CA_SPACING = 3.8;
 
 export type SecondaryStructure = 'coil' | 'helix';
@@ -20,15 +24,87 @@ export type SecondaryStructure = 'coil' | 'helix';
 /** Residue range of the MDM2-binding amphipathic helix, 1-based inclusive. */
 export const TAD_HELIX: readonly [number, number] = [17, 29];
 
-export function secondaryStructureAt(residueIndex: number): SecondaryStructure {
-  const position = residueIndex + 1;
-  return position >= TAD_HELIX[0] && position <= TAD_HELIX[1] ? 'helix' : 'coil';
+/** Residue index (0-based) of the three MDM2-contact residues in p53. */
+export const P53_MDM2_CONTACTS = [18, 22, 25];
+
+/**
+ * Chou-Fasman helix propensities, P(a). Above 1.0 favours a helix.
+ */
+const HELIX_PROPENSITY: Readonly<Record<string, number>> = {
+  E: 1.51, M: 1.45, A: 1.42, L: 1.21, K: 1.16, F: 1.13, Q: 1.11,
+  W: 1.08, I: 1.08, V: 1.06, D: 1.01, H: 1.00, R: 0.98, T: 0.83,
+  S: 0.77, C: 0.70, Y: 0.69, N: 0.67, P: 0.57, G: 0.57,
+};
+
+/**
+ * Chou-Fasman helix prediction.
+ *
+ * Nucleate where four of any six consecutive residues favour a helix, extend
+ * outward while the local four-residue average stays above 1.0, then discard
+ * anything shorter than five residues.
+ */
+export function predictHelices(peptide: string): SecondaryStructure[] {
+  const n = peptide.length;
+  const structure: SecondaryStructure[] = new Array(n).fill('coil');
+  if (n < 6) return structure;
+
+  const propensity = (i: number): number =>
+    HELIX_PROPENSITY[peptide[i] ?? ''] ?? 1.0;
+
+  const averageOfFour = (from: number): number => {
+    let sum = 0;
+    let count = 0;
+    for (let i = from; i < from + 4 && i < n; i++) {
+      sum += propensity(i);
+      count++;
+    }
+    return count > 0 ? sum / count : 0;
+  };
+
+  for (let window = 0; window + 6 <= n; window++) {
+    let favourable = 0;
+    for (let i = window; i < window + 6; i++) if (propensity(i) > 1.0) favourable++;
+    if (favourable < 4) continue;
+
+    let start = window;
+    let end = window + 6;
+    while (start - 4 >= 0 && averageOfFour(start - 4) > 1.0) start -= 1;
+    while (end + 1 <= n && averageOfFour(Math.max(0, end - 3)) > 1.0) end += 1;
+    end = Math.min(end, n);
+
+    if (end - start >= 5) {
+      for (let i = start; i < end; i++) structure[i] = 'helix';
+    }
+  }
+
+  return structure;
+}
+
+/** The experimentally known annotation, for p53's TAD only. */
+export function knownStructure(peptide: string): SecondaryStructure[] | null {
+  if (peptide !== P53_PEPTIDE) return null;
+  return Array.from({ length: peptide.length }, (_, i) =>
+    i + 1 >= TAD_HELIX[0] && i + 1 <= TAD_HELIX[1] ? 'helix' : 'coil',
+  );
+}
+
+export interface StructureAssignment {
+  structure: SecondaryStructure[];
+  /** True when this is a Chou-Fasman guess rather than a known annotation. */
+  predicted: boolean;
+  /** Residues worth flagging, only meaningful for the known p53 case. */
+  highlights: readonly number[];
+}
+
+export function structureFor(peptide: string): StructureAssignment {
+  const known = knownStructure(peptide);
+  if (known) return { structure: known, predicted: false, highlights: P53_MDM2_CONTACTS };
+  return { structure: predictHelices(peptide), predicted: true, highlights: [] };
 }
 
 export interface FoldedChain {
-  /** Cα positions in ångström, one per residue. */
+  /** Ca positions in angstrom, one per residue. */
   positions: Array<[number, number, number]>;
-  structure: SecondaryStructure[];
 }
 
 /**
@@ -39,10 +115,13 @@ export interface FoldedChain {
  * Cα spacing, pulled gently toward the centroid so the domain stays compact
  * rather than wandering off as a straight line.
  */
-export function foldPeptide(peptide: string = P53_PEPTIDE, seed = 0x9111): FoldedChain {
+export function foldPeptide(
+  peptide: string,
+  structure: readonly SecondaryStructure[],
+  seed = 0x9111,
+): FoldedChain {
   const random = mulberry32(seed);
   const positions: Array<[number, number, number]> = [];
-  const structure: SecondaryStructure[] = [];
 
   // Moving frame: direction of travel plus two perpendiculars.
   let dir: [number, number, number] = [1, 0.18, 0];
@@ -56,11 +135,10 @@ export function foldPeptide(peptide: string = P53_PEPTIDE, seed = 0x9111): Folde
   let helixPhase = 0;
 
   for (let i = 0; i < peptide.length; i++) {
-    const kind = secondaryStructureAt(i);
-    structure.push(kind);
+    const kind = structure[i] ?? 'coil';
 
     if (kind === 'helix') {
-      // 100° of rotation and 1.5 Å of rise per residue, on a 2.3 Å radius.
+      // 100 degrees of rotation and 1.5 A of rise per residue, radius 2.3 A.
       helixPhase += (100 * Math.PI) / 180;
       const up = cross(dir, side);
       const radial = [
@@ -77,7 +155,7 @@ export function foldPeptide(peptide: string = P53_PEPTIDE, seed = 0x9111): Folde
       continue;
     }
 
-    // Coil: perturb the direction, keep the step at the real Cα spacing, and
+    // Coil: perturb the direction, keep the step at the real Ca spacing, and
     // apply a weak restoring pull so the chain folds back on itself.
     dir[0] += (random() * 2 - 1) * 0.55;
     dir[1] += (random() * 2 - 1) * 0.55;
@@ -98,8 +176,38 @@ export function foldPeptide(peptide: string = P53_PEPTIDE, seed = 0x9111): Folde
     positions.push([x, y, z]);
   }
 
+  enforceSpacing(positions);
   centre(positions);
-  return { positions, structure };
+  return { positions };
+}
+
+/**
+ * Re-walk the chain at the real Cα-Cα distance, keeping each step's direction.
+ *
+ * Helical and coil residues are generated against different references — coil
+ * steps advance along the axis, helical ones sit on a 2.3 Å radius around it —
+ * so the residue where one meets the other lands up to 6 Å from its neighbour,
+ * which draws as a stretched bond. Within a run this changes almost nothing
+ * (an α-helix already steps 3.83 Å); it only pulls the seams closed.
+ */
+function enforceSpacing(positions: Array<[number, number, number]>): void {
+  for (let i = 1; i < positions.length; i++) {
+    const previous = positions[i - 1]!;
+    const current = positions[i]!;
+    const dx = current[0] - previous[0];
+    const dy = current[1] - previous[1];
+    const dz = current[2] - previous[2];
+    const distance = Math.hypot(dx, dy, dz);
+    if (distance < 1e-6) {
+      // Coincident residues have no direction to preserve; step off the axis.
+      current[0] = previous[0] + CA_SPACING;
+      continue;
+    }
+    const scale = CA_SPACING / distance;
+    current[0] = previous[0] + dx * scale;
+    current[1] = previous[1] + dy * scale;
+    current[2] = previous[2] + dz * scale;
+  }
 }
 
 /** The same chain fully extended, as it leaves the ribosome's exit tunnel. */

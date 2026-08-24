@@ -11,6 +11,8 @@
     "preview": "ng build && npx --yes http-server dist -p 4200 -c-1",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "check:glsl": "node tools/glslcheck.mjs",
+    "check:bio": "esbuild tools/bio-test.ts --bundle --platform=node --format=esm --outfile=.angular/bio-test.mjs --log-level=error && node .angular/bio-test.mjs",
+    "check": "npm run typecheck && npm run check:glsl && npm run check:bio",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist -e dna-visualization"
   },

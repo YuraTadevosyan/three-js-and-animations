@@ -84,9 +84,6 @@ export const AMINO_ACIDS: Readonly<Record<string, AminoAcid>> = {
 export const P53_PEPTIDE =
   'MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGP';
 
-/** Residue index (0-based) of the three MDM2-contact residues in P53_PEPTIDE. */
-export const MDM2_CONTACTS = [18, 22, 25];
-
 /** Base-pairing partner on the antiparallel strand. */
 export function complement(base: Base): Base {
   switch (base) {

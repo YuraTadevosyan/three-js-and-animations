@@ -22,6 +22,14 @@
     --base-c: 206 100% 66%;
     --base-u: 282 100% 72%;
 
+    /* Mirrors RESIDUE_COLOR in bio/sequence.ts, so the peptide readout and the
+       folded chain agree on what a hydrophobic residue looks like. */
+    --res-hydrophobic: 36 100% 68%;
+    --res-polar: 189 88% 74%;
+    --res-positive: 222 100% 76%;
+    --res-negative: 350 100% 72%;
+    --res-special: 220 14% 80%;
+
     --radius: 0.4rem;
   }
 

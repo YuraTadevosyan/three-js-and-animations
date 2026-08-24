@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-import { BASE_COLOR, P53_CDS, type Base } from '../bio/sequence';
+import { BASE_COLOR, type Base } from '../bio/sequence';
 
 const BASE_VAR: Record<string, string> = {
   A: 'var(--base-a)',
@@ -55,12 +55,17 @@ export class Hud {
   readonly sequenceLabel = input('TP53 · coding sequence');
   /** First base of the 30-base window to print. */
   readonly sequenceStart = input(0);
+  /** The sequence being rendered, so the readout follows the editor. */
+  readonly sequence = input('');
 
   readonly depthLabel = computed(() => `${(this.progress() * 100).toFixed(0)}% depth`);
 
   readonly window = computed<Base[]>(() => {
-    const start = Math.max(0, Math.min(this.sequenceStart(), P53_CDS.length - 30));
-    return P53_CDS.slice(start, start + 30).split('') as Base[];
+    const dna = this.sequence();
+    if (dna.length === 0) return [];
+    const width = Math.min(30, dna.length);
+    const start = Math.max(0, Math.min(this.sequenceStart(), dna.length - width));
+    return dna.slice(start, start + width).split('') as Base[];
   });
 
   colorFor(base: Base): string {

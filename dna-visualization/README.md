@@ -36,6 +36,43 @@ the journey is driven by real document scroll rather than a hijacked wheel.
 
 ---
 
+## Your own sequence
+
+The **Sequence** button opens an editor. Paste or type any DNA — or RNA, or a
+FASTA record — and four of the nine scales rebuild from it live: the base-pair
+colours and reach in the double helix, the atomic rings and hydrogen-bond
+counts in the close-up, the bases the polymerase reads during transcription,
+and the peptide the ribosome builds and folds.
+
+That last one is the interesting one. A different sequence is a different ORF,
+which is a different peptide, which is a different set of side chains — so the
+protein that comes out of the exit tunnel genuinely changes shape.
+
+The panel also computes, from the pasted bases:
+
+- **GC content** and an approximate **melting temperature** — Wallace below 14
+  nucleotides, the GC-content formula above it. Both ignore salt and strand
+  concentration, which the panel says.
+- **Open reading frames** in all three forward frames, longest first, with the
+  one being rendered marked. Reverse-strand ORFs are found but not rendered:
+  drawing one would contradict the direction the helix runs.
+- The **reverse complement**, written 5'→3'.
+- The **translated peptide**, coloured by side-chain class.
+
+Input handling is deliberately forgiving: FASTA headers and whitespace are
+dropped, uracil folds to thymine so an mRNA sequence works, anything else is
+counted and reported, and the sequence is capped at 600 bases so no GPU buffer
+can be blown by a paste. Clearing the box falls back to p53 rather than leaving
+the scene empty.
+
+**Secondary structure** is handled honestly. For p53's transactivation domain it
+is the known annotation — disordered apart from the amphipathic helix at
+residues 17–29. For any other peptide there is no known answer, so helices are
+predicted with Chou–Fasman propensities, and both the caption and the panel say
+"predicted" rather than passing a 1974 heuristic off as structure.
+
+---
+
 ## What is real, and what is not
 
 The visualisation is stylised, but the biology driving it is not decorative.
@@ -82,8 +119,10 @@ The visualisation is stylised, but the biology driving it is not decorative.
 src/app/
 ├── bio/            the data everything is derived from
 │   ├── sequence.ts   genetic code, hydropathy, B-DNA constants, p53 peptide
+│   ├── analysis.ts   sanitising, GC/Tm, ORF detection, reverse complement
+│   ├── store.ts      the active sequence; stages poll its version to rebuild
 │   ├── bases.ts      procedural nucleobase ring systems and pair assembly
-│   └── fold.ts       Cα traces for the folded and extended chain
+│   └── fold.ts       Cα traces, plus Chou–Fasman helix prediction
 ├── gl/             the renderer — no dependencies at all
 │   ├── math.ts       mat4 / vec3, column-major, ~250 lines
 │   ├── program.ts    shader compilation with windowed, line-numbered errors
@@ -119,6 +158,12 @@ prefilter, a 13-tap downsample chain, then a 9-tap tent upsample accumulated
 back up. Filtering on the way down *and* the way up is what stops the glow
 ringing where a bright base pair meets black.
 
+**The sequence is a version counter, not an observable.** Stages poll
+`store.version` in their update and rebuild their GPU buffers when it moves.
+That keeps `bio/`, `gl/` and `stages/` free of any framework import — the render
+loop runs outside Angular and shouldn't need to know Angular exists — while the
+UI layer wraps the same store in signals.
+
 **Change detection is signal-only.** There is no zone.js in the bundle. The
 render loop runs on its own `requestAnimationFrame` and writes to signals only
 when a displayed number would actually move, so a 60 fps scene does not imply
@@ -141,7 +186,19 @@ npm run dev        # http://localhost:4210
 npm run build      # production build → dist/
 npm run typecheck  # tsc, no emit
 npm run check:glsl # static analysis of the embedded shaders
+npm run check:bio  # assertions over the biology layer
+npm run check      # all three
 ```
+
+### `check:bio`
+
+The 3D scenes can't be asserted on without a browser, but everything deciding
+*what* they draw is pure data and can be. `tools/bio-test.ts` covers the
+genetic code, ORF detection, input sanitising, reverse complement, melting
+temperature, secondary-structure assignment and backbone geometry — about
+forty checks. It caught a real bug while the sequence editor was being built:
+Cα–Cα distances reached 5.96 Å where a helix met a coil, against a true 3.8 Å,
+which draws as a stretched bond.
 
 ### `check:glsl`
 

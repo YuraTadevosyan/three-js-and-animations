@@ -1,4 +1,5 @@
-import { BASE_COLOR, BDNA, P53_CDS, TWIST_PER_BP, complement, type Base } from '../bio/sequence';
+import type { SequenceStore } from '../bio/store';
+import { BASE_COLOR, BDNA, TWIST_PER_BP, complement, type Base } from '../bio/sequence';
 import { Backdrop } from '../gl/backdrop';
 import { BDNA_CURVE, FRAG_HEAD, SHADING, TRANSFORM, VERT_HEAD } from '../gl/chunks';
 import { box, tubeTemplate } from '../gl/geometry';
@@ -207,7 +208,15 @@ export class HelixStage implements Stage {
   readonly scale = '10⁻⁹ m';
   readonly caption =
     'B-DNA: ten and a half base pairs per turn, rising 3.4 ångström each. The two backbones run antiparallel and sit 225° apart, cutting one wide groove and one narrow one.';
-  readonly detail = 'TP53 coding sequence · A–T and G–C';
+
+  get detail(): string {
+    const { length } = this.store.analysis;
+    if (this.store.isDefault) return 'TP53 coding sequence · A–T and G–C';
+    if (this.store.isFallback) return 'Awaiting a sequence · showing TP53';
+    return `Your sequence · ${length} nt · A–T and G–C`;
+  }
+
+  constructor(private readonly store: SequenceStore) {}
 
   private backboneProgram: Program | null = null;
   private backboneMesh: Mesh | null = null;
@@ -218,6 +227,7 @@ export class HelixStage implements Stage {
   private readonly hydration = new ParticleField();
   private readonly model = mat4();
   private readHead = 0;
+  private sequenceVersion = -1;
 
   init(gl: WebGL2RenderingContext): void {
     this.dispose();
@@ -230,31 +240,7 @@ export class HelixStage implements Stage {
     this.baseProgram = new Program(gl, BASE_VS, BASE_FS, 'helix:bases');
     this.baseMesh = Mesh.fromData(gl, box(), { position: ATTR.position, normal: ATTR.normal });
 
-    // Two bases per pair: the sense base on strand 0, its complement on 1.
-    const info = new Float32Array(HELIX_BP * 2 * 4);
-    const colors = new Float32Array(HELIX_BP * 2 * 4);
-
-    for (let i = 0; i < HELIX_BP; i++) {
-      const sense = P53_CDS[i % P53_CDS.length] as Base;
-      const anti = complement(sense);
-
-      for (const [slot, base] of [[0, sense], [1, anti]] as const) {
-        const index = (i * 2 + slot) * 4;
-        info[index] = i - HELIX_BP / 2;
-        info[index + 1] = slot;
-        info[index + 2] = base === 'A' || base === 'G' ? 1 : 0;
-        info[index + 3] = 0;
-
-        const rgb = BASE_COLOR[base];
-        colors[index] = rgb[0];
-        colors[index + 1] = rgb[1];
-        colors[index + 2] = rgb[2];
-        colors[index + 3] = 1;
-      }
-    }
-
-    this.baseMesh.attribute('base', ATTR.instance0, info, 4, 1);
-    this.baseMesh.attribute('color', ATTR.instance1, colors, 4, 1);
+    this.uploadSequence();
 
     this.backdrop.init(gl);
     this.hydration.init(gl);
@@ -282,7 +268,49 @@ export class HelixStage implements Stage {
     this.hydration.upload(shell, HYDRATION);
   }
 
+  /**
+   * Push the active sequence into the base-rung instance buffers.
+   *
+   * Called at init and again whenever the store's version moves, which is what
+   * makes an edit in the sequence panel show up in the helix: the rungs' colour
+   * and reach are read straight off the bases.
+   */
+  private uploadSequence(): void {
+    if (!this.baseMesh) return;
+    const dna = this.store.renderDna;
+
+    // Two bases per pair: the sense base on strand 0, its complement on 1.
+    const info = new Float32Array(HELIX_BP * 2 * 4);
+    const colors = new Float32Array(HELIX_BP * 2 * 4);
+
+    for (let i = 0; i < HELIX_BP; i++) {
+      // Shorter sequences repeat rather than leaving the helix stubbed.
+      const sense = dna[i % dna.length] as Base;
+      const anti = complement(sense);
+
+      for (const [slot, base] of [[0, sense], [1, anti]] as const) {
+        const index = (i * 2 + slot) * 4;
+        info[index] = i - HELIX_BP / 2;
+        info[index + 1] = slot;
+        info[index + 2] = base === 'A' || base === 'G' ? 1 : 0;
+        info[index + 3] = 0;
+
+        const rgb = BASE_COLOR[base];
+        colors[index] = rgb[0];
+        colors[index + 1] = rgb[1];
+        colors[index + 2] = rgb[2];
+        colors[index + 3] = 1;
+      }
+    }
+
+    this.baseMesh.attribute('base', ATTR.instance0, info, 4, 1);
+    this.baseMesh.attribute('color', ATTR.instance1, colors, 4, 1);
+    this.sequenceVersion = this.store.version;
+  }
+
   update(ctx: FrameContext): void {
+    if (this.sequenceVersion !== this.store.version) this.uploadSequence();
+
     // The read head runs the length of the sequence once per stage.
     this.readHead = (ctx.local * 1.25 - 0.15) * HELIX_BP - HELIX_BP / 2;
 

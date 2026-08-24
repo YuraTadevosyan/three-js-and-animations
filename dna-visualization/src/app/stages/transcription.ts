@@ -1,4 +1,5 @@
-import { BASE_COLOR, BDNA, P53_CDS, TWIST_PER_BP, complement, type Base } from '../bio/sequence';
+import type { SequenceStore } from '../bio/store';
+import { BASE_COLOR, BDNA, TWIST_PER_BP, complement, type Base } from '../bio/sequence';
 import { Backdrop } from '../gl/backdrop';
 import { BDNA_CURVE, FRAG_HEAD, SHADING, TRANSFORM, VERT_HEAD } from '../gl/chunks';
 import { box, tubeTemplate } from '../gl/geometry';
@@ -299,7 +300,13 @@ export class TranscriptionStage implements Stage {
   readonly scale = '10⁻⁹ m';
   readonly caption =
     'RNA polymerase opens about fourteen base pairs at a time, copies the template strand into RNA — uracil in place of thymine — and lets the duplex close behind it.';
-  readonly detail = 'DNA → pre-mRNA · ~14 bp bubble';
+  get detail(): string {
+    return this.store.isDefault || this.store.isFallback
+      ? 'DNA → pre-mRNA · ~14 bp bubble'
+      : `Your sequence · ${this.store.analysis.length} nt · ~14 bp bubble`;
+  }
+
+  constructor(private readonly store: SequenceStore) {}
 
   private strandProgram: Program | null = null;
   private strandMesh: Mesh | null = null;
@@ -316,6 +323,7 @@ export class TranscriptionStage implements Stage {
   private readonly blobWriter = new AtomWriter(new Float32Array(POLYMERASE_BLOBS * ATOM_STRIDE));
   private readonly blobSeeds: Array<[number, number, number, number]> = [];
   private fork = 0;
+  private sequenceVersion = -1;
   private openAmount = 0;
 
   init(gl: WebGL2RenderingContext): void {
@@ -332,26 +340,7 @@ export class TranscriptionStage implements Stage {
     this.mrnaProgram = new Program(gl, MRNA_VS, MRNA_FS, 'transcription:mrna');
     this.mrnaMesh = Mesh.fromData(gl, tubeTemplate(600, 7), { param: ATTR.param });
 
-    const info = new Float32Array(BP_COUNT * 2 * 4);
-    const colors = new Float32Array(BP_COUNT * 2 * 4);
-
-    for (let i = 0; i < BP_COUNT; i++) {
-      const sense = P53_CDS[i % P53_CDS.length] as Base;
-      const anti = complement(sense);
-      for (const [slot, base] of [[0, sense], [1, anti]] as const) {
-        const index = (i * 2 + slot) * 4;
-        info[index] = i - BP_COUNT / 2;
-        info[index + 1] = slot;
-        info[index + 2] = base === 'A' || base === 'G' ? 1 : 0;
-        const rgb = BASE_COLOR[base];
-        colors[index] = rgb[0];
-        colors[index + 1] = rgb[1];
-        colors[index + 2] = rgb[2];
-        colors[index + 3] = 1;
-      }
-    }
-    this.baseMesh.attribute('base', ATTR.instance0, info, 4, 1);
-    this.baseMesh.attribute('color', ATTR.instance1, colors, 4, 1);
+    this.uploadSequence();
 
     this.polymerase.init(gl);
     this.pool.init(gl);
@@ -387,7 +376,37 @@ export class TranscriptionStage implements Stage {
     this.pool.upload(pool, NUCLEOTIDE_POOL);
   }
 
+  /** Rebuild the base rungs from the active sequence. */
+  private uploadSequence(): void {
+    if (!this.baseMesh) return;
+    const dna = this.store.renderDna;
+
+    const info = new Float32Array(BP_COUNT * 2 * 4);
+    const colors = new Float32Array(BP_COUNT * 2 * 4);
+
+    for (let i = 0; i < BP_COUNT; i++) {
+      const sense = dna[i % dna.length] as Base;
+      const anti = complement(sense);
+      for (const [slot, base] of [[0, sense], [1, anti]] as const) {
+        const index = (i * 2 + slot) * 4;
+        info[index] = i - BP_COUNT / 2;
+        info[index + 1] = slot;
+        info[index + 2] = base === 'A' || base === 'G' ? 1 : 0;
+        const rgb = BASE_COLOR[base];
+        colors[index] = rgb[0];
+        colors[index + 1] = rgb[1];
+        colors[index + 2] = rgb[2];
+        colors[index + 3] = 1;
+      }
+    }
+    this.baseMesh.attribute('base', ATTR.instance0, info, 4, 1);
+    this.baseMesh.attribute('color', ATTR.instance1, colors, 4, 1);
+    this.sequenceVersion = this.store.version;
+  }
+
   update(ctx: FrameContext): void {
+    if (this.sequenceVersion !== this.store.version) this.uploadSequence();
+
     // The bubble opens as the stage begins and the fork sweeps the sequence.
     this.openAmount = smoothstep(0.02, 0.2, ctx.local) * (1 - smoothstep(0.88, 1.0, ctx.local));
     this.fork = mix(-BP_COUNT * 0.42, BP_COUNT * 0.46, smoothstep(0.05, 0.95, ctx.local));

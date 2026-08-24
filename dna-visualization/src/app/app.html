@@ -27,13 +27,24 @@
       <p class="mono-label mt-1">A descent into DNA</p>
     </div>
 
-    <a
-      class="pointer-events-auto mono-label transition-colors hover:text-primary"
-      href="https://github.com/YuraTadevosyan/three-js-and-animations"
-      target="_blank"
-      rel="noopener noreferrer"
-      >Source</a
-    >
+    <div class="flex items-center gap-4">
+      <button
+        type="button"
+        class="pointer-events-auto mono-label transition-colors hover:text-primary"
+        [class.text-primary]="panelOpen()"
+        (click)="togglePanel()"
+      >
+        Sequence
+      </button>
+
+      <a
+        class="pointer-events-auto mono-label transition-colors hover:text-primary"
+        href="https://github.com/YuraTadevosyan/three-js-and-animations"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Source</a
+      >
+    </div>
   </header>
 
   <dna-scale-rail
@@ -58,6 +69,16 @@
     [renderScale]="renderScale()"
     [showSequence]="showSequence()"
     [sequenceStart]="sequenceStart()"
+    [sequence]="renderedSequence()"
+  />
+
+  <dna-sequence-panel
+    [open]="panelOpen()"
+    [raw]="rawSequence()"
+    [analysis]="analysis()"
+    (changed)="onSequenceChanged($event)"
+    (preset)="onSequencePreset($event)"
+    (closed)="panelOpen.set(false)"
   />
 
   <dna-intro [dismissed]="introDismissed()" />

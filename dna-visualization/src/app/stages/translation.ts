@@ -1,6 +1,11 @@
-import { CA_SPACING, extendedChain, foldPeptide, secondaryStructureAt } from '../bio/fold';
+import { MAX_RESIDUES, type Codon } from '../bio/analysis';
 import {
-  AMINO_ACIDS, BASE_COLOR, MDM2_CONTACTS, P53_CODONS, P53_PEPTIDE, RESIDUE_COLOR, type Base,
+  CA_SPACING, extendedChain, foldPeptide, structureFor,
+  type SecondaryStructure,
+} from '../bio/fold';
+import type { SequenceStore } from '../bio/store';
+import {
+  AMINO_ACIDS, BASE_COLOR, P53_CODONS, P53_PEPTIDE, RESIDUE_COLOR, type Base,
 } from '../bio/sequence';
 import { Backdrop } from '../gl/backdrop';
 import { clamp, m4TRS, mat4, mix, mulberry32, saturate, smoothstep } from '../gl/math';
@@ -10,12 +15,15 @@ import {
 import { PARTICLE_STRIDE, ParticleField } from '../gl/particles';
 import type { FocusHint, FrameContext, Stage } from '../gl/stage';
 
-const RESIDUES = P53_PEPTIDE.length;
 const RIBOSOME_BLOBS = 46;
 const CHAPERONES = 320;
 
 /** Ångström → world units, matching the other molecular stages. */
 const UNIT = 0.1;
+
+/** Shown when the box is empty, so the scene always has a molecule. */
+const DEFAULT_PEPTIDE = P53_PEPTIDE;
+const DEFAULT_CODONS: readonly Codon[] = P53_CODONS;
 
 /** Where the polypeptide leaves the large subunit. */
 const EXIT: readonly [number, number, number] = [0, -0.55, 0];
@@ -32,9 +40,19 @@ export class TranslationStage implements Stage {
   readonly id = 'translation';
   readonly label = 'Translation';
   readonly scale = '10⁻⁹ m';
-  readonly caption =
-    'The ribosome reads three bases per amino acid. The chain leaves the exit tunnel and folds — here into one amphipathic helix on an otherwise disordered domain, the helix that MDM2 grips.';
-  readonly detail = '60 codons · helix at residues 17–29 · F19 W23 L26';
+  get caption(): string {
+    return this.predicted
+      ? 'The ribosome reads three bases per amino acid. The chain leaves the exit tunnel and collapses into whatever shape its side chains favour — here a Chou–Fasman prediction, not a solved structure.'
+      : 'The ribosome reads three bases per amino acid. The chain leaves the exit tunnel and folds — here into one amphipathic helix on an otherwise disordered domain, the helix that MDM2 grips.';
+  }
+
+  get detail(): string {
+    if (!this.predicted) return '60 codons · helix at residues 17–29 · F19 W23 L26';
+    const helices = this.structure.filter((s) => s === 'helix').length;
+    return `${this.codons.length} codons · ${this.peptide.length} aa · ${helices} predicted helical`;
+  }
+
+  constructor(private readonly store: SequenceStore) {}
 
   private readonly ribosome = new AtomBatch(3);
   private readonly chain = new AtomBatch(2);
@@ -44,16 +62,25 @@ export class TranslationStage implements Stage {
   private readonly backdrop = new Backdrop();
   private readonly model = mat4();
 
-  private readonly folded = foldPeptide();
-  private readonly extended = extendedChain(RESIDUES);
-
+  // Buffers are sized for the longest sequence the store will accept, so a
+  // paste never has to reallocate mid-frame.
   private readonly ribosomeWriter = new AtomWriter(new Float32Array(RIBOSOME_BLOBS * ATOM_STRIDE));
-  private readonly chainWriter = new AtomWriter(new Float32Array((RESIDUES + 8) * ATOM_STRIDE));
-  private readonly bondWriter = new BondWriter(new Float32Array((RESIDUES + 12) * BOND_STRIDE));
-  private readonly mrnaWriter = new BondWriter(new Float32Array((RESIDUES * 2 + 8) * BOND_STRIDE));
+  private readonly chainWriter = new AtomWriter(new Float32Array((MAX_RESIDUES + 8) * ATOM_STRIDE));
+  private readonly bondWriter = new BondWriter(new Float32Array((MAX_RESIDUES + 12) * BOND_STRIDE));
+  private readonly mrnaWriter = new BondWriter(new Float32Array((MAX_RESIDUES * 3 + 8) * BOND_STRIDE));
 
   private readonly blobSeeds: Array<[number, number, number, number, number]> = [];
   private synthesised = 0;
+
+  // Everything below is derived from the active sequence.
+  private peptide = '';
+  private codons: readonly Codon[] = [];
+  private structure: readonly SecondaryStructure[] = [];
+  private highlights: readonly number[] = [];
+  private predicted = false;
+  private folded: Array<[number, number, number]> = [];
+  private extended: Array<[number, number, number]> = [];
+  private sequenceVersion = -1;
 
   init(gl: WebGL2RenderingContext): void {
     this.dispose();
@@ -94,11 +121,44 @@ export class TranslationStage implements Stage {
       drift[p + 7] = random() * 120;
     }
     this.chaperones.upload(drift, CHAPERONES);
+
+    this.rebuild();
+  }
+
+  /**
+   * Translate the active sequence and fold the result.
+   *
+   * This is where a pasted sequence pays off most visibly: a different ORF is
+   * a different peptide, which is a different set of side chains, which folds
+   * into a different shape. For p53 the secondary structure is the known
+   * annotation; for anything else it is a Chou–Fasman prediction and the
+   * caption says so.
+   */
+  private rebuild(): void {
+    const { coding } = this.store.analysis;
+    const peptide = (this.store.isFallback ? '' : coding.peptide).slice(0, MAX_RESIDUES);
+
+    // Falling back to the default sequence must also fall back to its peptide,
+    // or the transcript and the chain would be showing different molecules.
+    const fallback = this.store.isFallback || peptide.length === 0;
+    this.peptide = fallback ? DEFAULT_PEPTIDE : peptide;
+    this.codons = fallback ? DEFAULT_CODONS : coding.codons.slice(0, MAX_RESIDUES);
+
+    const assignment = structureFor(this.peptide);
+    this.structure = assignment.structure;
+    this.highlights = assignment.highlights;
+    this.predicted = assignment.predicted;
+
+    this.folded = foldPeptide(this.peptide, this.structure).positions;
+    this.extended = extendedChain(this.peptide.length);
+    this.sequenceVersion = this.store.version;
   }
 
   update(ctx: FrameContext): void {
+    if (this.sequenceVersion !== this.store.version) this.rebuild();
+
     const progress = smoothstep(0.04, 0.82, ctx.local);
-    this.synthesised = progress * RESIDUES;
+    this.synthesised = progress * this.peptide.length;
 
     this.buildRibosome(ctx);
     this.buildTranscript(ctx);
@@ -137,12 +197,12 @@ export class TranslationStage implements Stage {
     const read = this.synthesised;
     const span = 2.6;
 
-    for (let i = 0; i < RESIDUES; i++) {
+    for (let i = 0; i < this.codons.length; i++) {
       // Position along the transcript relative to the codon being read.
       const offset = (i - read) * 0.115;
       if (offset < -span || offset > span) continue;
 
-      const codon = P53_CODONS[i]!;
+      const codon = this.codons[i]!;
       const x = offset;
       const y = -0.42 + Math.sin(offset * 1.4 + ctx.time * 0.3) * 0.03;
 
@@ -185,7 +245,7 @@ export class TranslationStage implements Stage {
     const cos = Math.cos(spin);
     const sin = Math.sin(spin);
 
-    for (let i = 0; i <= count && i < RESIDUES; i++) {
+    for (let i = 0; i <= count && i < this.peptide.length; i++) {
       const age = this.synthesised - i;
       const folding = smoothstep(2, 22, age);
 
@@ -199,7 +259,7 @@ export class TranslationStage implements Stage {
       ];
 
       // Folded: the real conformation, spun into place.
-      const f = this.folded.positions[i]!;
+      const f = this.folded[i]!;
       const fx = f[0] * UNIT;
       const fy = f[1] * UNIT;
       const fz = f[2] * UNIT;
@@ -217,14 +277,14 @@ export class TranslationStage implements Stage {
     }
 
     for (let i = 0; i < positions.length; i++) {
-      const residue = P53_PEPTIDE[i]!;
+      const residue = this.peptide[i]!;
       const info = AMINO_ACIDS[residue];
       const color = RESIDUE_COLOR[info?.cls ?? 'special'];
       const [x, y, z] = positions[i]!;
 
       // The three residues that dock into MDM2 get flagged.
-      const isContact = MDM2_CONTACTS.includes(i);
-      const helical = secondaryStructureAt(i) === 'helix';
+      const isContact = this.highlights.includes(i);
+      const helical = this.structure[i] === 'helix';
       const radius = (isContact ? 0.055 : helical ? 0.042 : 0.036);
       const glow = isContact ? 1.1 : helical ? 0.3 : 0.08;
 
