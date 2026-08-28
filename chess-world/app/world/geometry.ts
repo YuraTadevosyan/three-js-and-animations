@@ -1,0 +1,222 @@
+/**
+ * Procedural geometry. The app ships no model files: every piece is a surface
+ * of revolution plus a few extruded or primitive details, generated at boot.
+ */
+import { Geometry } from 'playcanvas'
+
+export type ProfilePoint = [radius: number, y: number]
+export type Point2 = [x: number, y: number]
+
+/**
+ * Revolves a 2D profile around the Y axis. Points run bottom to top; a radius
+ * of zero closes the surface into a point (a spire, a finial, a nose cone).
+ */
+export function lathe(profile: ProfilePoint[], segments = 24): Geometry {
+  const positions: number[] = []
+  const uvs: number[] = []
+  const indices: number[] = []
+  const rings = profile.length
+
+  for (let ring = 0; ring < rings; ring++) {
+    const [radius, y] = profile[ring]!
+    for (let segment = 0; segment <= segments; segment++) {
+      const angle = (segment / segments) * Math.PI * 2
+      positions.push(Math.cos(angle) * radius, y, Math.sin(angle) * radius)
+      uvs.push(segment / segments, ring / (rings - 1))
+    }
+  }
+
+  const perRing = segments + 1
+  for (let ring = 0; ring < rings - 1; ring++) {
+    for (let segment = 0; segment < segments; segment++) {
+      const a = ring * perRing + segment
+      const b = a + 1
+      const c = a + perRing
+      const d = c + 1
+      indices.push(a, c, b, b, c, d)
+    }
+  }
+
+  // Cap the base so the piece is not hollow when seen from a low camera.
+  const [baseRadius, baseY] = profile[0]!
+  if (baseRadius > 0.001) {
+    const centre = positions.length / 3
+    positions.push(0, baseY, 0)
+    uvs.push(0.5, 0.5)
+    for (let segment = 0; segment < segments; segment++) {
+      indices.push(centre, segment, segment + 1)
+    }
+  }
+
+  const geometry = new Geometry()
+  geometry.positions = positions
+  geometry.uvs = uvs
+  geometry.indices = indices
+  geometry.calculateNormals()
+  return geometry
+}
+
+/** Signed area — positive means counter-clockwise in a Y-up plane. */
+function signedArea(polygon: Point2[]): number {
+  let area = 0
+  for (let i = 0; i < polygon.length; i++) {
+    const [x1, y1] = polygon[i]!
+    const [x2, y2] = polygon[(i + 1) % polygon.length]!
+    area += x1 * y2 - x2 * y1
+  }
+  return area / 2
+}
+
+function pointInTriangle(px: number, py: number, a: Point2, b: Point2, c: Point2): boolean {
+  const v0x = c[0] - a[0]
+  const v0y = c[1] - a[1]
+  const v1x = b[0] - a[0]
+  const v1y = b[1] - a[1]
+  const v2x = px - a[0]
+  const v2y = py - a[1]
+  const dot00 = v0x * v0x + v0y * v0y
+  const dot01 = v0x * v1x + v0y * v1y
+  const dot02 = v0x * v2x + v0y * v2y
+  const dot11 = v1x * v1x + v1y * v1y
+  const dot12 = v1x * v2x + v1y * v2y
+  const denominator = dot00 * dot11 - dot01 * dot01
+  if (Math.abs(denominator) < 1e-12) return false
+  const u = (dot11 * dot02 - dot01 * dot12) / denominator
+  const v = (dot00 * dot12 - dot01 * dot02) / denominator
+  return u >= 0 && v >= 0 && u + v <= 1
+}
+
+/**
+ * Ear clipping. The knight's silhouette is concave — a triangle fan from the
+ * centroid would put geometry outside the outline, most visibly across the gap
+ * between muzzle and chest.
+ */
+export function triangulate(polygon: Point2[]): number[] {
+  const indices: number[] = []
+  const remaining = polygon.map((_, index) => index)
+  const ccw = signedArea(polygon) > 0
+  let guard = 0
+
+  while (remaining.length > 3 && guard++ < 4096) {
+    let clipped = false
+    for (let i = 0; i < remaining.length; i++) {
+      const prev = remaining[(i - 1 + remaining.length) % remaining.length]!
+      const current = remaining[i]!
+      const next = remaining[(i + 1) % remaining.length]!
+      const a = polygon[prev]!
+      const b = polygon[current]!
+      const c = polygon[next]!
+
+      const cross = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+      if (ccw ? cross <= 0 : cross >= 0) continue
+
+      let contains = false
+      for (const other of remaining) {
+        if (other === prev || other === current || other === next) continue
+        const p = polygon[other]!
+        if (pointInTriangle(p[0], p[1], a, b, c)) {
+          contains = true
+          break
+        }
+      }
+      if (contains) continue
+
+      indices.push(prev, current, next)
+      remaining.splice(i, 1)
+      clipped = true
+      break
+    }
+    if (!clipped) break
+  }
+
+  if (remaining.length === 3) indices.push(remaining[0]!, remaining[1]!, remaining[2]!)
+  return indices
+}
+
+/**
+ * Extrudes a closed 2D outline (in the local XY plane) along Z. Used for the
+ * knight's head, which is the one piece that is a silhouette rather than a
+ * turned shape.
+ */
+export function extrude(outline: Point2[], thickness: number): Geometry {
+  const polygon = signedArea(outline) > 0 ? outline : [...outline].reverse()
+  const half = thickness / 2
+  const positions: number[] = []
+  const uvs: number[] = []
+  const indices: number[] = []
+  const count = polygon.length
+
+  for (const [x, y] of polygon) {
+    positions.push(x, y, half)
+    uvs.push(x + 0.5, y)
+  }
+  for (const [x, y] of polygon) {
+    positions.push(x, y, -half)
+    uvs.push(x + 0.5, y)
+  }
+
+  const cap = triangulate(polygon)
+  for (let i = 0; i < cap.length; i += 3) {
+    // Front face keeps the winding; the back face is mirrored, so reverse it.
+    indices.push(cap[i]!, cap[i + 2]!, cap[i + 1]!)
+    indices.push(count + cap[i]!, count + cap[i + 1]!, count + cap[i + 2]!)
+  }
+
+  for (let i = 0; i < count; i++) {
+    const next = (i + 1) % count
+    indices.push(i, next, count + i)
+    indices.push(next, count + next, count + i)
+  }
+
+  const geometry = new Geometry()
+  geometry.positions = positions
+  geometry.uvs = uvs
+  geometry.indices = indices
+  geometry.calculateNormals()
+  return geometry
+}
+
+/** A flat annulus in the XZ plane — move markers, shockwaves, teleport rings. */
+export function ring(inner: number, outer: number, segments = 48): Geometry {
+  const positions: number[] = []
+  const uvs: number[] = []
+  const indices: number[] = []
+
+  for (let segment = 0; segment <= segments; segment++) {
+    const angle = (segment / segments) * Math.PI * 2
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+    positions.push(cos * inner, 0, sin * inner)
+    positions.push(cos * outer, 0, sin * outer)
+    uvs.push(segment / segments, 0, segment / segments, 1)
+  }
+
+  for (let segment = 0; segment < segments; segment++) {
+    const a = segment * 2
+    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+  }
+
+  const geometry = new Geometry()
+  geometry.positions = positions
+  geometry.uvs = uvs
+  geometry.indices = indices
+  geometry.calculateNormals()
+  return geometry
+}
+
+/** A quad in the XZ plane, centred on the origin. */
+export function plane(width: number, depth: number): Geometry {
+  const geometry = new Geometry()
+  const halfWidth = width / 2
+  const halfDepth = depth / 2
+  geometry.positions = [
+    -halfWidth, 0, -halfDepth,
+     halfWidth, 0, -halfDepth,
+     halfWidth, 0,  halfDepth,
+    -halfWidth, 0,  halfDepth,
+  ]
+  geometry.uvs = [0, 0, 1, 0, 1, 1, 0, 1]
+  geometry.indices = [0, 2, 1, 0, 3, 2]
+  geometry.normals = [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]
+  return geometry
+}

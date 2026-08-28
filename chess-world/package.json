@@ -1,0 +1,37 @@
+{
+  "name": "chess-world",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Interactive Chess World \u2014 a chess game where every move is choreographed. Knights leap in a real arc, rooks charge behind a shockwave, bishops streak down the diagonal, queens dissolve into particles and rematerialise, captured pieces burst apart, and the camera covers all of it. Hand-written chess engine (legal move generation, SAN, alpha-beta search in a worker) with no chess library, rendered with the PlayCanvas engine under a Nuxt 4 UI.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt generate",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "check:perft": "esbuild tools/perft.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/perft.mjs --log-level=error && node node_modules/.cache/perft.mjs",
+    "check:games": "esbuild tools/games.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/games.mjs --log-level=error && node node_modules/.cache/games.mjs",
+    "check": "npm run typecheck && npm run check:perft && npm run check:games",
+    "predeploy": "npm run generate",
+    "deploy": "gh-pages -d .output/public -e chess-world"
+  },
+  "dependencies": {
+    "playcanvas": "^2.21.4",
+    "vue": "^3.5.42"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.28.2",
+    "gh-pages": "^6.3.0",
+    "nuxt": "^4.5.2",
+    "postcss": "^8.5.23",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.11"
+  }
+}

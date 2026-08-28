@@ -1,0 +1,524 @@
+import { computed, ref, shallowRef } from 'vue'
+import { CINEMA_BY_ID, CINEMA_GAMES, type CinemaGame } from '~/data/games'
+import { ChessGame, type GameStatus, type MoveRecord } from '~/game/game'
+import { DIFFICULTIES, type Difficulty } from '~/game/search'
+import {
+  BLACK, KING, QUEEN, WHITE, type Color, moveCaptured, moveTo, pieceColor, pieceType, squareName,
+} from '~/game/types'
+import type { CameraMode, MarkerKind } from '~/world/world'
+import { ChessWorld } from '~/world/world'
+import { createEngine } from './useEngine'
+
+export type Mode = 'play' | 'cinema'
+export type Opponent = 'engine' | 'human'
+
+export interface HistoryEntry {
+  ply: number
+  moveNumber: number
+  color: Color
+  san: string
+}
+
+const engine = createEngine()
+
+/* --------------------------------------------------------------- state -- */
+
+const mode = ref<Mode>('play')
+const world = shallowRef<ChessWorld | null>(null)
+const game = shallowRef(new ChessGame())
+const ready = ref(false)
+
+const turn = ref<Color>(WHITE)
+const status = ref<GameStatus>({ over: false, outcome: null, winner: null, inCheck: false, turn: WHITE })
+const history = ref<HistoryEntry[]>([])
+const captured = ref<{ white: number[]; black: number[] }>({ white: [], black: [] })
+
+const selected = ref(-1)
+const targets = ref<{ square: number; capture: boolean }[]>([])
+const hovered = ref(-1)
+const promotionPrompt = ref<{ from: number; to: number } | null>(null)
+const hint = ref<{ from: number; to: number } | null>(null)
+
+const thinking = ref(false)
+const engineLine = ref<{ depth: number; score: number; nodes: number; mateIn: number | null; pv: string[] } | null>(null)
+const animating = ref(false)
+
+const playerSide = ref<Color>(WHITE)
+const opponent = ref<Opponent>('engine')
+const difficulty = ref<Difficulty>('club')
+const cameraMode = ref<CameraMode>('follow')
+const soundOn = ref(true)
+const quality = ref<'high' | 'low'>('high')
+
+const cinemaId = ref<string>(CINEMA_GAMES[0]!.id)
+const cinemaPly = ref(0)
+const cinemaPlaying = ref(false)
+const cinemaSpeed = ref(1)
+const cinemaNote = ref<string | null>(null)
+
+const toast = ref<string | null>(null)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+/* ------------------------------------------------------------- derived -- */
+
+const cinemaGame = computed<CinemaGame>(() => CINEMA_BY_ID.get(cinemaId.value) ?? CINEMA_GAMES[0]!)
+const cinemaLength = computed(() => cinemaGame.value.moves.length)
+
+const interactive = computed(
+  () =>
+    mode.value === 'play' &&
+    !status.value.over &&
+    !thinking.value &&
+    !animating.value &&
+    (opponent.value === 'human' || turn.value === playerSide.value),
+)
+
+const resultText = computed(() => {
+  const value = status.value
+  if (!value.over) return null
+  switch (value.outcome) {
+    case 'checkmate':
+      return `${value.winner === WHITE ? 'Cyan' : 'Magenta'} wins by checkmate`
+    case 'stalemate':
+      return 'Draw — stalemate'
+    case 'fifty-move':
+      return 'Draw — fifty-move rule'
+    case 'repetition':
+      return 'Draw — threefold repetition'
+    case 'insufficient':
+      return 'Draw — insufficient material'
+    default:
+      return 'Game over'
+  }
+})
+
+const materialBalance = computed(() => {
+  const values = [0, 1, 3, 3, 5, 9, 0]
+  const white = captured.value.white.reduce((sum, type) => sum + values[type]!, 0)
+  const black = captured.value.black.reduce((sum, type) => sum + values[type]!, 0)
+  return white - black
+})
+
+/* ------------------------------------------------------------- helpers -- */
+
+function notify(message: string, duration = 2600): void {
+  toast.value = message
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => (toast.value = null), duration)
+}
+
+function refresh(): void {
+  const current = game.value
+  turn.value = current.turn
+  status.value = current.status()
+  captured.value = current.captured()
+  history.value = current.history.map((record, index) => ({
+    ply: index,
+    moveNumber: record.moveNumber,
+    color: record.color,
+    san: record.san,
+  }))
+}
+
+function markerList(): { square: number; kind: MarkerKind }[] {
+  const markers: { square: number; kind: MarkerKind }[] = []
+  if (selected.value >= 0) markers.push({ square: selected.value, kind: 'select' })
+  for (const target of targets.value) {
+    markers.push({ square: target.square, kind: target.capture ? 'capture' : 'move' })
+  }
+  if (hint.value) {
+    markers.push({ square: hint.value.from, kind: 'select' })
+    markers.push({ square: hint.value.to, kind: 'move' })
+  }
+  const checkedKing = game.value.checkedKingSquare()
+  if (checkedKing >= 0) markers.push({ square: checkedKing, kind: 'check' })
+  return markers
+}
+
+function syncMarkers(): void {
+  world.value?.setMarkers(markerList(), ['select', 'move', 'capture', 'check'])
+}
+
+function clearSelection(): void {
+  selected.value = -1
+  targets.value = []
+  hint.value = null
+  syncMarkers()
+}
+
+/* ---------------------------------------------------------- move flow -- */
+
+async function commit(move: number): Promise<void> {
+  const current = game.value
+  const record = current.play(move)
+  clearSelection()
+  refresh()
+
+  animating.value = true
+  const kingSquare = current.checkedKingSquare()
+  await world.value?.playMove(record, { kingSquare })
+  animating.value = false
+  syncMarkers()
+
+  if (mode.value === 'play') await afterMove()
+}
+
+async function afterMove(): Promise<void> {
+  refresh()
+  if (status.value.over) {
+    notify(resultText.value ?? 'Game over', 5200)
+    world.value?.setCameraMode(cameraMode.value)
+    return
+  }
+  if (opponent.value === 'engine' && turn.value !== playerSide.value) await think()
+}
+
+async function think(): Promise<void> {
+  const current = game.value
+  thinking.value = true
+  try {
+    const reply = await engine.think(current.fen, DIFFICULTIES[difficulty.value])
+    engineLine.value = reply.move
+      ? { depth: reply.depth, score: reply.score, nodes: reply.nodes, mateIn: reply.mateIn, pv: reply.pv }
+      : null
+    if (!reply.move) return
+    const move = current.find(reply.move.from, reply.move.to, reply.move.promotion)
+    if (move === null) {
+      notify('The engine suggested an illegal move — resynchronising')
+      resync()
+      return
+    }
+    thinking.value = false
+    await commit(move)
+  } finally {
+    thinking.value = false
+  }
+}
+
+function resync(): void {
+  world.value?.sync(game.value.pieces())
+  refresh()
+  syncMarkers()
+}
+
+/* ------------------------------------------------------------- public -- */
+
+export function useChessWorld() {
+  function attach(canvas: HTMLCanvasElement): void {
+    if (world.value) return
+    const instance = new ChessWorld(canvas, {
+      onPick: (square) => void pick(square),
+      onHover: (square) => (hovered.value = square),
+    })
+    world.value = instance
+    instance.setCameraMode(cameraMode.value)
+    instance.faceSide(playerSide.value, true)
+    instance.sound.enabled = soundOn.value
+    instance.setQuality(quality.value)
+    instance.sync(game.value.pieces(), true)
+    refresh()
+    ready.value = true
+  }
+
+  function detach(): void {
+    world.value?.destroy()
+    world.value = null
+    ready.value = false
+  }
+
+  async function pick(square: number): Promise<void> {
+    if (mode.value === 'cinema') return
+    const current = game.value
+    if (!interactive.value) {
+      if (thinking.value) notify('The engine is thinking')
+      return
+    }
+
+    const piece = current.position.board[square] ?? 0
+    const isOwn = piece !== 0 && pieceColor(piece) === current.turn
+
+    if (selected.value >= 0) {
+      const target = targets.value.find((entry) => entry.square === square)
+      if (target) {
+        if (current.needsPromotion(selected.value, square)) {
+          promotionPrompt.value = { from: selected.value, to: square }
+          return
+        }
+        const move = current.find(selected.value, square)
+        if (move !== null) {
+          await commit(move)
+          return
+        }
+      }
+      if (!isOwn) {
+        clearSelection()
+        world.value?.sound.deny()
+        return
+      }
+    }
+
+    if (!isOwn) return
+    selected.value = square
+    targets.value = current.movesFrom(square).map((move) => ({
+      square: moveTo(move),
+      capture: moveCaptured(move) !== 0,
+    }))
+    hint.value = null
+    world.value?.sound.select()
+    syncMarkers()
+  }
+
+  async function choosePromotion(type: number): Promise<void> {
+    const prompt = promotionPrompt.value
+    promotionPrompt.value = null
+    if (!prompt) return
+    const move = game.value.find(prompt.from, prompt.to, type)
+    if (move === null) return
+    await commit(move)
+  }
+
+  function cancelPromotion(): void {
+    promotionPrompt.value = null
+    clearSelection()
+  }
+
+  async function newGame(): Promise<void> {
+    world.value?.finishAnimations()
+    game.value.reset()
+    cinemaNote.value = null
+    engineLine.value = null
+    clearSelection()
+    world.value?.sync(game.value.pieces(), true)
+    world.value?.faceSide(playerSide.value)
+    refresh()
+    if (mode.value === 'play' && opponent.value === 'engine' && turn.value !== playerSide.value) {
+      await think()
+    }
+  }
+
+  async function undo(): Promise<void> {
+    if (mode.value !== 'play' || thinking.value) return
+    const current = game.value
+    if (!current.history.length) return
+    world.value?.finishAnimations()
+    current.undo()
+    // Take back the engine's reply as well, so the player is on move again.
+    if (opponent.value === 'engine' && current.turn !== playerSide.value && current.history.length) {
+      current.undo()
+    }
+    clearSelection()
+    resync()
+    engineLine.value = null
+    // Undoing back past the engine's opening move leaves it on move with
+    // nothing to trigger it — ask for a fresh one rather than deadlocking.
+    if (opponent.value === 'engine' && !status.value.over && current.turn !== playerSide.value) {
+      await think()
+    }
+  }
+
+  async function requestHint(): Promise<void> {
+    if (!interactive.value) return
+    thinking.value = true
+    try {
+      const reply = await engine.think(game.value.fen, DIFFICULTIES.club)
+      if (!reply.move) return
+      hint.value = { from: reply.move.from, to: reply.move.to }
+      notify(`Try ${squareName(reply.move.from)} → ${squareName(reply.move.to)}`)
+      syncMarkers()
+    } finally {
+      thinking.value = false
+    }
+  }
+
+  function setMode(next: Mode): void {
+    if (mode.value === next) return
+    cinemaPlaying.value = false
+    world.value?.finishAnimations()
+    mode.value = next
+    clearSelection()
+    engineLine.value = null
+
+    if (next === 'cinema') {
+      cameraMode.value = 'cinema'
+      world.value?.setCameraMode('cinema')
+      world.value?.setSpeed(cinemaSpeed.value)
+      loadCinema(cinemaId.value)
+      return
+    }
+
+    // Cinema's speed control drives the whole animator, so hand it back.
+    world.value?.setSpeed(1)
+    cameraMode.value = 'follow'
+    world.value?.setCameraMode('follow')
+    void newGame()
+  }
+
+  function setPlayerSide(side: Color): void {
+    playerSide.value = side
+    world.value?.faceSide(side)
+    void newGame()
+  }
+
+  function setDifficulty(level: Difficulty): void {
+    difficulty.value = level
+  }
+
+  function setCameraMode(next: CameraMode): void {
+    cameraMode.value = next
+    world.value?.setCameraMode(next)
+  }
+
+  function setSound(enabled: boolean): void {
+    soundOn.value = enabled
+    const instance = world.value
+    if (!instance) return
+    instance.sound.enabled = enabled
+    if (enabled) instance.sound.resume()
+  }
+
+  function setQuality(level: 'high' | 'low'): void {
+    quality.value = level
+    world.value?.setQuality(level)
+  }
+
+  /* --------------------------------------------------------- cinema --- */
+
+  function loadCinema(id: string): void {
+    cinemaPlaying.value = false
+    cinemaId.value = id
+    cinemaPly.value = 0
+    cinemaNote.value = null
+    world.value?.finishAnimations()
+    game.value.reset()
+    world.value?.sync(game.value.pieces(), true)
+    world.value?.faceSide(WHITE)
+    refresh()
+  }
+
+  async function cinemaStep(): Promise<boolean> {
+    const fixture = cinemaGame.value
+    if (cinemaPly.value >= fixture.moves.length) return false
+    const san = fixture.moves[cinemaPly.value]!
+    const record: MoveRecord | null = game.value.playSan(san)
+    if (!record) {
+      notify(`Replay stopped: ${san} is not legal here`)
+      cinemaPlaying.value = false
+      return false
+    }
+    cinemaPly.value++
+    refresh()
+
+    const highlight = fixture.highlights.find((entry) => entry.ply === cinemaPly.value)
+    cinemaNote.value = highlight?.note ?? null
+
+    animating.value = true
+    await world.value?.playMove(record, { kingSquare: game.value.checkedKingSquare() })
+    animating.value = false
+    return true
+  }
+
+  async function cinemaPlay(): Promise<void> {
+    if (cinemaPlaying.value) return
+    cinemaPlaying.value = true
+    world.value?.sound.resume()
+    while (cinemaPlaying.value && cinemaPly.value < cinemaLength.value) {
+      const advanced = await cinemaStep()
+      if (!advanced) break
+      const pause = (cinemaNote.value ? 900 : 260) / cinemaSpeed.value
+      await new Promise((resolve) => setTimeout(resolve, pause))
+    }
+    cinemaPlaying.value = false
+  }
+
+  function cinemaPause(): void {
+    cinemaPlaying.value = false
+  }
+
+  function cinemaSeek(ply: number): void {
+    const fixture = cinemaGame.value
+    const target = Math.max(0, Math.min(ply, fixture.moves.length))
+    cinemaPlaying.value = false
+    world.value?.finishAnimations()
+    game.value.reset()
+    for (let i = 0; i < target; i++) game.value.playSan(fixture.moves[i]!)
+    cinemaPly.value = target
+    cinemaNote.value = fixture.highlights.find((entry) => entry.ply === target)?.note ?? null
+    world.value?.sync(game.value.pieces())
+    refresh()
+    syncMarkers()
+  }
+
+  function setCinemaSpeed(speed: number): void {
+    cinemaSpeed.value = speed
+    world.value?.setSpeed(speed)
+  }
+
+  return {
+    // state
+    mode,
+    ready,
+    turn,
+    status,
+    history,
+    captured,
+    selected,
+    hovered,
+    targets,
+    promotionPrompt,
+    thinking,
+    engineLine,
+    animating,
+    playerSide,
+    opponent,
+    difficulty,
+    cameraMode,
+    soundOn,
+    quality,
+    toast,
+    // derived
+    interactive,
+    resultText,
+    materialBalance,
+    // cinema
+    cinemaGames: CINEMA_GAMES,
+    cinemaGame,
+    cinemaId,
+    cinemaPly,
+    cinemaLength,
+    cinemaPlaying,
+    cinemaSpeed,
+    cinemaNote,
+    // actions
+    attach,
+    detach,
+    pick,
+    choosePromotion,
+    cancelPromotion,
+    newGame,
+    undo,
+    requestHint,
+    setMode,
+    setPlayerSide,
+    setDifficulty,
+    setCameraMode,
+    setSound,
+    setQuality,
+    setOpponent: (value: Opponent) => {
+      opponent.value = value
+      void newGame()
+    },
+    loadCinema,
+    cinemaStep,
+    cinemaPlay,
+    cinemaPause,
+    cinemaSeek,
+    setCinemaSpeed,
+    // constants
+    KING,
+    QUEEN,
+    WHITE,
+    BLACK,
+    pieceType,
+    squareName,
+  }
+}

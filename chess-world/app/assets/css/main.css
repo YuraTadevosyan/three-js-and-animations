@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 225 62% 4%;
+    --foreground: 195 45% 92%;
+    --panel: 222 48% 7%;
+    --panel-foreground: 195 40% 90%;
+    --muted: 220 32% 15%;
+    --muted-foreground: 205 20% 62%;
+    --light: 192 96% 62%;
+    --light-foreground: 225 62% 6%;
+    --dark: 325 96% 64%;
+    --dark-foreground: 325 40% 96%;
+    --accent: 168 86% 60%;
+    --warn: 38 96% 62%;
+    --danger: 348 94% 62%;
+    --border: 205 48% 20%;
+    --radius: 0.7rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #__nuxt {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  canvas {
+    display: block;
+    outline: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full;
+    background: hsl(var(--border));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--light) / 0.5);
+  }
+}
+
+@layer components {
+  /* Frosted panel: the HUD floats over the arena rather than framing it. */
+  .glass {
+    @apply rounded-lg border border-border/70 bg-panel/70 backdrop-blur-xl;
+    box-shadow:
+      0 24px 60px -30px rgb(0 0 0 / 0.9),
+      inset 0 1px 0 0 hsl(var(--light) / 0.08);
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border/70 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-border/80 bg-muted/40 px-3 py-2 text-sm font-medium
+      text-foreground/90 transition-all duration-150 hover:border-light/60 hover:bg-muted/70 hover:text-foreground
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light/70
+      disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply border-light/50 bg-light/15 text-light hover:border-light hover:bg-light/25;
+  }
+
+  .btn-ghost {
+    @apply border-transparent bg-transparent hover:border-border hover:bg-muted/40;
+  }
+
+  .btn-icon {
+    @apply h-9 w-9 p-0;
+  }
+
+  .seg {
+    @apply flex items-center gap-1 rounded-md border border-border/70 bg-panel/60 p-1;
+  }
+
+  .seg-item {
+    @apply rounded px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors;
+  }
+
+  .seg-item[data-active='true'] {
+    @apply bg-light/15 text-light;
+  }
+
+  .label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground;
+  }
+
+  .rule {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-border to-transparent;
+  }
+}
+
+@layer utilities {
+  .text-glow-light {
+    text-shadow: 0 0 18px hsl(var(--light) / 0.55);
+  }
+
+  .text-glow-dark {
+    text-shadow: 0 0 18px hsl(var(--dark) / 0.55);
+  }
+
+  .scroll-fade {
+    mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent);
+  }
+}
