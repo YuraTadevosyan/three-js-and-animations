@@ -1,8 +1,22 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useChessWorld } from '~/composables/useChessWorld'
 
 const state = useChessWorld()
 const emit = defineEmits<{ close: [] }>()
+
+// Diagnostics are live only while this panel is open.
+const showDiagnostics = ref(false)
+let timer: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  state.refreshStats()
+  timer = setInterval(() => state.refreshStats(), 500)
+})
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+})
 
 const CAMERAS = [
   { key: 'follow', name: 'Follow', hint: 'Swings to each move, then settles back' },
@@ -63,12 +77,71 @@ const CAMERAS = [
         </div>
       </section>
 
+      <section class="mt-4 flex items-center justify-between">
+        <div>
+          <span class="label">Post-processing</span>
+          <p class="text-[11px] text-muted-foreground">Bloom, vignette and grading — added only once the scene is confirmed drawing</p>
+        </div>
+        <button
+          class="btn text-xs"
+          :class="state.postProcessing.value ? 'btn-primary' : ''"
+          @click="state.setPostProcessing(!state.postProcessing.value)"
+        >{{ state.postProcessing.value ? 'On' : 'Off' }}</button>
+      </section>
+
       <div class="rule my-4" />
 
       <p class="text-[11px] leading-relaxed text-muted-foreground">
-        Drag to orbit, scroll or pinch to zoom, tap a piece to select it. Everything you see is generated at
-        runtime — no models, textures or audio files are loaded.
+        Drag a piece to move it, or click it and click a highlighted square. Drag the board to orbit, scroll
+        or pinch to zoom. Everything you see is generated at runtime — no models, textures or audio files
+        are loaded.
       </p>
+
+      <button
+        class="mt-3 flex w-full items-center justify-between text-left"
+        @click="showDiagnostics = !showDiagnostics"
+      >
+        <span class="label">Diagnostics</span>
+        <span class="text-muted-foreground">{{ showDiagnostics ? '▲' : '▼' }}</span>
+      </button>
+
+      <div v-if="showDiagnostics" class="mt-2 rounded-md border border-border/60 bg-muted/20 p-3">
+        <dl class="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[11px]">
+          <dt class="text-muted-foreground">frames per second</dt>
+          <dd :class="(state.stats.value?.fps ?? 0) < 5 ? 'text-danger' : ''">{{ state.stats.value?.fps ?? '—' }}</dd>
+          <dt class="text-muted-foreground">update ticks</dt>
+          <dd>{{ state.stats.value?.frames ?? '—' }}</dd>
+          <dt class="text-muted-foreground">frames rendered</dt>
+          <dd :class="(state.stats.value?.renders ?? 0) === 0 ? 'text-danger' : ''">
+            {{ state.stats.value?.renders ?? '—' }}
+          </dd>
+          <dt class="text-muted-foreground">live particles</dt>
+          <dd>{{ state.stats.value?.particles ?? '—' }}</dd>
+          <dt class="text-muted-foreground">effects</dt>
+          <dd>{{ state.stats.value?.effectsEnabled === false ? 'disabled' : 'on' }}</dd>
+          <dt class="text-muted-foreground">post-processing</dt>
+          <dd :class="state.stats.value?.postProcessing === 'unavailable' ? 'text-warn' : ''">
+            {{ state.stats.value?.postProcessing ?? '—' }}
+          </dd>
+        </dl>
+        <dl class="mt-1 font-mono text-[11px]">
+          <dt class="text-muted-foreground">canvas</dt>
+          <dd>{{ state.stats.value?.canvas ?? '—' }}</dd>
+        </dl>
+
+        <p v-if="state.frameError.value" class="mt-2 break-words font-mono text-[11px] text-danger">
+          {{ state.frameError.value }}
+        </p>
+        <p v-else-if="(state.stats.value?.frames ?? 0) === 0" class="mt-2 text-[11px] text-warn">
+          The update loop is not running at all.
+        </p>
+        <p v-else-if="(state.stats.value?.renders ?? 0) === 0" class="mt-2 text-[11px] text-warn">
+          Updating but never rendering — the scene is not reaching the screen.
+        </p>
+        <p v-else class="mt-2 text-[11px] text-muted-foreground">
+          No frame errors.
+        </p>
+      </div>
     </div>
   </div>
 </template>

@@ -5,7 +5,7 @@ import { DIFFICULTIES, type Difficulty } from '~/game/search'
 import {
   BLACK, KING, QUEEN, WHITE, type Color, moveCaptured, moveTo, pieceColor, pieceType, squareName,
 } from '~/game/types'
-import type { CameraMode, MarkerKind } from '~/world/world'
+import type { CameraMode, MarkerKind, WorldOptions, WorldStats } from '~/world/world'
 import { ChessWorld } from '~/world/world'
 import { createEngine } from './useEngine'
 
@@ -39,6 +39,10 @@ const hovered = ref(-1)
 const promotionPrompt = ref<{ from: number; to: number } | null>(null)
 const hint = ref<{ from: number; to: number } | null>(null)
 
+const worldError = ref<string | null>(null)
+const frameError = ref<string | null>(null)
+const postProcessing = ref(true)
+const stats = ref<WorldStats | null>(null)
 const thinking = ref(false)
 const engineLine = ref<{ depth: number; score: number; nodes: number; mateIn: number | null; pv: string[] } | null>(null)
 const animating = ref(false)
@@ -204,12 +208,24 @@ function resync(): void {
 /* ------------------------------------------------------------- public -- */
 
 export function useChessWorld() {
-  function attach(canvas: HTMLCanvasElement): void {
+  function attach(canvas: HTMLCanvasElement, options: WorldOptions = {}): void {
     if (world.value) return
-    const instance = new ChessWorld(canvas, {
-      onPick: (square) => void pick(square),
-      onHover: (square) => (hovered.value = square),
-    })
+    let instance: ChessWorld
+    try {
+      instance = new ChessWorld(canvas, {
+        onPick: (square) => void pick(square),
+        onHover: (square) => (hovered.value = square),
+        canGrab: (square) => canGrab(square),
+        onDrop: (from, to) => void drop(from, to),
+        onFrameError: (message) => (frameError.value = message),
+      }, options)
+    } catch (error) {
+      // Without this the loading veil would simply hang forever.
+      console.error('[chess-world] the arena failed to start', error)
+      worldError.value = error instanceof Error ? error.message : String(error)
+      ready.value = true
+      return
+    }
     world.value = instance
     instance.setCameraMode(cameraMode.value)
     instance.faceSide(playerSide.value, true)
@@ -266,6 +282,32 @@ export function useChessWorld() {
     hint.value = null
     world.value?.sound.select()
     syncMarkers()
+  }
+
+  /** Can this square's piece be picked up right now? */
+  function canGrab(square: number): boolean {
+    if (mode.value !== 'play' || !interactive.value) return false
+    const piece = game.value.position.board[square] ?? 0
+    return piece !== 0 && pieceColor(piece) === game.value.turn
+  }
+
+  /** A dragged piece was released over `to` (-1 when dropped off the board). */
+  async function drop(from: number, to: number): Promise<void> {
+    if (to < 0 || to === from) return
+    if (!interactive.value) return
+    const current = game.value
+    if (current.needsPromotion(from, to)) {
+      promotionPrompt.value = { from, to }
+      return
+    }
+    const move = current.find(from, to)
+    if (move === null) {
+      // Illegal drop: the piece is already back home and stays selected, so
+      // the highlighted squares are still there to click.
+      world.value?.sound.deny()
+      return
+    }
+    await commit(move)
   }
 
   async function choosePromotion(type: number): Promise<void> {
@@ -381,6 +423,16 @@ export function useChessWorld() {
     world.value?.setQuality(level)
   }
 
+  function setPostProcessing(enabled: boolean): void {
+    postProcessing.value = enabled
+    world.value?.setPostProcessing(enabled)
+  }
+
+  /** Samples the renderer for the diagnostics panel. */
+  function refreshStats(): void {
+    stats.value = world.value?.stats() ?? null
+  }
+
   /* --------------------------------------------------------- cinema --- */
 
   function loadCinema(id: string): void {
@@ -456,6 +508,7 @@ export function useChessWorld() {
   return {
     // state
     mode,
+    world,
     ready,
     turn,
     status,
@@ -466,6 +519,10 @@ export function useChessWorld() {
     targets,
     promotionPrompt,
     thinking,
+    worldError,
+    frameError,
+    postProcessing,
+    stats,
     engineLine,
     animating,
     playerSide,
@@ -492,6 +549,8 @@ export function useChessWorld() {
     attach,
     detach,
     pick,
+    canGrab,
+    drop,
     choosePromotion,
     cancelPromotion,
     newGame,
@@ -503,6 +562,8 @@ export function useChessWorld() {
     setCameraMode,
     setSound,
     setQuality,
+    setPostProcessing,
+    refreshStats,
     setOpponent: (value: Opponent) => {
       opponent.value = value
       void newGame()

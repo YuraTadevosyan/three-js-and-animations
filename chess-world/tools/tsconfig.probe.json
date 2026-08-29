@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "~/world/world": ["./tools/stub-world.ts"],
+      "~/*": ["./app/*"]
+    }
+  }
+}

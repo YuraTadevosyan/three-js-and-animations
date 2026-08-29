@@ -284,6 +284,10 @@ export class Fx {
     this.particles = new ParticleField(app.graphicsDevice, this.root)
     this.ringMesh = Mesh.fromGeometry(app.graphicsDevice, ringGeometry(0.72, 1, 56))
     this.beamMesh = Mesh.fromGeometry(app.graphicsDevice, planeGeometry(1, 1))
+    // Each ring and beam destroys its entity when it fades; these shared
+    // meshes have to survive that.
+    this.ringMesh.incRefCount()
+    this.beamMesh.incRefCount()
   }
 
   burst(origin: Vec3, options: BurstOptions): void {
@@ -413,7 +417,9 @@ export class Fx {
 
   destroy(): void {
     this.root.destroy()
-    this.ringMesh.destroy()
-    this.beamMesh.destroy()
+    for (const mesh of [this.ringMesh, this.beamMesh]) {
+      mesh.decRefCount()
+      mesh.destroy()
+    }
   }
 }

@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useChessWorld } from '~/composables/useChessWorld'
 
-const { attach, detach, ready } = useChessWorld()
+const { attach, detach, ready, worldError } = useChessWorld()
 const canvas = ref<HTMLCanvasElement | null>(null)
 
 onMounted(() => {
@@ -15,6 +15,7 @@ onBeforeUnmount(() => detach())
 <template>
   <div class="absolute inset-0">
     <canvas ref="canvas" class="h-full w-full" aria-label="Interactive 3D chess board" />
+
     <Transition
       enter-active-class="transition-opacity duration-700"
       leave-active-class="transition-opacity duration-700"
@@ -31,5 +32,17 @@ onBeforeUnmount(() => detach())
         </div>
       </div>
     </Transition>
+
+    <!-- A dead canvas is otherwise indistinguishable from a very dark scene. -->
+    <div v-if="worldError" class="absolute inset-0 grid place-items-center bg-background/90 p-6">
+      <div class="glass max-w-md p-5">
+        <p class="text-sm font-semibold text-danger">The 3D arena could not start</p>
+        <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          This needs WebGL 2. If your browser has hardware acceleration disabled, or the tab has lost its
+          graphics context, the board cannot render.
+        </p>
+        <p class="mt-3 break-words font-mono text-[11px] text-warn">{{ worldError }}</p>
+      </div>
+    </div>
   </div>
 </template>

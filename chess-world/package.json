@@ -15,8 +15,12 @@
     "postinstall": "nuxt prepare",
     "typecheck": "nuxt typecheck",
     "check:perft": "esbuild tools/perft.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/perft.mjs --log-level=error && node node_modules/.cache/perft.mjs",
+    "check:geometry": "esbuild tools/geometry.ts --bundle --platform=node --format=esm --external:playcanvas --outfile=node_modules/.cache/geometry.mjs --log-level=error && node node_modules/.cache/geometry.mjs",
     "check:games": "esbuild tools/games.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/games.mjs --log-level=error && node node_modules/.cache/games.mjs",
-    "check": "npm run typecheck && npm run check:perft && npm run check:games",
+    "check:ui": "esbuild tools/interaction.ts --bundle --platform=node --format=esm --tsconfig=tools/tsconfig.probe.json --outfile=node_modules/.cache/interaction.mjs --log-level=error && node node_modules/.cache/interaction.mjs",
+    "check:world": "esbuild tools/headless.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/headless.mjs --log-level=error && node node_modules/.cache/headless.mjs",
+    "check:cinema": "esbuild tools/cinema.ts --bundle --platform=node --format=esm --tsconfig=tools/tsconfig.probe.json --alias:~/world/world=./app/world/world --outfile=node_modules/.cache/cinema.mjs --log-level=error && node node_modules/.cache/cinema.mjs",
+    "check": "npm run typecheck && npm run check:perft && npm run check:geometry && npm run check:games && npm run check:ui && npm run check:world && npm run check:cinema",
     "predeploy": "npm run generate",
     "deploy": "gh-pages -d .output/public -e chess-world"
   },

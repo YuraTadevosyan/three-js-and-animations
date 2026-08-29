@@ -5,8 +5,8 @@
  * for picking squares. Nothing above this file knows PlayCanvas exists.
  */
 import {
-  Application, Color, Entity, FILLMODE_NONE, FOG_EXP2, RESOLUTION_AUTO, SHADOW_PCF3_32F,
-  StandardMaterial, TONEMAP_ACES2, Vec3,
+  Application, Color, Entity, FILLMODE_NONE, FOG_EXP2, type GraphicsDevice, RESOLUTION_AUTO,
+  SHADOW_PCF3_32F, StandardMaterial, TONEMAP_ACES2, Vec3,
 } from 'playcanvas'
 import { CameraFrame } from 'playcanvas'
 import type { BoardPiece, MoveRecord } from '../game/game'
@@ -22,6 +22,45 @@ import { THEME, sideKey, squareToWorld, worldToSquare } from './theme'
 export interface WorldCallbacks {
   onPick?: (square: number) => void
   onHover?: (square: number) => void
+  /** May this square's piece be picked up and dragged right now? */
+  canGrab?: (square: number) => boolean
+  /** A dragged piece was released. `to` is -1 when dropped off the board. */
+  onDrop?: (from: number, to: number) => void
+  /** Something threw inside the frame loop. Reported once per distinct message. */
+  onFrameError?: (message: string) => void
+}
+
+export interface WorldStats {
+  fps: number
+  frames: number
+  /**
+   * Completed renders. If `frames` climbs while this stays at zero, the update
+   * loop is alive and the *render* is throwing — which leaves the canvas frozen
+   * or blank while the HTML interface carries on as if nothing were wrong.
+   */
+  renders: number
+  particles: number
+  postProcessing: PostState
+  effectsEnabled: boolean
+  lastError: string | null
+  /** CSS size and backbuffer size — a zero here explains an empty canvas. */
+  canvas: string
+}
+
+/**
+ * `pending` — waiting for proof that plain rendering works before adding
+ * post-processing; `unavailable` — it was tried and produced nothing, so it
+ * was rolled back.
+ */
+export type PostState = 'pending' | 'on' | 'off' | 'unavailable'
+
+export interface WorldOptions {
+  /**
+   * Graphics device override. Production leaves this unset and gets WebGL;
+   * the headless test harness passes a null device so the whole world —
+   * scene build, move choreography, per-frame update — can be run in Node.
+   */
+  graphicsDevice?: GraphicsDevice
 }
 
 export interface PlayMoveOptions {
@@ -56,15 +95,31 @@ export class ChessWorld {
   private frame: CameraFrame | null = null
   private observer: ResizeObserver | null = null
   private pointerStart: { x: number; y: number; time: number } | null = null
+  private dragging = false
+  private grab: { square: number; entity: Entity; pointerId: number } | null = null
   private pinchDistance = 0
   private elapsed = 0
   private disposed = false
+  private frames = 0
+  private renders = 0
+  private fps = 0
+  private fpsWindow = 0
+  private fpsFrames = 0
+  private effectsEnabled = true
+  private effectFailures = 0
+  private lastError: string | null = null
+  private quality: 'high' | 'low' = 'high'
+  private postState: PostState = 'pending'
+  private rendersAtPost = -1
+  private postWatchdog = 0
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly callbacks: WorldCallbacks = {},
+    options: WorldOptions = {},
   ) {
     this.app = new Application(canvas, {
+      graphicsDevice: options.graphicsDevice,
       graphicsDeviceOptions: {
         alpha: false,
         antialias: false,
@@ -89,10 +144,14 @@ export class ChessWorld {
     this.fx = new Fx(this.app, this.root, (timeline) => this.animator.spawn(timeline))
 
     this.setupScene()
-    this.setupPost()
     this.attachInput()
 
+    this.animator.onError = (error) => this.recordError(error)
     this.app.on('update', (dt: number) => this.update(dt))
+    this.app.on('postrender', () => this.renders++)
+    // A throw inside PlayCanvas's own render pass escapes to the window, so
+    // this is the only way to see a driver or shader failure from in here.
+    window.addEventListener('error', this.onWindowError)
     this.app.start()
     this.resize()
   }
@@ -161,13 +220,25 @@ export class ChessWorld {
     this.root.addChild(fill)
   }
 
-  private setupPost(): void {
+  /**
+   * Post-processing is the one part of this scene that can disagree with a
+   * driver, and when it does the result is a blank canvas rather than an
+   * error. So it is never assumed: the plain scene has to render first, and if
+   * switching it on stops frames appearing it is rolled straight back.
+   */
+  private enablePost(): boolean {
+    if (this.frame) {
+      this.frame.enabled = true
+      this.frame.update()
+      return true
+    }
     try {
       const frame = new CameraFrame(this.app, this.rig.entity.camera!)
       frame.rendering.toneMapping = TONEMAP_ACES2
-      frame.rendering.samples = 4
+      frame.rendering.samples = this.quality === 'high' ? 4 : 1
       frame.rendering.sharpness = 0.35
-      frame.bloom.intensity = 0.035
+      frame.rendering.renderTargetScale = this.quality === 'high' ? 1 : 0.75
+      frame.bloom.intensity = this.quality === 'high' ? 0.035 : 0.02
       frame.bloom.blurLevel = 12
       frame.vignette.inner = 0.55
       frame.vignette.outer = 1.4
@@ -176,17 +247,46 @@ export class ChessWorld {
       frame.grading.enabled = true
       frame.grading.saturation = 1.12
       frame.grading.contrast = 1.06
-      frame.grading.brightness = 1.0
+      frame.grading.brightness = 1
       frame.update()
       this.frame = frame
+      return true
     } catch (error) {
-      // Post-processing needs an HDR-capable float render target; without one
-      // the scene still renders, just without bloom.
-      console.warn('[chess-world] post-processing unavailable', error)
+      this.recordError(error)
+      return false
     }
   }
 
+  private disablePost(): void {
+    if (!this.frame) return
+    this.frame.enabled = false
+  }
+
+  /** Runs once per frame; owns the enable-then-verify-then-roll-back dance. */
+  private supervisePost(): void {
+    if (this.postState === 'pending') {
+      // 20 clean frames is proof the plain pipeline works.
+      if (this.renders < 20) return
+      this.postState = this.enablePost() ? 'on' : 'unavailable'
+      this.rendersAtPost = this.renders
+      this.postWatchdog = 0
+      return
+    }
+
+    if (this.postState !== 'on' || this.rendersAtPost < 0) return
+    if (++this.postWatchdog < 45) return
+    // Nothing rendered in the 45 frames since it was switched on: it is the
+    // reason the canvas is blank, so take it back out.
+    if (this.renders === this.rendersAtPost) {
+      this.disablePost()
+      this.postState = 'unavailable'
+      this.recordError('post-processing rendered no frames and has been switched off')
+    }
+    this.rendersAtPost = -1
+  }
+
   setQuality(level: 'high' | 'low'): void {
+    this.quality = level
     if (!this.frame) return
     this.frame.rendering.samples = level === 'high' ? 4 : 1
     this.frame.rendering.renderTargetScale = level === 'high' ? 1 : 0.75
@@ -209,6 +309,7 @@ export class ChessWorld {
 
   /** Places a whole position at once, with an optional arrival animation. */
   sync(position: BoardPiece[], animate = false): void {
+    this.grab = null
     this.animator.finishAll()
     this.fx.clear()
     for (const instance of this.pieces.values()) instance.entity.destroy()
@@ -244,6 +345,7 @@ export class ChessWorld {
    * be built while this one is still playing; only the visuals are queued.
    */
   playMove(record: MoveRecord, options: PlayMoveOptions = {}): Promise<void> {
+    this.grab = null
     const mover = this.pieces.get(record.from)
     if (!mover) return Promise.resolve()
 
@@ -391,7 +493,7 @@ export class ChessWorld {
     canvas.addEventListener('pointerdown', this.onPointerDown)
     canvas.addEventListener('pointermove', this.onPointerMove)
     canvas.addEventListener('pointerup', this.onPointerUp)
-    canvas.addEventListener('pointercancel', this.onPointerUp)
+    canvas.addEventListener('pointercancel', this.onPointerCancel)
     canvas.addEventListener('pointerleave', this.onPointerLeave)
     canvas.addEventListener('wheel', this.onWheel, { passive: false })
 
@@ -404,7 +506,24 @@ export class ChessWorld {
     this.canvas.setPointerCapture(event.pointerId)
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
     this.pointerStart = { x: event.clientX, y: event.clientY, time: performance.now() }
-    if (this.pointers.size === 2) this.pinchDistance = this.currentPinch()
+    this.dragging = false
+    if (this.pointers.size === 2) {
+      this.pinchDistance = this.currentPinch()
+      this.releaseGrab(true)
+      return
+    }
+
+    // Pressing a piece selects it *and* picks it up: click-to-move and
+    // drag-and-drop are the same gesture until the pointer starts moving.
+    const square = this.squareAt(event.clientX, event.clientY)
+    if (square < 0) return
+    // Only your own pieces respond on press. Every other square waits for the
+    // release, so a click on a destination is not handled twice.
+    if (!this.callbacks.canGrab?.(square)) return
+    this.callbacks.onPick?.(square)
+    const instance = this.pieces.get(square)
+    if (!instance) return
+    this.grab = { square, entity: instance.entity, pointerId: event.pointerId }
   }
 
   private readonly onPointerMove = (event: PointerEvent): void => {
@@ -427,27 +546,83 @@ export class ChessWorld {
       return
     }
 
+    // Nothing happens until the pointer clears the dead zone, so a click with
+    // a shaky hand stays a click instead of nudging the camera.
+    if (!this.dragging) {
+      const start = this.pointerStart
+      if (!start) return
+      if (Math.hypot(event.clientX - start.x, event.clientY - start.y) <= DRAG_THRESHOLD) return
+      this.dragging = true
+    }
+
+    if (this.grab) {
+      this.dragPiece(event.clientX, event.clientY)
+      return
+    }
+
     this.rig.orbitBy(-dx * 0.006, dy * 0.005)
+  }
+
+  /** Carries the held piece along the board plane, lifted off its square. */
+  private dragPiece(clientX: number, clientY: number): void {
+    const grab = this.grab
+    if (!grab) return
+    const point = this.boardPoint(clientX, clientY)
+    if (point) {
+      grab.entity.setLocalPosition(
+        Math.max(-4.6, Math.min(4.6, point.x)),
+        0.55,
+        Math.max(-4.6, Math.min(4.6, point.z)),
+      )
+    }
+    this.callbacks.onHover?.(this.squareAt(clientX, clientY))
+  }
+
+  /** Puts a held piece back on its own square. */
+  private releaseGrab(restore: boolean): void {
+    const grab = this.grab
+    if (!grab) return
+    if (restore) {
+      const home = this.board.worldPosition(grab.square)
+      grab.entity.setLocalPosition(home)
+    }
+    this.grab = null
   }
 
   private readonly onPointerUp = (event: PointerEvent): void => {
     const start = this.pointerStart
+    const wasDragging = this.dragging
+    const grab = this.grab
     this.pointers.delete(event.pointerId)
     if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId)
     this.pointerStart = null
+    this.dragging = false
     if (this.pointers.size < 2) this.pinchDistance = 0
-    if (!start) return
 
-    const travelled = Math.hypot(event.clientX - start.x, event.clientY - start.y)
-    const held = performance.now() - start.time
-    // A click is a tap that did not turn into a drag.
-    if (travelled > DRAG_THRESHOLD || held > 600) return
+    if (grab) {
+      const target = this.squareAt(event.clientX, event.clientY)
+      // Always put the piece back first: if the drop is legal the move
+      // animation replays it from here, and if not it never left.
+      this.releaseGrab(true)
+      if (wasDragging) this.callbacks.onDrop?.(grab.square, target)
+      return
+    }
+
+    if (!start || wasDragging) return
+    // A click is a press and release without a drag — no time limit, because
+    // people hold the button while they decide.
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > DRAG_THRESHOLD) return
     const square = this.squareAt(event.clientX, event.clientY)
     if (square >= 0) this.callbacks.onPick?.(square)
   }
 
   private readonly onPointerLeave = (): void => {
     this.callbacks.onHover?.(-1)
+  }
+
+  private readonly onPointerCancel = (event: PointerEvent): void => {
+    this.releaseGrab(true)
+    this.onPointerUp(event)
   }
 
   private readonly onWheel = (event: WheelEvent): void => {
@@ -461,34 +636,118 @@ export class ChessWorld {
     return Math.hypot(points[0]!.x - points[1]!.x, points[0]!.y - points[1]!.y)
   }
 
-  /** Screen point → board square, by intersecting the view ray with y = 0. */
-  private squareAt(clientX: number, clientY: number): number {
+  /** Screen point → the point where the view ray crosses the board plane. */
+  private boardPoint(clientX: number, clientY: number): { x: number; z: number } | null {
     const camera = this.rig.entity.camera
-    if (!camera) return -1
+    if (!camera) return null
     const rect = this.canvas.getBoundingClientRect()
+    if (rect.width < 1 || rect.height < 1) return null
     const x = clientX - rect.left
     const y = clientY - rect.top
 
     const near = camera.screenToWorld(x, y, camera.nearClip)
     const far = camera.screenToWorld(x, y, camera.farClip)
     const dy = far.y - near.y
-    if (Math.abs(dy) < 1e-5) return -1
+    if (!Number.isFinite(dy) || Math.abs(dy) < 1e-5) return null
     const t = -near.y / dy
-    if (t < 0 || t > 1) return -1
-    return worldToSquare(near.x + (far.x - near.x) * t, near.z + (far.z - near.z) * t)
+    if (!Number.isFinite(t) || t < 0 || t > 1) return null
+    const point = { x: near.x + (far.x - near.x) * t, z: near.z + (far.z - near.z) * t }
+    return Number.isFinite(point.x) && Number.isFinite(point.z) ? point : null
+  }
+
+  /** Screen point → board square, or -1. */
+  private squareAt(clientX: number, clientY: number): number {
+    const point = this.boardPoint(clientX, clientY)
+    return point ? worldToSquare(point.x, point.z) : -1
   }
 
   /* ------------------------------------------------------------ frame ---- */
 
+  private readonly onWindowError = (event: ErrorEvent): void => {
+    if (this.disposed) return
+    this.recordError(event.error ?? event.message)
+  }
+
+  private recordError(error: unknown): void {
+    const message = error instanceof Error ? error.message : String(error)
+    if (this.lastError === message) return
+    this.lastError = message
+    console.error('[chess-world] frame error', error)
+    this.callbacks.onFrameError?.(message)
+  }
+
+  /**
+   * PlayCanvas schedules the next frame *before* running this, so a throw here
+   * does not stop the loop — it just means `render()` is never reached, and the
+   * canvas sits frozen on its last good frame while the UI keeps responding.
+   * Catching it keeps the board alive even when an effect misbehaves.
+   */
   private update(dt: number): void {
     if (this.disposed) return
     const step = Math.min(dt, 0.05)
-    this.elapsed += step
-    this.animator.update(step)
-    this.board.update(step)
-    this.fx.shakeOffset(step, this.elapsed, this.shake)
-    this.rig.update(step, this.shake)
-    this.fx.update(step, this.rig.right, this.rig.up)
+
+    this.frames++
+    this.fpsWindow += dt
+    this.fpsFrames++
+    if (this.fpsWindow >= 0.5) {
+      this.fps = this.fpsFrames / this.fpsWindow
+      this.fpsWindow = 0
+      this.fpsFrames = 0
+    }
+
+    this.supervisePost()
+    if (this.renders === 0 && this.frames === 180) {
+      this.recordError('the scene updates but never renders — nothing is reaching the canvas')
+    }
+
+    try {
+      this.elapsed += step
+      this.animator.update(step)
+      this.board.update(step)
+      this.fx.shakeOffset(step, this.elapsed, this.shake)
+      this.rig.update(step, this.shake)
+    } catch (error) {
+      this.recordError(error)
+    }
+
+    if (!this.effectsEnabled) return
+    try {
+      this.fx.update(step, this.rig.right, this.rig.up)
+    } catch (error) {
+      this.recordError(error)
+      // Particles are the most exotic thing on screen; if they keep failing,
+      // drop them rather than lose the whole board.
+      if (++this.effectFailures >= 3) {
+        this.effectsEnabled = false
+        this.fx.clear()
+        console.warn('[chess-world] particle effects disabled after repeated errors')
+      }
+    }
+  }
+
+  /** Manual override for the Settings toggle. */
+  setPostProcessing(enabled: boolean): void {
+    if (enabled) {
+      this.postState = this.enablePost() ? 'on' : 'unavailable'
+      this.rendersAtPost = this.renders
+      this.postWatchdog = 0
+      return
+    }
+    this.disablePost()
+    this.postState = 'off'
+  }
+
+  stats(): WorldStats {
+    return {
+      fps: Math.round(this.fps),
+      frames: this.frames,
+      renders: this.renders,
+      particles: this.fx.particles.count,
+      postProcessing: this.postState,
+      effectsEnabled: this.effectsEnabled,
+      lastError: this.lastError,
+      canvas: `${this.canvas.clientWidth}×${this.canvas.clientHeight} css, ${this.app.graphicsDevice.width}×${this.app.graphicsDevice.height} buffer`,
+    }
   }
 
   resize(): void {
@@ -507,15 +766,18 @@ export class ChessWorld {
     this.canvas.removeEventListener('pointerdown', this.onPointerDown)
     this.canvas.removeEventListener('pointermove', this.onPointerMove)
     this.canvas.removeEventListener('pointerup', this.onPointerUp)
-    this.canvas.removeEventListener('pointercancel', this.onPointerUp)
+    this.canvas.removeEventListener('pointercancel', this.onPointerCancel)
     this.canvas.removeEventListener('pointerleave', this.onPointerLeave)
     this.canvas.removeEventListener('wheel', this.onWheel)
     this.observer?.disconnect()
     this.observer = null
+    window.removeEventListener('error', this.onWindowError)
     this.animator.finishAll()
     this.sound.destroy()
     this.frame?.destroy()
     this.frame = null
+    this.fx.destroy()
+    this.board.destroy()
     this.meshes.destroy()
     this.app.destroy()
   }

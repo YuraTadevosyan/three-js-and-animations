@@ -109,6 +109,16 @@ export function createPieceMaterials(): PieceMaterials {
 
 /* --------------------------------------------------------------- meshes -- */
 
+/**
+ * Shared piece meshes.
+ *
+ * A mesh is reference counted, and destroying a MeshInstance frees the mesh
+ * once the last instance lets go of it. These meshes outlive any particular
+ * piece — every reset destroys all 32 of them at once — so the cache holds a
+ * reference of its own. Without it, the first `sync` after startup would take
+ * every piece mesh down with it and leave the board rendering from freed
+ * buffers.
+ */
 export class PieceMeshCache {
   private readonly bodies = new Map<number, Mesh>()
   private knightHead: Mesh | null = null
@@ -119,21 +129,31 @@ export class PieceMeshCache {
     let mesh = this.bodies.get(type)
     if (!mesh) {
       mesh = Mesh.fromGeometry(this.device, lathe(PROFILES[type]!, 28))
+      mesh.incRefCount()
       this.bodies.set(type, mesh)
     }
     return mesh
   }
 
   head(): Mesh {
-    this.knightHead ??= Mesh.fromGeometry(this.device, extrude(KNIGHT_HEAD, 0.19))
+    if (!this.knightHead) {
+      this.knightHead = Mesh.fromGeometry(this.device, extrude(KNIGHT_HEAD, 0.19))
+      this.knightHead.incRefCount()
+    }
     return this.knightHead
   }
 
   destroy(): void {
-    for (const mesh of this.bodies.values()) mesh.destroy()
+    for (const mesh of this.bodies.values()) {
+      mesh.decRefCount()
+      mesh.destroy()
+    }
     this.bodies.clear()
-    this.knightHead?.destroy()
-    this.knightHead = null
+    if (this.knightHead) {
+      this.knightHead.decRefCount()
+      this.knightHead.destroy()
+      this.knightHead = null
+    }
   }
 }
 

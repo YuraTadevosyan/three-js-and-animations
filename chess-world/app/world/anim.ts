@@ -142,6 +142,12 @@ export class Animator {
   private ambient: Timeline[] = []
   /** Multiplier on every timeline's clock — Cinema's speed control. */
   timeScale = 1
+  /**
+   * Reports a throw from inside a timeline. The timeline is then treated as
+   * finished: a broken effect must never leave a move half-played, because the
+   * UI waits on that promise before it will accept the next one.
+   */
+  onError: ((error: unknown) => void) | null = null
 
   play(timeline: Timeline): Promise<void> {
     return new Promise((resolve) => {
@@ -168,7 +174,7 @@ export class Animator {
     const scaled = dt * this.timeScale
 
     for (let i = this.ambient.length - 1; i >= 0; i--) {
-      if (this.ambient[i]!.update(scaled)) this.ambient.splice(i, 1)
+      if (this.step(this.ambient[i]!, scaled)) this.ambient.splice(i, 1)
     }
 
     if (!this.current) {
@@ -177,7 +183,7 @@ export class Animator {
       this.current = next
     }
 
-    if (this.current.timeline.update(scaled)) {
+    if (this.step(this.current.timeline, scaled)) {
       const done = this.current
       this.current = null
       done.resolve()
@@ -187,16 +193,36 @@ export class Animator {
     }
   }
 
+  /** Advances one timeline, treating a throw as "finished" rather than fatal. */
+  private step(timeline: Timeline, dt: number): boolean {
+    try {
+      return timeline.update(dt)
+    } catch (error) {
+      this.onError?.(error)
+      return true
+    }
+  }
+
   /** Snaps everything to its end state — used when skipping or resetting. */
   finishAll(): void {
     const drain = [this.current, ...this.queue].filter(Boolean) as { timeline: Timeline; resolve: () => void }[]
     this.current = null
     this.queue = []
     for (const entry of drain) {
-      entry.timeline.finish()
+      try {
+        entry.timeline.finish()
+      } catch (error) {
+        this.onError?.(error)
+      }
       entry.resolve()
     }
-    for (const timeline of this.ambient) timeline.finish()
+    for (const timeline of this.ambient) {
+      try {
+        timeline.finish()
+      } catch (error) {
+        this.onError?.(error)
+      }
+    }
     this.ambient = []
   }
 }

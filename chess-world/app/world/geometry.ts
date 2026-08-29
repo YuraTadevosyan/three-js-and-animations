@@ -157,15 +157,17 @@ export function extrude(outline: Point2[], thickness: number): Geometry {
 
   const cap = triangulate(polygon)
   for (let i = 0; i < cap.length; i += 3) {
-    // Front face keeps the winding; the back face is mirrored, so reverse it.
-    indices.push(cap[i]!, cap[i + 2]!, cap[i + 1]!)
-    indices.push(count + cap[i]!, count + cap[i + 1]!, count + cap[i + 2]!)
+    // The outline is counter-clockwise in XY, so its own winding already faces
+    // +Z. The back cap is the mirror image and has to be reversed.
+    indices.push(cap[i]!, cap[i + 1]!, cap[i + 2]!)
+    indices.push(count + cap[i]!, count + cap[i + 2]!, count + cap[i + 1]!)
   }
 
   for (let i = 0; i < count; i++) {
+    // Walls wound so their normals point away from the shape, not into it.
     const next = (i + 1) % count
-    indices.push(i, next, count + i)
-    indices.push(next, count + next, count + i)
+    indices.push(i, count + i, next)
+    indices.push(next, count + i, count + next)
   }
 
   const geometry = new Geometry()
@@ -192,8 +194,10 @@ export function ring(inner: number, outer: number, segments = 48): Geometry {
   }
 
   for (let segment = 0; segment < segments; segment++) {
+    // Wound counter-clockwise seen from +Y: these lie flat on the board and
+    // are looked at from above, so the other winding makes them invisible.
     const a = segment * 2
-    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+    indices.push(a, a + 2, a + 1, a + 1, a + 2, a + 3)
   }
 
   const geometry = new Geometry()

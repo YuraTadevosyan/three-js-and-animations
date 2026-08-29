@@ -3,8 +3,8 @@
  * marker overlays that show selection, legal moves, the last move and check.
  */
 import {
-  ADDRESS_CLAMP_TO_EDGE, BLEND_ADDITIVE, Color, Entity, FILTER_LINEAR, Mesh, MeshInstance,
-  StandardMaterial, Texture, Vec3, type AppBase,
+  ADDRESS_CLAMP_TO_EDGE, BLEND_ADDITIVE, CULLFACE_NONE, Color, Entity, FILTER_LINEAR, Mesh,
+  MeshInstance, StandardMaterial, Texture, Vec3, type AppBase,
 } from 'playcanvas'
 import { Timeline, ease } from './anim'
 import { plane, ring } from './geometry'
@@ -112,6 +112,9 @@ export class Board {
     this.dotMesh = Mesh.fromGeometry(device, ring(0, 0.16, 24))
     this.ringMesh = Mesh.fromGeometry(device, ring(0.34, 0.46, 40))
     this.squareMesh = Mesh.fromGeometry(device, plane(0.94, 0.94))
+    // Markers come and go constantly; these shared meshes must not be freed
+    // along with the last marker that happened to be using them.
+    for (const mesh of [this.dotMesh, this.ringMesh, this.squareMesh]) mesh.incRefCount()
 
     this.buildFrame()
     this.buildTiles()
@@ -239,6 +242,8 @@ export class Board {
     material.blendType = BLEND_ADDITIVE
     material.depthWrite = false
     material.useFog = false
+    // Flat decals stay visible even when the camera dips below the board.
+    material.cull = CULLFACE_NONE
     material.update()
 
     const entity = new Entity(`marker-${kind}-${square}`)
@@ -314,6 +319,13 @@ export class Board {
       const wave = 0.72 + 0.28 * Math.sin(this.time * (marker.kind === 'check' ? 7 : 3.4))
       marker.material.emissiveIntensity = marker.intensity * wave
       marker.material.update()
+    }
+  }
+
+  destroy(): void {
+    for (const mesh of [this.dotMesh, this.ringMesh, this.squareMesh]) {
+      mesh.decRefCount()
+      mesh.destroy()
     }
   }
 
