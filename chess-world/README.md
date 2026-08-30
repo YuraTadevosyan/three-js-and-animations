@@ -89,16 +89,37 @@ Move generation is verified by perft against the six standard test positions:
 
 `npm run check` runs those, replays every Cinema game through the move generator
 (so a mistyped SAN token fails the build, not the replay), and asserts the search
-finds a set of forced mates and tactics.
+finds a set of forced mates and tactics. It also checks the parts that have no
+business being verified by eye:
+
+| Check | What it catches |
+| --- | --- |
+| `check:geometry` | Face winding. Back-face culling means geometry wound the wrong way is simply not there — this computes every triangle's normal and asserts it points outward, or up for anything lying on the board. |
+| `check:ui` | The click → select → move → capture → undo path, and drag-and-drop, driven against a stub renderer. |
+| `check:world` | The whole world on PlayCanvas's null device: every piece type's choreography, castling, promotion, a replay, every palette. It also audits the scene for mesh instances left pointing at freed meshes. |
+| `check:cinema` | Cinema playback end to end — load a game, press play, pause, seek — with a frame pump standing in for the browser. |
+
+## Colours
+
+Settings → **Colours**. Six built-in palettes (Neon Arena, Ember, Jade, Arctic,
+Royal, Monochrome), or set your own with six pickers: the two armies, the two
+square colours, the board glow and the background.
+
+Only those six are chosen. Everything else is derived from them — piece bodies
+are the army colour mixed towards white or black, sparks and rim lights take the
+army hue, the board frame comes from the dark squares, and the fog and ambient
+light come from the background — so a palette stays coherent whatever you pick.
+Repainting happens in place: no material is rebuilt, nothing on the board moves,
+and it is safe mid-animation. Your choice is remembered between visits.
 
 ## Controls
 
 | | |
 | --- | --- |
-| Select / move | Click a piece, then a highlighted square |
-| Orbit | Drag |
+| Orbit | Drag the board |
 | Zoom | Scroll, or pinch |
-| Modes | Play / Cinema in the top bar; camera, sound and quality under Settings |
+| Select / move | Drag a piece, or click it and click a highlighted square |
+| Modes | Play / Cinema in the top bar; colours, camera, sound and quality under Settings |
 
 ## Running it
 

@@ -19,6 +19,7 @@ async function main(): Promise<void> {
   const world = ChessWorld.last!
 
   check('world attached', world !== null)
+  check('a palette is applied on attach', world.palette !== null, JSON.stringify(world.palette))
   check('pieces placed', world.log.includes('sync:32'), world.log.join(','))
   check('interactive on load', state.interactive.value === true,
     `mode=${state.mode.value} over=${state.status.value.over} thinking=${state.thinking.value} animating=${state.animating.value} turn=${state.turn.value} side=${state.playerSide.value}`)
@@ -91,6 +92,23 @@ async function main(): Promise<void> {
 
   state.loadCinema('reti-tartakower')
   check('cinema load resets the board', state.history.value.length === 0)
+
+  /* ---- colours -------------------------------------------------------- */
+
+  state.setPalette('ember')
+  check('preset selected', state.paletteId.value === 'ember' && world.palette?.lightArmy === '#ffc46b',
+    JSON.stringify(world.palette))
+
+  state.setPaletteColor('lightArmy', '#00ff88')
+  check('editing a colour switches to custom', state.paletteId.value === 'custom')
+  check('the edit reaches the world', world.palette?.lightArmy === '#00ff88', JSON.stringify(world.palette))
+  check('other colours are kept', world.palette?.darkArmy === '#ff4530', JSON.stringify(world.palette))
+
+  state.resetPalette()
+  check('reset returns to the first preset', state.paletteId.value === state.palettes[0]!.id)
+
+  state.setPalette('does-not-exist')
+  check('an unknown palette is ignored', state.paletteId.value === state.palettes[0]!.id)
 }
 
 main()

@@ -44,6 +44,13 @@ export class ChessWorld {
     this.markers = []
   }
 
+  palette: Record<string, string> | null = null
+
+  applyPalette(values: Record<string, string>): void {
+    this.palette = { ...values }
+    this.log.push(`palette:${values.lightArmy ?? '?'}`)
+  }
+
   setCameraMode(): void {}
   faceSide(): void {}
   setSpeed(): void {}

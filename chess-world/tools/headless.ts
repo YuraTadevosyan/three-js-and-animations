@@ -10,6 +10,7 @@
 import { NullGraphicsDevice } from 'playcanvas'
 import { CINEMA_BY_ID } from '../app/data/games'
 import { ChessGame } from '../app/game/game'
+import { PALETTES, THEME, fromHex, toHex, type PaletteValues } from '../app/world/theme'
 import { ChessWorld } from '../app/world/world'
 
 /* ---- the smallest DOM the engine and the board texture need ------------ */
@@ -181,6 +182,54 @@ async function main(): Promise<void> {
     runFrames(world.app, 60)
   }
   auditMeshes('after three board resets')
+
+  /* ---- palettes -------------------------------------------------------- */
+
+  check('hex round trips', toHex(fromHex('#36d8ff')) === '#36d8ff', toHex(fromHex('#36d8ff')))
+  check('bad hex falls back rather than throwing', toHex(fromHex('nonsense')) === '#808080', toHex(fromHex('nonsense')))
+
+  for (const preset of PALETTES) {
+    world.applyPalette(preset)
+    const problem = runFrames(world.app, 20)
+    if (problem) {
+      check(`palette "${preset.name}" renders`, false, problem)
+      break
+    }
+    const armyMatches = toHex(THEME.pieces.white.glow) === preset.lightArmy &&
+      toHex(THEME.pieces.black.glow) === preset.darkArmy
+    const boardMatches = toHex(THEME.board.light) === preset.lightSquare &&
+      toHex(THEME.board.dark) === preset.darkSquare
+    check(
+      `palette "${preset.name}" repaints pieces and board`,
+      armyMatches && boardMatches,
+      `armies ${toHex(THEME.pieces.white.glow)}/${toHex(THEME.pieces.black.glow)}, squares ${toHex(THEME.board.light)}/${toHex(THEME.board.dark)}`,
+    )
+  }
+
+  const custom: PaletteValues = {
+    lightArmy: '#00ff88',
+    darkArmy: '#ff00aa',
+    lightSquare: '#332211',
+    darkSquare: '#110a05',
+    accent: '#ffaa00',
+    background: '#000000',
+  }
+  world.applyPalette(custom)
+  const customProblem = runFrames(world.app, 30)
+  check('a custom palette renders', customProblem === null, customProblem ?? '')
+  check('derived body colour stays distinct from the glow',
+    toHex(THEME.pieces.white.body) !== toHex(THEME.pieces.white.glow),
+    `${toHex(THEME.pieces.white.body)} vs ${toHex(THEME.pieces.white.glow)}`)
+
+  // Repainting mid-game must not disturb the position or free anything.
+  const midGame = new ChessGame()
+  world.sync(midGame.pieces())
+  midGame.playSan('e4')
+  void world.playMove(midGame.history[0]!, {})
+  world.applyPalette(PALETTES[2]!)
+  const repaintProblem = runFrames(world.app, 60)
+  check('repainting mid-move is safe', repaintProblem === null, repaintProblem ?? '')
+  auditMeshes('after every palette')
 
   if (errors.length) {
     failures += errors.length

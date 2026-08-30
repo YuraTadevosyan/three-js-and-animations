@@ -107,6 +107,21 @@ export function createPieceMaterials(): PieceMaterials {
   return { white: sideMaterial('white'), black: sideMaterial('black') }
 }
 
+/**
+ * Repaints both armies from the current theme. The two materials are shared by
+ * every piece, so this recolours the whole board in one step.
+ */
+export function applyPieceMaterials(materials: PieceMaterials): void {
+  for (const side of ['white', 'black'] as SideKey[]) {
+    const material = materials[side]
+    const palette = THEME.pieces[side]
+    material.diffuse.copy(palette.body)
+    material.emissive.copy(palette.glow)
+    material.emissiveIntensity = side === 'white' ? 0.35 : 0.55
+    material.update()
+  }
+}
+
 /* --------------------------------------------------------------- meshes -- */
 
 /**

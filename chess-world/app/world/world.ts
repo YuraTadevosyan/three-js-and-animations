@@ -15,9 +15,13 @@ import { Board, type MarkerKind } from './board'
 import { CameraRig, type CameraMode } from './camera'
 import { choreographMove, type CapturedPiece, type MoveScene } from './choreography'
 import { Fx } from './fx'
-import { PieceMeshCache, createPiece, createPieceMaterials, type PieceMaterials } from './pieces'
+import {
+  PieceMeshCache, applyPieceMaterials, createPiece, createPieceMaterials, type PieceMaterials,
+} from './pieces'
 import { Sound } from './sound'
-import { THEME, sideKey, squareToWorld, worldToSquare } from './theme'
+import {
+  THEME, applyPaletteToTheme, sideKey, squareToWorld, worldToSquare, type PaletteValues,
+} from './theme'
 
 export interface WorldCallbacks {
   onPick?: (square: number) => void
@@ -108,6 +112,9 @@ export class ChessWorld {
   private effectsEnabled = true
   private effectFailures = 0
   private lastError: string | null = null
+  private keyLight: Entity | null = null
+  private whiteRim: Entity | null = null
+  private blackRim: Entity | null = null
   private quality: 'high' | 'low' = 'high'
   private postState: PostState = 'pending'
   private rendersAtPost = -1
@@ -171,6 +178,7 @@ export class ChessWorld {
     camera.clearColor = THEME.background.clone()
 
     const key = new Entity('key-light')
+    this.keyLight = key
     key.addComponent('light', {
       type: 'directional',
       color: THEME.lights.key.clone(),
@@ -197,6 +205,7 @@ export class ChessWorld {
     })
     whiteRim.setLocalPosition(0, 1.6, 6.6)
     this.root.addChild(whiteRim)
+    this.whiteRim = whiteRim
 
     const blackRim = new Entity('black-rim')
     blackRim.addComponent('light', {
@@ -208,6 +217,7 @@ export class ChessWorld {
     })
     blackRim.setLocalPosition(0, 1.6, -6.6)
     this.root.addChild(blackRim)
+    this.blackRim = blackRim
 
     const fill = new Entity('fill-light')
     fill.addComponent('light', {
@@ -292,6 +302,32 @@ export class ChessWorld {
     this.frame.rendering.renderTargetScale = level === 'high' ? 1 : 0.75
     this.frame.bloom.intensity = level === 'high' ? 0.035 : 0.02
     this.frame.update()
+  }
+
+  /**
+   * Recolours the whole arena: both armies, all 64 squares, the frame, the
+   * floor grid, the lights and the fog. Materials are updated in place, so
+   * this is safe to call mid-game — nothing is rebuilt and no piece moves.
+   */
+  applyPalette(values: PaletteValues): void {
+    applyPaletteToTheme(values)
+    applyPieceMaterials(this.materials)
+    this.board.applyPalette()
+
+    const scene = this.app.scene
+    scene.ambientLight = THEME.ambient.clone()
+    scene.fog.color = THEME.fog.clone()
+
+    const camera = this.rig.entity.camera
+    if (camera) camera.clearColor = THEME.background.clone()
+
+    if (this.keyLight?.light) this.keyLight.light.color = THEME.lights.key.clone()
+    if (this.whiteRim?.light) this.whiteRim.light.color = THEME.lights.whiteRim.clone()
+    if (this.blackRim?.light) this.blackRim.light.color = THEME.lights.blackRim.clone()
+
+    // Existing markers were built from the old colours; rebuild the ones the
+    // board owns so nothing is left in a stale hue.
+    this.board.clearMarkers(['last', 'hover'])
   }
 
   /* ---------------------------------------------------------- pieces ---- */

@@ -5,6 +5,9 @@ import { DIFFICULTIES, type Difficulty } from '~/game/search'
 import {
   BLACK, KING, QUEEN, WHITE, type Color, moveCaptured, moveTo, pieceColor, pieceType, squareName,
 } from '~/game/types'
+import {
+  DEFAULT_PALETTE, PALETTES, type Palette, type PaletteValues,
+} from '~/world/theme'
 import type { CameraMode, MarkerKind, WorldOptions, WorldStats } from '~/world/world'
 import { ChessWorld } from '~/world/world'
 import { createEngine } from './useEngine'
@@ -38,6 +41,11 @@ const targets = ref<{ square: number; capture: boolean }[]>([])
 const hovered = ref(-1)
 const promotionPrompt = ref<{ from: number; to: number } | null>(null)
 const hint = ref<{ from: number; to: number } | null>(null)
+
+const PALETTE_STORAGE_KEY = 'chess-world:palette'
+
+const paletteId = ref<string>(PALETTES[0]!.id)
+const paletteValues = ref<PaletteValues>({ ...DEFAULT_PALETTE })
 
 const worldError = ref<string | null>(null)
 const frameError = ref<string | null>(null)
@@ -104,6 +112,38 @@ const materialBalance = computed(() => {
 })
 
 /* ------------------------------------------------------------- helpers -- */
+
+/** Colours survive a reload; a failed read just means the default palette. */
+function loadPalette(): void {
+  try {
+    const stored = localStorage.getItem(PALETTE_STORAGE_KEY)
+    if (!stored) return
+    const parsed = JSON.parse(stored) as { id?: string; values?: Partial<PaletteValues> }
+    const preset = PALETTES.find((entry) => entry.id === parsed.id)
+    if (preset) {
+      paletteId.value = preset.id
+      paletteValues.value = { ...preset }
+      return
+    }
+    if (parsed.values) {
+      paletteId.value = 'custom'
+      paletteValues.value = { ...DEFAULT_PALETTE, ...parsed.values }
+    }
+  } catch {
+    // Private browsing, cleared storage, corrupt JSON — the default is fine.
+  }
+}
+
+function savePalette(): void {
+  try {
+    localStorage.setItem(
+      PALETTE_STORAGE_KEY,
+      JSON.stringify({ id: paletteId.value, values: paletteValues.value }),
+    )
+  } catch {
+    // Not being able to remember the choice is not worth interrupting play.
+  }
+}
 
 function notify(message: string, duration = 2600): void {
   toast.value = message
@@ -227,6 +267,8 @@ export function useChessWorld() {
       return
     }
     world.value = instance
+    loadPalette()
+    instance.applyPalette(paletteValues.value)
     instance.setCameraMode(cameraMode.value)
     instance.faceSide(playerSide.value, true)
     instance.sound.enabled = soundOn.value
@@ -423,6 +465,28 @@ export function useChessWorld() {
     world.value?.setQuality(level)
   }
 
+  /** Switches to one of the built-in palettes. */
+  function setPalette(id: string): void {
+    const preset = PALETTES.find((entry) => entry.id === id)
+    if (!preset) return
+    paletteId.value = preset.id
+    paletteValues.value = { ...preset }
+    world.value?.applyPalette(paletteValues.value)
+    savePalette()
+  }
+
+  /** Edits one colour, which moves the palette to "custom". */
+  function setPaletteColor(key: keyof PaletteValues, hex: string): void {
+    paletteValues.value = { ...paletteValues.value, [key]: hex }
+    paletteId.value = 'custom'
+    world.value?.applyPalette(paletteValues.value)
+    savePalette()
+  }
+
+  function resetPalette(): void {
+    setPalette(PALETTES[0]!.id)
+  }
+
   function setPostProcessing(enabled: boolean): void {
     postProcessing.value = enabled
     world.value?.setPostProcessing(enabled)
@@ -523,6 +587,9 @@ export function useChessWorld() {
     frameError,
     postProcessing,
     stats,
+    palettes: PALETTES as Palette[],
+    paletteId,
+    paletteValues,
     engineLine,
     animating,
     playerSide,
@@ -563,6 +630,9 @@ export function useChessWorld() {
     setSound,
     setQuality,
     setPostProcessing,
+    setPalette,
+    setPaletteColor,
+    resetPalette,
     refreshStats,
     setOpponent: (value: Opponent) => {
       opponent.value = value

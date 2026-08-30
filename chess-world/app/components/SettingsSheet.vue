@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import ColourPanel from '~/components/ColourPanel.vue'
 import { useChessWorld } from '~/composables/useChessWorld'
 
 const state = useChessWorld()
@@ -27,13 +28,22 @@ const CAMERAS = [
 
 <template>
   <div class="absolute inset-0 z-40 bg-background/60 backdrop-blur-sm" @click.self="emit('close')">
-    <div class="glass animate-panel-in absolute right-3 top-16 w-[min(20rem,92vw)] p-4 sm:right-4">
+    <div
+      class="glass animate-panel-in absolute right-3 top-16 flex max-h-[calc(100vh-5.5rem)] w-[min(20rem,92vw)]
+        flex-col overflow-y-auto p-4 sm:right-4"
+    >
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-semibold">Settings</h2>
         <button class="btn btn-ghost btn-icon" aria-label="Close" @click="emit('close')">✕</button>
       </div>
 
-      <section class="mt-4 flex flex-col gap-2">
+      <div class="mt-4">
+        <ColourPanel />
+      </div>
+
+      <div class="rule my-4" />
+
+      <section class="flex flex-col gap-2">
         <span class="label">Camera</span>
         <div class="flex flex-col gap-1">
           <button

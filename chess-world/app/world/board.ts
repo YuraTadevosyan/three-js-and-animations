@@ -98,6 +98,10 @@ export class Board {
   private readonly dotMesh: Mesh
   private readonly ringMesh: Mesh
   private readonly squareMesh: Mesh
+  private frameMaterial: StandardMaterial | null = null
+  private lipMaterial: StandardMaterial | null = null
+  private floorMaterial: StandardMaterial | null = null
+  private floorTexture: Texture | null = null
   private time = 0
 
   constructor(
@@ -130,6 +134,7 @@ export class Board {
     material.metalness = 0.75
     material.gloss = 0.7
     material.update()
+    this.frameMaterial = material
 
     const frame = new Entity('frame')
     frame.addComponent('render', { type: 'box', material, castShadows: true, receiveShadows: true })
@@ -146,6 +151,7 @@ export class Board {
     lipMaterial.depthWrite = false
     lipMaterial.useFog = false
     lipMaterial.update()
+    this.lipMaterial = lipMaterial
 
     for (const [dx, dz, sx, sz] of [
       [0, 4.32, 8.7, 0.06],
@@ -206,7 +212,8 @@ export class Board {
     const material = new StandardMaterial()
     material.useLighting = false
     material.emissive = new Color(1, 1, 1)
-    material.emissiveMap = gridTexture(this.app)
+    this.floorTexture = gridTexture(this.app)
+    material.emissiveMap = this.floorTexture
     material.emissiveIntensity = 0.55
     material.blendType = BLEND_ADDITIVE
     material.depthWrite = false
@@ -219,6 +226,44 @@ export class Board {
     floor.addComponent('render', { meshInstances: [instance], castShadows: false, receiveShadows: false })
     floor.setLocalPosition(0, -1.35, 0)
     this.root.addChild(floor)
+    this.floorMaterial = material
+  }
+
+  /**
+   * Repaints the board in place. Materials are reused rather than rebuilt, so
+   * a colour change costs nothing and never disturbs what is on the board.
+   */
+  applyPalette(): void {
+    for (const [square, tile] of this.tiles) {
+      const isLight = isLightSquare(square)
+      tile.material.diffuse.copy(isLight ? THEME.board.light : THEME.board.dark)
+      tile.material.emissive.copy(THEME.board.grid)
+      tile.material.emissiveIntensity = isLight ? 0.05 : 0.02
+      tile.baseColor.copy(THEME.board.grid)
+      tile.baseIntensity = tile.material.emissiveIntensity
+      tile.material.update()
+    }
+
+    if (this.frameMaterial) {
+      this.frameMaterial.diffuse.copy(THEME.board.frame)
+      this.frameMaterial.emissive.copy(THEME.board.grid)
+      this.frameMaterial.update()
+    }
+
+    if (this.lipMaterial) {
+      this.lipMaterial.emissive.copy(THEME.board.grid)
+      this.lipMaterial.update()
+    }
+
+    // The grid is drawn into a canvas, so its colour lives in pixels and the
+    // texture has to be redrawn.
+    if (this.floorMaterial) {
+      const replacement = gridTexture(this.app)
+      this.floorMaterial.emissiveMap = replacement
+      this.floorMaterial.update()
+      this.floorTexture?.destroy()
+      this.floorTexture = replacement
+    }
   }
 
   /* ------------------------------------------------------------ markers -- */
@@ -327,6 +372,8 @@ export class Board {
       mesh.decRefCount()
       mesh.destroy()
     }
+    this.floorTexture?.destroy()
+    this.floorTexture = null
   }
 
   worldPosition(square: number, y = 0): Vec3 {
