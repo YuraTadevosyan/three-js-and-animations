@@ -1,4 +1,5 @@
 .idea
+.DS_Store
 
 # Main Page
 landing/node_modules/
