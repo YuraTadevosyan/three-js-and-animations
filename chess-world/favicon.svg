@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#36d8ff" />
+      <stop offset="100%" stop-color="#ff3ea5" />
+    </linearGradient>
+    <radialGradient id="bloom" cx="50%" cy="45%">
+      <stop offset="0%" stop-color="#36d8ff" stop-opacity=".55" />
+      <stop offset="100%" stop-color="#36d8ff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="#04060d" />
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="none" stroke="url(#edge)" stroke-opacity=".5" />
+  <circle cx="32" cy="30" r="26" fill="url(#bloom)" />
+
+  <!-- board squares receding toward the back rank -->
+  <g opacity=".55">
+    <path d="M12 47h13l-2 7H10z" fill="#14233d" />
+    <path d="M25 47h13l1 7H23z" fill="#0b1425" />
+    <path d="M38 47h13l4 7H39z" fill="#14233d" />
+  </g>
+
+  <!-- the knight's move: two squares, then one -->
+  <path d="M18 46V26h16v-8" fill="none" stroke="#36d8ff" stroke-width="3.4"
+    stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".95" />
+  <circle cx="18" cy="46" r="4.2" fill="#36d8ff" />
+  <circle cx="34" cy="18" r="5.4" fill="#ff3ea5" />
+  <circle cx="34" cy="18" r="9" fill="none" stroke="#ff3ea5" stroke-opacity=".45" stroke-width="1.6" />
+</svg>
