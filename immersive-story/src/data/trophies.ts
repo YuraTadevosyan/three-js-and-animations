@@ -1,6 +1,7 @@
-// Honours roll. Counts reflect the cabinet at the start of the 2025-26
-// season (after winning 2024-25 La Liga + Copa del Rey). Sourced from the
-// "List of FC Barcelona records and statistics" Wikipedia article.
+// Honours roll. Counts reflect the cabinet at the start of the 2026-27
+// season — the 2025-26 double of La Liga (29th) and the Supercopa de España
+// (16th) is included. Sourced from the honours table on the FC Barcelona
+// Wikipedia article.
 //
 // `tier` drives the visual emphasis in the section: domestic / european /
 // global gets a different accent line on the tile.
@@ -16,9 +17,9 @@ export type Trophy = {
 };
 
 export const TROPHIES: Trophy[] = [
-  { name: 'La Liga',                   short: 'LaLiga',      count: 28, tier: 'domestic', since: 1929 },
+  { name: 'La Liga',                   short: 'LaLiga',      count: 29, tier: 'domestic', since: 1929 },
   { name: 'Copa del Rey',              short: 'Copa',        count: 32, tier: 'domestic', since: 1910 },
-  { name: 'Supercopa de España',       short: 'Supercopa',   count: 15, tier: 'domestic', since: 1983 },
+  { name: 'Supercopa de España',       short: 'Supercopa',   count: 16, tier: 'domestic', since: 1983 },
   { name: 'UEFA Champions League',     short: 'UCL',         count: 5,  tier: 'european', since: 1992 },
   { name: 'UEFA Cup Winners’ Cup',     short: 'Cup Winners', count: 4,  tier: 'european', since: 1979 },
   { name: 'UEFA Super Cup',            short: 'Super Cup',   count: 5,  tier: 'european', since: 1992 },

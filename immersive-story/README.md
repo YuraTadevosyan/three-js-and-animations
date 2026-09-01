@@ -3,10 +3,10 @@
 A scroll-driven matchday story at Camp Nou, built in the **blaugrana** palette
 with **React**, **GSAP ScrollTrigger** and **Lenis**. Eleven scenes —
 full-bleed stadium hero, a one-card-at-a-time squad carousel, an interactive
-4-3-3 formation diagram, a La Liga table fetched at build time from
-Wikipedia, a coaching-staff grid, a La Masia academy grid, a scrolled
-trophy-cabinet counter, a horizontal-scrub timeline of iconic nights, a
-parallax fans bleed, and a credits outro — animate as you scroll. A nav-bar
+4-3-3 formation diagram, a **live La Liga table** with in-play scores and
+positions that move as the goals go in, a coaching-staff grid, a La Masia academy grid, a
+scrolled trophy-cabinet counter, a horizontal-scrub timeline of iconic
+nights, a parallax fans bleed, and a credits outro — animate as you scroll. A nav-bar
 toggle plays *El Cant del Barça* in the background, with a Web-Audio
 synth-ambience fallback. All animations run on the DOM; no `three.js`, no
 `<canvas>`, single render pass.
@@ -22,13 +22,13 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 | --- | ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | 00  | **Hero**         | Full-bleed Camp Nou photo with a slow ken-burns zoom, scoreboard pill, big "MÉS QUE UN CLUB" reveal.                    |
 | 01  | **Squad intro**  | "THE FIRST TEAM." headline announcing the carousel that follows.                                                        |
-| 02  | **Squad**        | Pinned carousel — all 23 first-team players, one card at a time. Photo, big stroked shirt-number, bio.                  |
+| 02  | **Squad**        | Pinned carousel — all 24 first-team players, one card at a time. Photo, big stroked shirt-number, bio.                  |
 | 03  | **Shape**         | SVG 4-3-3 pitch with the starting XI plotted. Tap a dot to lift that player's card on the side.                         |
-| 04  | **Where we stand** | Final La Liga 2025-26 table — top 10 with Barça highlighted in gold, plus a side callout of the champion's W/D/L/GD.    |
+| 04  | **Where we stand** | Live La Liga 2026-27 board — in-play scores and scorers on top, then the table (top 10, expandable to all 20) with Barça in gold, ▲/▼ position chips, a LIVE badge and a callout that rewrites itself mid-match. |
 | 05  | **Staff**         | 3-up grid of coaching-staff cards (Hansi Flick + assistants).                                                            |
 | 06  | **La Masia**      | Six-card grid of current first-teamers who came up through the academy — debut-year watermark, photo, one-line note.    |
 | 07  | **The cabinet**   | Pinned trophy room — every competition's count rolls up from 0 → N as you scroll, with a gold grand-total counter.      |
-| 08  | **Iconic nights** | Horizontal-scrub timeline. Six legendary matches (Wembley '92, Roma '09, La Remontada…) as typographic 100-vw panels.   |
+| 08  | **Iconic nights** | Horizontal-scrub timeline. Eight legendary matches (Wembley '92, La Remontada, the 2025 Camp Nou reopening…) as typographic 100-vw panels. |
 | 09  | **Fans**          | Pinned crowd photo with parallax drift; 4 stats lift in as you scroll over it.                                          |
 | 10  | **Outro**         | "VISCA EL BARÇA." sign-off + tech / data / image / audio credits.                                                        |
 
@@ -36,12 +36,16 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 
 | Feature                        | What's inside                                                                                                                          |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Pinned squad carousel**      | One scrubbed GSAP timeline crossfades all 23 players in the same physical frame as you scroll the pin (~11 viewport-heights total).     |
-| **Live player counter**        | Top-right `07 / 23` counter and a bottom gradient progress bar update from the carousel timeline's `onUpdate`.                          |
+| **Pinned squad carousel**      | One scrubbed GSAP timeline crossfades all 24 players in the same physical frame as you scroll the pin (~15 viewport-heights total).     |
+| **Live player counter**        | Top-right `07 / 24` counter and a bottom gradient progress bar update from the carousel timeline's `onUpdate`.                          |
 | **Tactical 4-3-3 diagram**     | Pure SVG pitch (markings stroke-drawn via `stroke-dasharray`) with the starting XI plotted; hover/tap a dot to lift its player card.    |
 | **Trophy-cabinet count-up**    | A single scrubbed dummy tween rewrites every numeric `<span>` on each frame — every tile counts up to `N` and a grand total to 92.      |
 | **Horizontal scrub timeline**  | The Iconic Nights section pins and translates a track of N viewport-wide panels leftward; same primitive as the squad carousel.         |
-| **Build-time La Liga table**   | `npm run build` runs a zero-dep Node script that scrapes the standings off Wikipedia and writes `src/data/standings.json` for the section to import. Soft-fails to the previous JSON if Wikipedia is unreachable. |
+| **Genuinely live scores**      | Matches in play show their running score, the minute and the scorers. The board seeds from a build-time snapshot so it paints instantly, then polls ESPN **from the browser** — every 25 s while a match is on, 60 s coming up to a kick-off, 5 min when the league is asleep. No API key, no proxy, no server. A failed refresh keeps the baked table on screen and labels itself *Offline · showing snapshot*. |
+| **Provisional live table**     | ESPN's standings only move at full time, so mid-match the table is stale by exactly the thing you're watching. In-flight scores are folded in and the table re-ranks, the way a broadcast live table does — each row carries a ▲/▼ chip for the places that result is currently worth. |
+| **Clean handover at the whistle** | The minute between full time and the standings absorbing a result is the one place a live table double-counts or goes backwards. The first time a match is seen in play, each side's games-played is recorded; the result keeps being applied until that number actually ticks up. |
+| **One client, two runtimes**   | `src/lib/laliga.js` is plain ESM imported by *both* the Node build script and the React section — the snapshot and the live rows can never drift in shape. |
+| **Missing-photo fallback**     | Two squad members have no freely-licensed photo on Commons; their cards render stroked initials on a blaugrana gradient instead of a broken image. |
 | **Anthem audio toggle**        | Nav button plays an MP3 of *El Cant del Barça* on demand, falling back to a Web-Audio-synthesised stadium roar if the file is missing. |
 | **IntersectionObserver text**  | `<SplitText>` lifts lines / words / chars into view from below — IO-driven so it works inside pinned sections that broke ScrollTrigger. |
 | **Ken-burns hero**             | Hero photo scales 1.05 → 1.22 on scroll, a dual blue/red overlay deepens, scroll hint fades.                                            |
@@ -62,7 +66,7 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
 | Motion     | GSAP 3 + ScrollTrigger; Lenis 1 for smooth scroll       |
 | Reveals    | Native `IntersectionObserver` (replaces ScrollTrigger for text reveals — more reliable inside pinned sections) |
 | Audio      | `HTMLAudioElement` for the real anthem file; Web Audio API for the synth-ambience fallback (brown noise + lowpass + LFO swell) |
-| Build-time data | Node ESM script (`scripts/fetch-standings.mjs`) hits the Wikipedia parse API and writes `src/data/standings.json` before `vite build` runs |
+| Live data  | ESPN's public site API — keyless and CORS-open. Client in `src/lib/laliga.js`, shared verbatim between the Node build script and the browser |
 | Styling    | Tailwind CSS 3 + a small hand-written stylesheet for the design primitives |
 | Fonts      | Archivo Black (display), Inter (body), JetBrains Mono (captions) — loaded from Google Fonts |
 
@@ -72,7 +76,7 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
   `useEffect` registering ScrollTrigger pins and tweens, then cleans them up
   on unmount. There's no global animation graph — adding / removing a section
   doesn't touch any other code.
-- **Squad carousel = one master timeline.** All 23 cards stack absolutely in
+- **Squad carousel = one master timeline.** All 24 cards stack absolutely in
   the same stage, hidden via `autoAlpha:0`. A `scrub`-driven GSAP timeline
   alternates `dwell → slide-out + slide-in` per card. The active card index
   is read back from `self.progress` to drive the counter and the progress
@@ -111,14 +115,52 @@ Part of [`three-js-and-animations`](../README.md) — see all showcases at the
   switches between **Anthem** and **Ambience** so the user knows which is
   playing. The `AudioContext` is only constructed on first toggle —
   modern browsers require a user gesture.
-- **Standings: scraped at build time, not runtime.** `scripts/fetch-standings.mjs`
-  hits the Wikipedia `parse` API for the 2025-26 La Liga article, regex-
-  extracts the first `wikitable`, decodes a handful of HTML entities (the
-  minus sign on negative goal differences, footnote refs on the
-  qualification copy), strips the `(C)` champion marker into a structured
-  flag, and writes `src/data/standings.json` for the React section to
-  import. Soft-fails to the previously-committed JSON if the fetch errors
-  so offline builds still ship.
+- **Standings: baked *and* live, from one client.**
+  [`src/lib/laliga.js`](./src/lib/laliga.js) is plain ESM with no dependencies,
+  so both runtimes import the same file:
+    - **Build time.** `scripts/fetch-standings.mjs` calls it, then writes
+      `src/data/standings.json` into the bundle. Soft-fails to the
+      previously-committed JSON if the fetch errors, so offline builds still
+      ship.
+    - **Runtime.** [`useLiveStandings`](./src/hooks/useLiveStandings.ts) seeds
+      state from that JSON — so the section paints a real table on the first
+      frame, never a spinner — and an `IntersectionObserver` arms the live
+      fetch only once the section approaches the viewport. It then polls on a
+      chained timeout whose delay tracks what's actually happening: **25 s**
+      while a match is in play, 60 s inside twenty minutes of a kick-off,
+      5 min otherwise. It catches up immediately on `visibilitychange`, dedupes
+      in-flight requests with a ref, and cancels via `AbortController`.
+
+- **Why ESPN, and why this works with no backend.** The API has to be reachable
+  *from the browser*, which rules out most of the field:
+
+  | Source | Key? | CORS from a static page | Verdict |
+  | --- | --- | --- | --- |
+  | Wikipedia Action API | no | yes (`origin=*`) | Fine for a table, but editors update hours after full time — fresh, not live |
+  | football-data.org | yes | **no** — `Access-Control-Allow-Origin: http://localhost` only | Needs a server to relay through |
+  | TheSportsDB | free tier | yes | Table lags a day; live scores are behind the paid tier |
+  | **ESPN site API** | **no** | **yes (`*`)** | In-play state, clock and scorers, no key to leak |
+
+  ESPN's endpoint is undocumented, so it can change shape without notice.
+  Every consumer fails soft — a bad response leaves the baked snapshot on
+  screen and the status chip says the refresh failed.
+
+- **The table moves as the goals go in.** ESPN's standings only update at full
+  time, so during a match the table is stale by exactly the thing the reader is
+  watching. `applyLiveResults()` folds each in-flight score in as a provisional
+  result, re-ranks on points → goal difference → goals for, and hands back the
+  places gained or lost against the confirmed table for the ▲/▼ chips. (La
+  Liga's real first tiebreaker is head-to-head, which needs the full results
+  grid; the approximation only differs between sides level on points, and the
+  section says so on screen while it's live.)
+
+- **The awkward minute at full time.** Between the final whistle and the
+  standings endpoint absorbing the result, applying the fixture double-counts
+  it and ignoring it makes the table jump backwards. So the first time a match
+  is seen in play, each side's games-played is recorded from the standings of
+  that moment, and the result keeps being applied until that number actually
+  ticks up. A page loaded *after* full time has no such record and simply
+  trusts the standings.
 
 ## Project layout
 
@@ -133,28 +175,33 @@ src/
 │   ├── AudioToggle.tsx        nav button — plays anthem.mp3 or a Web-Audio synth roar
 │   ├── ChapterRail.tsx        right-side chapter dots; reads sections via querySelectorAll
 │   ├── Cursor.tsx             blend-difference dot cursor
+│   ├── MatchStrip.tsx         in-play score cards (minute, scorers) or the next kick-off
+│   ├── NoPhoto.tsx            typographic stand-in for players with no free photo
 │   ├── SplitText.tsx          IO-driven word / line / char reveal
 │   ├── StoryNav.tsx           top nav, auto-hide on scroll
 │   └── StoryProgress.tsx      bottom progress bar driven by ScrollTrigger.onUpdate
 ├── data/
-│   ├── squad.ts               23 player roster (auto-generated from Wikipedia)
-│   ├── staff.ts               coaching staff (auto-generated from Wikipedia)
+│   ├── squad.ts               24 player roster, 2026-27 (from Wikipedia)
+│   ├── staff.ts               coaching staff (from Wikipedia)
 │   ├── lineup.ts              4-3-3 starting XI with pitch x/y coords; resolves players from squad.ts
 │   ├── masia.ts               academy graduates currently in the squad + debut year + one-liner
 │   ├── trophies.ts            7 competition tallies + grand total
-│   ├── moments.ts             6 iconic-night entries (year, score, opponent, title, caption)
-│   └── standings.json         La Liga table — generated by scripts/fetch-standings.mjs, do not edit by hand
+│   ├── moments.ts             8 iconic-night entries (year, score, opponent, title, caption)
+│   └── standings.json         build-time La Liga snapshot (table + fixtures) — generated by scripts/fetch-standings.mjs, do not edit by hand
 ├── hooks/
-│   └── useSmoothScroll.ts     mounts Lenis + exposes `pageScroll.stop / start`
+│   ├── useSmoothScroll.ts     mounts Lenis + exposes `pageScroll.stop / start`
+│   └── useLiveStandings.ts    seeds from the snapshot, then polls ESPN — cadence tracks whether a match is on
 ├── lib/
 │   ├── cn.ts                  className helper
-│   └── math.ts                lerp / clamp / smoothstep
+│   ├── math.ts                lerp / clamp / smoothstep
+│   ├── laliga.js              shared ESPN client + live-table maths — imported by the Node script AND the browser
+│   └── laliga.d.ts            its types
 └── sections/
     ├── Hero.tsx               full-bleed Camp Nou ken-burns
     ├── SquadIntro.tsx         intro card for the squad gallery
     ├── Squad.tsx              pinned carousel (master timeline)
     ├── Lineup.tsx             SVG 4-3-3 pitch + active-dot side panel
-    ├── Standings.tsx          La Liga table + Barça-season callout (consumes data/standings.json)
+    ├── Standings.tsx          live La Liga board — match strip, provisional table, Barça callout
     ├── Staff.tsx              coaching-staff grid
     ├── Masia.tsx              La Masia academy-graduate grid
     ├── Trophies.tsx           pinned trophy cabinet with scroll-driven count-ups
@@ -162,7 +209,7 @@ src/
     ├── Fans.tsx               pinned parallax crowd shot + stats
     └── Outro.tsx              credits, image attribution, footer
 scripts/
-└── fetch-standings.mjs        zero-dep Node script — scrapes the La Liga table from Wikipedia
+└── fetch-standings.mjs        zero-dep Node script — bakes the La Liga snapshot via src/lib/laliga.js
 public/
 └── audio/
     └── anthem.mp3             El Cant del Barça pulled from YouTube via yt-dlp (see Licensing caveat)
@@ -174,29 +221,42 @@ Adding a section: drop a component under `src/sections/`, add it to
 
 ## Data + imagery
 
-- **Squad roster** is parsed from the
-  [2025-26 FC Barcelona season page on Wikipedia](https://en.wikipedia.org/wiki/2025-26_FC_Barcelona_season)
-  via the parse API. Real names, shirt numbers, positions, nationalities,
-  captain badges. Bios are the Wikipedia page-summary extracts.
-- **Coaching staff** comes from the same page's Management Team section.
-- **Player photos** are sourced via web image search (mostly the official
-  `fcbarcelona.com` photo bucket and press agencies like *Mundo Deportivo*,
-  *getfootballnewsspain*, *DAZN*, *Goal.com*). Each one is downsampled to
-  ~2200 px tall and saved into `public/players/`.
+- **Squad roster** is the 2026-27 first team from the
+  [FC Barcelona article](https://en.wikipedia.org/wiki/FC_Barcelona) squad
+  table, cross-checked against the transfer tables on the
+  [2026-27 season page](https://en.wikipedia.org/wiki/2026%E2%80%9327_FC_Barcelona_season).
+  Real names, shirt numbers, positions, nationalities, captain and
+  vice-captain badges. Bios are condensed from the Wikipedia page-summary
+  extracts.
+- **Coaching staff** comes from the same article's Technical Staff section.
+- **Player photos** are two-tier. The 2026 signings (Rodri, Karim Adeyemi,
+  Anthony Gordon, Dominik Livaković) are CC BY-SA 4.0 thumbnails from
+  Wikimedia Commons with named artists. The older squad photos predate that
+  rule and came from web image search (mostly the official `fcbarcelona.com`
+  photo bucket and press agencies) — they stay tagged
+  `Internet (copyright unclear)`. Xavi Espart and Jesse Bisiwu have **no**
+  free photo on Commons at all, so their cards carry `image: ''` and render
+  the `<NoPhoto>` typographic treatment rather than an unlicensed press shot.
+  Everything lands in `public/players/`.
 - **Hero, fans, and pitch photos** come from
   [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Camp_Nou)
   under CC-BY-SA / CC-BY licences. Attribution is rendered in the Outro.
-- **Trophy counts** are the cabinet at the start of the 2025-26 season,
-  sourced from the *List of FC Barcelona records and statistics* article
-  on Wikipedia. The grand total is computed at compile time.
-- **La Liga standings** are pulled at build time from the
-  [2025-26 La Liga Wikipedia article](https://en.wikipedia.org/wiki/2025%E2%80%9326_La_Liga)
-  by `scripts/fetch-standings.mjs` and persisted to
-  `src/data/standings.json`. Re-run `npm run fetch:standings` to refresh
-  (or just `npm run build`, which chains it automatically).
+- **Trophy counts** are the cabinet at the start of the 2026-27 season —
+  including the 2025-26 double of a 29th La Liga and a 16th Supercopa —
+  sourced from the Honours table on the FC Barcelona Wikipedia article. The
+  grand total (94) is computed at compile time.
+- **La Liga standings and live scores** come from ESPN's public site API,
+  twice over: `scripts/fetch-standings.mjs` bakes a snapshot into
+  `src/data/standings.json` at build time, and the section polls the same
+  endpoints live in the browser. Re-run `npm run fetch:standings` to refresh
+  the snapshot (or just `npm run build`, which chains it) — but the deployed
+  page keeps itself current between deploys on its own, including during a
+  match.
 - **Iconic-moments copy** is hand-written from the public match reports
   on Wikipedia — no images in this section, just typography, so no
-  licensing question.
+  licensing question. The two newest panels are the 22 Nov 2025 reopening of
+  the rebuilt Camp Nou (4-0 v Athletic) and the 10 May 2026 Clásico that
+  clinched the 29th title.
 - **Anthem audio** (`public/audio/anthem.mp3`) is a short pre-match clip
   of *El Cant del Barça* sung at Camp Nou, pulled from YouTube via
   `yt-dlp` and transcoded to 96 kbps MP3 with `ffmpeg`. The recording is
@@ -229,11 +289,26 @@ path on mount and picks up the new file on the next page load).
 ```bash
 npm install
 npm run dev               # vite dev server
-npm run fetch:standings   # refresh src/data/standings.json from Wikipedia
+npm run fetch:standings   # refresh the src/data/standings.json snapshot from Wikipedia
 npm run build             # fetch:standings → tsc -b → vite build → dist/
 npm run preview           # serve dist/ locally
 npm run typecheck         # tsc -b --noEmit
 ```
+
+### Rolling the story to a new season
+
+Everything seasonal lives in `src/data/` plus one constant:
+
+1. `src/lib/laliga.js` — bump `SEASON`. The ESPN league id (`esp.1`) does not
+   change between seasons, so the live board rolls over on its own; `SEASON` is
+   only the label the section prints.
+2. `npm run fetch:standings` — rewrites the snapshot.
+3. `src/data/squad.ts`, `lineup.ts`, `masia.ts` — roster, XI, academy grid.
+   `lineup.ts` and `masia.ts` resolve players out of `squad.ts` **by name**,
+   so a rename in one file has to be mirrored in the others.
+4. `src/data/trophies.ts` — the grand total is derived, not stored.
+5. Drop any new photos into `public/players/<slug>.jpg`. If no freely-licensed
+   file exists, leave `image: ''` and let `<NoPhoto>` handle it.
 
 ## Deployment
 

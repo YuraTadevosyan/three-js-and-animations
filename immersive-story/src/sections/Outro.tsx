@@ -57,9 +57,11 @@ export function Outro() {
             Camp Nou — a matchday in four scenes.
           </div>
           <div className="text-[0.9rem] leading-relaxed mt-3">
-            Roster + manager pulled from the 2025–26 FC Barcelona season page
-            on Wikipedia. Photos are CC-licensed thumbnails downloaded from
-            Wikimedia Commons.
+            Roster + manager pulled from the 2026–27 FC Barcelona season page
+            on Wikipedia. The La Liga table and the live scores come from
+            ESPN&rsquo;s public API and update themselves while you read.
+            Photos are Wikimedia Commons thumbnails where a freely-licensed
+            file exists.
           </div>
         </div>
         <div data-outro-credit>
@@ -67,19 +69,22 @@ export function Outro() {
           <div className="text-[0.95rem] leading-relaxed">
             React · TypeScript · GSAP ScrollTrigger · Lenis · Tailwind CSS.
             All-DOM, no three.js. Web Audio API for the synth-ambience
-            fallback. Total bundle ~290 KB.
+            fallback, ESPN&rsquo;s keyless CORS-open API for live scores and
+            the table. Total bundle ~390 KB.
           </div>
         </div>
         <div data-outro-credit>
           <div className="caption mb-2">Data sources</div>
           <div className="text-[0.9rem] leading-relaxed">
-            <a className="underline hover:text-bone" href="https://en.wikipedia.org/wiki/2025%E2%80%9326_FC_Barcelona_season" target="_blank" rel="noopener noreferrer">2025-26 season article</a> ·
+            <a className="underline hover:text-bone" href="https://en.wikipedia.org/wiki/2026%E2%80%9327_FC_Barcelona_season" target="_blank" rel="noopener noreferrer">2026-27 season article</a> ·
+            {' '}
+            <a className="underline hover:text-bone" href="https://www.espn.com/soccer/standings/_/league/esp.1" target="_blank" rel="noopener noreferrer">ESPN La Liga</a> ·
             {' '}
             <a className="underline hover:text-bone" href="https://en.wikipedia.org/wiki/Camp_Nou" target="_blank" rel="noopener noreferrer">Camp Nou</a> ·
             {' '}
             <a className="underline hover:text-bone" href="https://commons.wikimedia.org/wiki/Category:Camp_Nou" target="_blank" rel="noopener noreferrer">Commons</a>.
-            Squad roster reflects the Wikipedia page at the time of the last
-            fetch; rerun the import script to refresh.
+            The squad reflects the Wikipedia page at the last build; the table
+            and live scores refresh themselves in your browser.
           </div>
         </div>
       </div>
@@ -105,9 +110,14 @@ export function Outro() {
           ))}
         </ul>
         <p className="caption mt-4 text-[0.62rem] text-bone/40 max-w-2xl">
-          All photos sourced via the Wikimedia Commons API and used in
-          accordance with their respective Creative Commons licenses. No FC
-          Barcelona club marks (crest, logos, kit graphics) are used.
+          Photos carrying a Creative Commons credit above are Wikimedia
+          Commons files used under their stated licences. The remainder were
+          imported from open web search before that rule was adopted and are
+          tagged &ldquo;copyright unclear&rdquo; — they are shown here on a
+          personal portfolio and are not licensed for redistribution. Two
+          squad members have no free photograph at all and render as
+          typography instead. No FC Barcelona club marks (crest, logos, kit
+          graphics) are used.
         </p>
       </div>
 

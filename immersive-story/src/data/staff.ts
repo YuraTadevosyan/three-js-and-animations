@@ -1,5 +1,8 @@
-// Auto-generated from the 2025-26 FC Barcelona management team listed on
-// Wikipedia. Staff photos are CC-licensed thumbnails from Wikimedia Commons.
+// The 2026-27 FC Barcelona coaching staff, from the technical-staff table on
+// the FC Barcelona Wikipedia article (updated 12 August 2026). Flick, Sorg and
+// Thiago all stayed through the summer rebuild — the three shown here are the
+// front of a bench that also carries Toni Tapalović, Heiko Westermann and
+// Arnau Blanco. Staff photos are CC-licensed thumbnails from Wikimedia Commons.
 
 export type StaffMember = {
   name: string;

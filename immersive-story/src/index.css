@@ -209,6 +209,15 @@ html.lenis-stopped body { overflow: hidden; }
   50% { opacity: 0.3; transform: scale(0.6); }
 }
 
+/* Status dot on the live standings board. Deliberately slower and softer
+   than .pulse above — this one runs the whole time the section is on screen,
+   so it has to read as "connected", not as an alarm. The global
+   prefers-reduced-motion rule below stops it for readers who ask. */
+@keyframes standings-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(237, 187, 0, 0.45); }
+  50% { opacity: 0.55; box-shadow: 0 0 0 5px rgba(237, 187, 0, 0); }
+}
+
 .story-progress {
   position: fixed;
   bottom: 0;

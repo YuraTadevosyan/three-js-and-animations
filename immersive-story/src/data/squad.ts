@@ -1,8 +1,20 @@
-// Auto-generated from the 2025-26 FC Barcelona first-team squad listed on
-// Wikipedia. Player photos are CC-licensed thumbnails downloaded from
-// Wikimedia Commons into public/players/ — see Outro for the credits list.
+// The 2026-27 FC Barcelona first-team squad, as listed on the FC Barcelona
+// Wikipedia article (squad table updated 19 August 2026) and cross-checked
+// against the 2026-27 season article's transfer tables.
 //
-// To regenerate, re-run the fetch script (see Outro section commentary).
+// Summer 2026 rebuilt the spine: Lewandowski left on a free after four
+// seasons, Ferran Torres went to PSG, Araújo is on loan at Liverpool, and
+// Rashford's loan expired. In came Rodri, Anthony Gordon, Karim Adeyemi,
+// Dominik Livaković, Jesse Bisiwu and a permanent deal for João Cancelo,
+// with Xavi Espart promoted out of Barça Atlètic. The number 9 is vacant.
+//
+// Player photos live in public/players/. New-signing shots are CC BY-SA 4.0
+// thumbnails from Wikimedia Commons; the older ones predate that rule and
+// carry the honest "copyright unclear" tag they were imported with — see the
+// Outro credits. Two academy-fringe players have no free photo at all and
+// carry image: '' so the card falls back to a typographic treatment.
+
+export type Armband = 'captain' | 'vice-captain' | null;
 
 export type Player = {
   number: number;
@@ -10,7 +22,7 @@ export type Player = {
   position: 'GK' | 'DF' | 'MF' | 'FW';
   role: string;
   nat: string;
-  captain: boolean;
+  armband: Armband;
   bio: string;
   image: string;
   attribution: { artist: string; license: string; license_url: string; file: string };
@@ -20,15 +32,19 @@ export type Player = {
 // the base path into import.meta.env.BASE_URL at build time.
 const asset = (s: string) => import.meta.env.BASE_URL + s.replace(/^\//, '');
 
+// No free photo exists on Commons for this player yet; the card renders a
+// stroked-initials treatment instead of a broken background-image.
+const NO_PHOTO = { artist: '', license: '', license_url: '', file: '' };
+
 export const SQUAD: Player[] = [
   {
-    number: 13,
+    number: 1,
     name: 'Joan Garcia',
-    position: 'GK' as Player['position'],
+    position: 'GK',
     role: 'Goalkeeper',
     nat: 'ESP',
-    captain: false,
-    bio: 'Joan Garcia Pons is a Spanish professional footballer who plays as a goalkeeper for La Liga club Barcelona and the Spain national team.',
+    armband: null,
+    bio: 'Joan Garcia Pons is a Spanish goalkeeper for Barcelona and Spain. An Espanyol youth graduate, he crossed the city in June 2025 when Barça activated his release clause, walked straight into the starting line-up and won La Liga in his first season. He inherits the number one shirt for 2026-27.',
     image: asset('players/joan-garcia.jpg'),
     attribution: {
       artist: 'Source: Bing',
@@ -38,13 +54,13 @@ export const SQUAD: Player[] = [
     },
   },
   {
-    number: 25,
+    number: 13,
     name: 'Wojciech Szczęsny',
-    position: 'GK' as Player['position'],
+    position: 'GK',
     role: 'Goalkeeper',
     nat: 'POL',
-    captain: false,
-    bio: 'Wojciech Tomasz Szczęsny is a Polish professional footballer who plays as a goalkeeper for La Liga club Barcelona.',
+    armband: null,
+    bio: 'Wojciech Tomasz Szczęsny is a Polish goalkeeper for Barcelona. He came out of retirement in October 2024 to cover an injury crisis and has stayed ever since, twice a league champion in Catalonia after two Premier League Golden Gloves and a Serie A career at Roma and Juventus.',
     image: asset('players/wojciech-szcz-sny.jpg'),
     attribution: {
       artist: 'Source: Bing',
@@ -54,13 +70,29 @@ export const SQUAD: Player[] = [
     },
   },
   {
+    number: 25,
+    name: 'Dominik Livaković',
+    position: 'GK',
+    role: 'Goalkeeper',
+    nat: 'CRO',
+    armband: null,
+    bio: 'Dominik Livaković is a Croatian goalkeeper for Barcelona and Croatia, signed from Fenerbahçe in August 2026. A Dinamo Zagreb legend and back-to-back World Cup medallist — runner-up in 2018, third in 2022 — he arrives as the experienced third of a rebuilt goalkeeping trio.',
+    image: asset('players/dominik-livakovic.jpg'),
+    attribution: {
+      artist: 'Bryan Berlin',
+      license: 'CC BY-SA 4.0',
+      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
+      file: 'File:Dominik Livakovic Croatia v Portugal 2 July 2026-063.jpg',
+    },
+  },
+  {
     number: 2,
     name: 'João Cancelo',
-    position: 'DF' as Player['position'],
+    position: 'DF',
     role: 'Defender',
     nat: 'POR',
-    captain: false,
-    bio: 'João Pedro Cavaco Cancelo is a Portuguese professional footballer who plays as a full-back for La Liga club Barcelona, on loan from Saudi Pro League club Al Hilal, and the Portugal national team.',
+    armband: null,
+    bio: 'João Pedro Cavaco Cancelo is a Portuguese full-back for Barcelona and Portugal, comfortable on either flank. After a season on loan from Al Hilal he returned permanently on a free transfer in August 2026, bringing a Serie A title, a Premier League treble and 60-plus caps with him.',
     image: asset('players/jo-o-cancelo.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -72,11 +104,11 @@ export const SQUAD: Player[] = [
   {
     number: 3,
     name: 'Alejandro Balde',
-    position: 'DF' as Player['position'],
+    position: 'DF',
     role: 'Defender',
     nat: 'ESP',
-    captain: false,
-    bio: 'Alejandro Balde Martínez is a Spanish professional footballer who plays as a left-back for La Liga club Barcelona and the Spain national team.',
+    armband: null,
+    bio: 'Alejandro Balde Martínez is a Spanish left-back for Barcelona and Spain. He joined the academy at 14 from Espanyol and has owned the left flank since Jordi Alba left — the overlap that stretches defences for Yamal to cut inside.',
     image: asset('players/alejandro-balde.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -86,29 +118,13 @@ export const SQUAD: Player[] = [
     },
   },
   {
-    number: 4,
-    name: 'Ronald Araújo',
-    position: 'DF' as Player['position'],
-    role: 'Defender',
-    nat: 'URU',
-    captain: true,
-    bio: 'Ronald Federico Araújo da Silva is an Uruguayan professional footballer who plays as a centre-back for La Liga club Barcelona, whom he captains, and the Uruguay national team.',
-    image: asset('players/ronald-ara-jo.jpg'),
-    attribution: {
-      artist: 'Source: web search (Bing)',
-      license: 'Internet (copyright unclear)',
-      license_url: 'https://www.goal.com/es-ar/listados/ronald-araujo-define-regreso-entrenamientos-barcelona-tras-retiro-espiritual-israel/blt777c59d6271b3887',
-      file: 'https://assets.goal.com/images/v3/getty-2245516817/crop/MM5DIOJZGI5DEOBQHA5G433XMU5DAORR/G…',
-    },
-  },
-  {
     number: 5,
     name: 'Pau Cubarsí',
-    position: 'DF' as Player['position'],
+    position: 'DF',
     role: 'Defender',
     nat: 'ESP',
-    captain: false,
-    bio: 'Pau Cubarsí Paredes is a Spanish professional footballer who plays as a centre-back for La Liga club Barcelona and the Spain national team. In July 2025, Sports Illustrated and ESPN ranked Cubarsí as the sixth-best centre-back in world football.',
+    armband: null,
+    bio: 'Pau Cubarsí Paredes is a Spanish centre-back for Barcelona and Spain, considered one of the best young defenders in the world. He debuted days before his seventeenth birthday in January 2024 and has since won La Liga in 2025 and 2026. With Araújo at Liverpool, the back line is now his to lead.',
     image: asset('players/pau-cubars.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -118,13 +134,24 @@ export const SQUAD: Player[] = [
     },
   },
   {
+    number: 12,
+    name: 'Xavi Espart',
+    position: 'DF',
+    role: 'Defender',
+    nat: 'ESP',
+    armband: null,
+    bio: 'Xavi Espart Font is a Spanish full-back who can also drop into defensive midfield. In La Masia since he was eight, he debuted in the Champions League at Newcastle in March 2026 and was promoted to the senior squad on 27 August 2026 with the number 12.',
+    image: '',
+    attribution: NO_PHOTO,
+  },
+  {
     number: 15,
     name: 'Andreas Christensen',
-    position: 'DF' as Player['position'],
+    position: 'DF',
     role: 'Defender',
     nat: 'DEN',
-    captain: false,
-    bio: 'Andreas Bødtker Christensen is a Danish professional footballer who plays as a centre-back for La Liga club Barcelona and the Denmark national team.',
+    armband: null,
+    bio: 'Andreas Bødtker Christensen is a Danish centre-back for Barcelona and Denmark. He arrived from Chelsea in 2022 with an FA Cup, a Europa League and a Champions League already won, and now partners Cubarsí as the senior half of the pairing.',
     image: asset('players/andreas-christensen.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -136,11 +163,11 @@ export const SQUAD: Player[] = [
   {
     number: 18,
     name: 'Gerard Martín',
-    position: 'DF' as Player['position'],
+    position: 'DF',
     role: 'Defender',
     nat: 'ESP',
-    captain: false,
-    bio: 'Gerard Martín Langreo is a Spanish professional footballer who plays as a defender for La Liga club Barcelona. Primarily a left-back, he is also capable of playing as a centre-back.',
+    armband: null,
+    bio: 'Gerard Martín Langreo is a Spanish defender for Barcelona. Primarily a left-back, he is also capable of playing as a centre-back — the utility cover that let Flick rotate a thin back line through two title runs.',
     image: asset('players/gerard-mart-n.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -152,11 +179,11 @@ export const SQUAD: Player[] = [
   {
     number: 23,
     name: 'Jules Koundé',
-    position: 'DF' as Player['position'],
+    position: 'DF',
     role: 'Defender',
     nat: 'FRA',
-    captain: false,
-    bio: 'Jules Olivier Koundé is a French professional footballer who plays as a defender for La Liga club Barcelona and the France national team. Primarily a right-back, he is also capable of playing as a centre-back.',
+    armband: null,
+    bio: 'Jules Olivier Koundé is a French defender for Barcelona and France. Primarily a right-back, he is also capable of playing as a centre-back — and he scored the goal that won the 2025 Copa del Rey final against Real Madrid.',
     image: asset('players/jules-kound.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -168,11 +195,11 @@ export const SQUAD: Player[] = [
   {
     number: 24,
     name: 'Eric García',
-    position: 'DF' as Player['position'],
+    position: 'DF',
     role: 'Defender',
     nat: 'ESP',
-    captain: false,
-    bio: 'Eric García Martret is a Spanish professional footballer who plays for La Liga club Barcelona and the Spain national team. Primarily a centre-back, he is also capable of playing as a full-back or defensive midfielder.',
+    armband: null,
+    bio: 'Eric García Martret is a Spanish defender for Barcelona and Spain. Primarily a centre-back, he is also capable of playing as a full-back or defensive midfielder — the most quietly useful man in the squad on a night when Flick needs a plan B.',
     image: asset('players/eric-garc-a.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -184,11 +211,11 @@ export const SQUAD: Player[] = [
   {
     number: 6,
     name: 'Gavi',
-    position: 'MF' as Player['position'],
+    position: 'MF',
     role: 'Midfielder',
     nat: 'ESP',
-    captain: true,
-    bio: 'Pablo Martín Páez Gavira, known as Gavi, is a Spanish professional footballer who plays as a central midfielder for La Liga club Barcelona and the Spain national team.',
+    armband: null,
+    bio: 'Pablo Martín Páez Gavira, known as Gavi, is a Spanish central midfielder for Barcelona and Spain. He pressed his way into the XI at seventeen and has spent the seasons since fighting his way back from a cruciate injury to the player he was.',
     image: asset('players/gavi.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -198,13 +225,29 @@ export const SQUAD: Player[] = [
     },
   },
   {
-    number: 8,
-    name: 'Pedri',
-    position: 'MF' as Player['position'],
+    number: 7,
+    name: 'Fermín López',
+    position: 'MF',
     role: 'Midfielder',
     nat: 'ESP',
-    captain: true,
-    bio: 'Pedro González López, more commonly known as Pedri, is a Spanish professional footballer who plays as a midfielder for La Liga club Barcelona and the Spain national team. Considered as one of the best midfielders in the world, he is known for his ball control, dribbling, passing and playmaking.',
+    armband: null,
+    bio: 'Fermín López Marín is a Spanish attacking midfielder and winger for Barcelona and Spain. He takes the number 7 off Ferran Torres this season and opened 2026-27 with three goals in the first two matchdays.',
+    image: asset('players/ferm-n-l-pez.jpg'),
+    attribution: {
+      artist: 'Source: Bing',
+      license: 'Internet (copyright unclear)',
+      license_url: 'https://getfootballnewsspain.com/how-introducing-fermin-lopez-could-have-forced-barcelona-xavi-to-forfeit-copa-quarter-final/',
+      file: 'https://getfootballnewsspain.com/wp-content/uploads/2024/01/fc-barcelona-v-deportivo-alave…',
+    },
+  },
+  {
+    number: 8,
+    name: 'Pedri',
+    position: 'MF',
+    role: 'Midfielder',
+    nat: 'ESP',
+    armband: 'vice-captain',
+    bio: 'Pedro González López, more commonly known as Pedri, is a Spanish midfielder for Barcelona and Spain, and now one of its vice-captains. Considered one of the best midfielders in the world, he is known for his ball control, dribbling, passing and playmaking — the metronome every Flick side is built around.',
     image: asset('players/pedri.jpg'),
     attribution: {
       artist: 'Source: Bing',
@@ -215,44 +258,28 @@ export const SQUAD: Player[] = [
   },
   {
     number: 16,
-    name: 'Fermín López',
-    position: 'MF' as Player['position'],
+    name: 'Rodri',
+    position: 'MF',
     role: 'Midfielder',
     nat: 'ESP',
-    captain: false,
-    bio: 'Fermín López Marín, also known simply as Fermín, is a Spanish professional footballer who plays as an attacking midfielder or winger for La Liga club Barcelona and the Spain national team.',
-    image: asset('players/ferm-n-l-pez.jpg'),
+    armband: null,
+    bio: 'Rodrigo Hernández Cascante — Rodri — is a Spanish defensive midfielder for Barcelona and captain of Spain, signed from Manchester City in August 2026 for €60M. A Ballon d’Or winner and one of only eleven players to have won the World Cup, the Champions League and the Ballon d’Or, he is the marquee arrival of the rebuild.',
+    image: asset('players/rodri.jpg'),
     attribution: {
-      artist: 'Source: Bing',
-      license: 'Internet (copyright unclear)',
-      license_url: 'https://getfootballnewsspain.com/how-introducing-fermin-lopez-could-have-forced-barcelona-xavi-to-forfeit-copa-quarter-final/',
-      file: 'https://getfootballnewsspain.com/wp-content/uploads/2024/01/fc-barcelona-v-deportivo-alave…',
-    },
-  },
-  {
-    number: 17,
-    name: 'Marc Casadó',
-    position: 'MF' as Player['position'],
-    role: 'Midfielder',
-    nat: 'ESP',
-    captain: false,
-    bio: 'Marc Casadó Torras is a Spanish professional footballer who plays as a defensive midfielder for La Liga club Barcelona and the Spain national team.',
-    image: asset('players/marc-casad.jpg'),
-    attribution: {
-      artist: 'Source: Bing',
-      license: 'Internet (copyright unclear)',
-      license_url: 'https://getfootballnewsspain.com/barcelona-name-price-for-premier-league-target-casado/',
-      file: 'https://getfootballnewsspain.com/wp-content/uploads/2024/10/fc-barcelona-v-fc-bayern-munch…',
+      artist: 'Bryan Berlin',
+      license: 'CC BY-SA 4.0',
+      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
+      file: 'File:Rodri Argentina v Spain 19 July 2026-187 (cropped).jpg',
     },
   },
   {
     number: 20,
     name: 'Dani Olmo',
-    position: 'MF' as Player['position'],
+    position: 'MF',
     role: 'Midfielder',
     nat: 'ESP',
-    captain: false,
-    bio: 'Daniel Olmo Carvajal is a Spanish professional footballer who plays as an attacking midfielder or left winger for La Liga club Barcelona and the Spain national team.',
+    armband: null,
+    bio: 'Daniel Olmo Carvajal is a Spanish attacking midfielder and left winger for Barcelona and Spain. A La Masia boy who left for Dinamo Zagreb at sixteen, he won five Croatian titles and two DFB-Pokals at Leipzig before coming home in 2024.',
     image: asset('players/dani-olmo.jpg'),
     attribution: {
       artist: 'Source: Bing',
@@ -264,11 +291,11 @@ export const SQUAD: Player[] = [
   {
     number: 21,
     name: 'Frenkie de Jong',
-    position: 'MF' as Player['position'],
+    position: 'MF',
     role: 'Midfielder',
     nat: 'NED',
-    captain: true,
-    bio: 'Frenkie de Jong is a Dutch professional footballer who plays as a midfielder for La Liga club Barcelona and the Netherlands national team.',
+    armband: 'vice-captain',
+    bio: 'Frenkie de Jong is a Dutch midfielder for Barcelona and the Netherlands, and one of the club’s vice-captains. Seven seasons on from the €1-a-year Ajax move that made his name, he is the longest-serving outfielder in the dressing room.',
     image: asset('players/frenkie-de-jong.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -280,11 +307,11 @@ export const SQUAD: Player[] = [
   {
     number: 22,
     name: 'Marc Bernal',
-    position: 'MF' as Player['position'],
+    position: 'MF',
     role: 'Midfielder',
     nat: 'ESP',
-    captain: false,
-    bio: 'Marc Bernal Casas is a Spanish professional footballer who plays as a defensive midfielder for La Liga club Barcelona.',
+    armband: null,
+    bio: 'Marc Bernal Casas is a Spanish defensive midfielder for Barcelona and Spain. A La Masia holding midfielder who lost a season to a cruciate injury weeks after breaking into the XI at seventeen, he is now the understudy learning the position from Rodri.',
     image: asset('players/marc-bernal.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -294,45 +321,13 @@ export const SQUAD: Player[] = [
     },
   },
   {
-    number: 7,
-    name: 'Ferran Torres',
-    position: 'FW' as Player['position'],
-    role: 'Forward',
-    nat: 'ESP',
-    captain: false,
-    bio: 'Ferran Torres García is a Spanish professional footballer who plays as a forward or winger for La Liga club Barcelona and the Spain national team.',
-    image: asset('players/ferran-torres.jpg'),
-    attribution: {
-      artist: 'Source: web search (Bing)',
-      license: 'Internet (copyright unclear)',
-      license_url: 'https://www.goal.com/en/news/watch-forty-one-shots-ferran-torres-first-player-score-direct-free-kick-barcelona-lionel-messi/bltb8f0f2c4dc25a6e2',
-      file: 'https://assets.goal.com/images/v3/blt1616480ae1d24473/Ferran_Torres.jpg?auto=webp&format=p…',
-    },
-  },
-  {
-    number: 9,
-    name: 'Robert Lewandowski',
-    position: 'FW' as Player['position'],
-    role: 'Forward',
-    nat: 'POL',
-    captain: false,
-    bio: 'Robert Lewandowski is a Polish professional footballer who plays as a striker for La Liga club Barcelona and captains the Poland national team. Widely regarded as one of the greatest strikers of all time, he is one of only five players to have scored 100 goals with three different clubs, ranks third for the all-time top goalscorers in the UEFA Champions L...',
-    image: asset('players/robert-lewandowski.jpg'),
-    attribution: {
-      artist: 'Source: web search (Bing)',
-      license: 'Internet (copyright unclear)',
-      license_url: 'https://www.republicworld.com/sports/football/lewandowski-scores-his-7th-goal-to-give-barcelona-its-7th-straight-win-in-spanish-league',
-      file: 'https://img.republicworld.com/all_images/barcelona-players-celebrate-robert-lewandowski-s-…',
-    },
-  },
-  {
     number: 10,
     name: 'Lamine Yamal',
-    position: 'FW' as Player['position'],
+    position: 'FW',
     role: 'Forward',
     nat: 'ESP',
-    captain: false,
-    bio: 'Lamine Yamal Nasraoui Ebana is a Spanish professional footballer who plays as a right winger or right midfielder for La Liga club Barcelona and the Spain national team. Known for his flair, chance creation, and long-distance curling goals, he is widely regarded as one of the best players in the world.',
+    armband: null,
+    bio: 'Lamine Yamal Nasraoui Ebana is a Spanish right winger for Barcelona and Spain, widely regarded as one of the best players in the world. A La Masia graduate who joined the first team at fifteen, he won the Kopa Trophy in 2024 and 2025 and now wears the ten.',
     image: asset('players/lamine-yamal.jpg'),
     attribution: {
       artist: 'Source: Bing',
@@ -344,11 +339,11 @@ export const SQUAD: Player[] = [
   {
     number: 11,
     name: 'Raphinha',
-    position: 'FW' as Player['position'],
+    position: 'FW',
     role: 'Forward',
     nat: 'BRA',
-    captain: true,
-    bio: 'Raphael Dias Belloli, known mononymously as Raphinha, is a Brazilian professional footballer who plays as a winger or forward for La Liga club Barcelona and the Brazil national team. Known for his pace, playmaking, work rate, and finishing, he is considered one of the best players in the world.',
+    armband: 'captain',
+    bio: 'Raphael Dias Belloli, known mononymously as Raphinha, is a Brazilian winger and forward for Barcelona — which he now captains — and Brazil. With the nine vacant he has moved into the middle, and scored in each of the first three matchdays of 2026-27.',
     image: asset('players/raphinha.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -359,28 +354,44 @@ export const SQUAD: Player[] = [
   },
   {
     number: 14,
-    name: 'Marcus Rashford',
-    position: 'FW' as Player['position'],
+    name: 'Karim Adeyemi',
+    position: 'FW',
+    role: 'Forward',
+    nat: 'GER',
+    armband: null,
+    bio: 'Karim David Adeyemi is a German right winger and forward for Barcelona and Germany, signed from Borussia Dortmund in July 2026 for €22M. Straight-line pace to stretch the sides that sit deep against Barça — he scored on his league debut at Elche.',
+    image: asset('players/karim-adeyemi.jpg'),
+    attribution: {
+      artist: 'Werner100359',
+      license: 'CC BY-SA 4.0',
+      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
+      file: 'File:FC Salzburg gegen FC Bayern München (Championsleague Achtelfinale Hinspiel 16. Februar 2022) 63.jpg',
+    },
+  },
+  {
+    number: 17,
+    name: 'Anthony Gordon',
+    position: 'FW',
     role: 'Forward',
     nat: 'ENG',
-    captain: false,
-    bio: 'Marcus Rashford is an English professional footballer who plays as a forward for La Liga club Barcelona, on loan from Premier League club Manchester United, and the England national team.',
-    image: asset('players/marcus-rashford.jpg'),
+    armband: null,
+    bio: 'Anthony Michael Gordon is an English left winger for Barcelona and England, and at €70M the most expensive signing of the summer. An Everton academy product who won a League Cup at Newcastle, he takes the left flank vacated by Rashford and Ferran Torres.',
+    image: asset('players/anthony-gordon.jpg'),
     attribution: {
-      artist: 'Source: Bing',
-      license: 'Internet (copyright unclear)',
-      license_url: 'https://www.sportingnews.com/es/futbol/news/barcelona-daegu-video-resultado-resumen-goles/b940fd7ea2526ca8dceaa33d',
-      file: 'https://library.sportingnews.com/styles/twitter_card_120x120/s3/2025-08/Marcus%20Rashford%…',
+      artist: 'YantsImages',
+      license: 'CC BY-SA 4.0',
+      license_url: 'https://creativecommons.org/licenses/by-sa/4.0',
+      file: 'File:Team England England v Ghana at 2026 Fifa World Cup by YantsImages 03 (Anthony Gordon).jpg',
     },
   },
   {
     number: 19,
     name: 'Roony Bardghji',
-    position: 'FW' as Player['position'],
+    position: 'FW',
     role: 'Forward',
     nat: 'SWE',
-    captain: false,
-    bio: 'Roony Bardghji is a professional footballer who plays as a right winger for La Liga club Barcelona. Born in Kuwait, he plays for the Sweden national team.',
+    armband: null,
+    bio: 'Roony Bardghji is a right winger for Barcelona. Born in Kuwait and raised in Sweden, whom he represents, he arrived from Copenhagen in 2025 as one of the most-tracked teenagers in Scandinavian football.',
     image: asset('players/roony-bardghji.jpg'),
     attribution: {
       artist: 'Source: web search (Bing)',
@@ -388,5 +399,16 @@ export const SQUAD: Player[] = [
       license_url: 'https://sport.dk/fc-barcelona',
       file: 'https://r.testifier.nl/Acbs8526SDKI/resizing_type:fill/width:3840/height:2560/plain/https:…',
     },
+  },
+  {
+    number: 27,
+    name: 'Jesse Bisiwu',
+    position: 'FW',
+    role: 'Forward',
+    nat: 'BEL',
+    armband: null,
+    bio: 'Jesse Eugen K. Bisiwu is a Belgian winger for Barcelona, signed from Club Brugge in July 2026 for €8.5M at eighteen. The squad’s youngest player, and the one bet in this window that is purely about 2030.',
+    image: '',
+    attribution: NO_PHOTO,
   },
 ];

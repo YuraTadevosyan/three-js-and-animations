@@ -38,7 +38,7 @@ const STACK = [
         name: 'ScrollTrigger',
         url: 'https://gsap.com/docs/v3/Plugins/ScrollTrigger/',
         note:
-          'Pinning, scrub, parallax. One pin per scene; the squad uses a single scrubbed timeline that crossfades all 23 players in place.',
+          'Pinning, scrub, parallax. One pin per scene; the squad uses a single scrubbed timeline that crossfades all 24 players in place.',
       },
       {
         name: 'Lenis',
@@ -71,10 +71,16 @@ const STACK = [
     group: 'Data + Imagery',
     items: [
       {
-        name: 'Wikipedia REST API',
-        url: 'https://en.wikipedia.org/api/rest_v1/',
+        name: 'ESPN site API',
+        url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard',
         note:
-          'Squad roster + manager pulled from the 2025-26 FC Barcelona season article. Per-player bios are the page-summary extracts.',
+          'Live La Liga table + fixtures. Keyless and CORS-open, which is what lets a static page poll real in-play scores with no proxy and nothing secret in the bundle. Undocumented, so every call fails soft to the build-time snapshot.',
+      },
+      {
+        name: 'Wikipedia Action API',
+        url: 'https://www.mediawiki.org/wiki/API:Main_page',
+        note:
+          'Squad roster, coaching staff and per-player bios, pulled from the 2026-27 FC Barcelona articles at authoring time.',
       },
       {
         name: 'Wikimedia Commons API',
@@ -90,7 +96,7 @@ const TECHNIQUES = [
   {
     title: 'Single GSAP timeline carousel',
     body:
-      'The squad section pins for ~11 viewport-heights and a master scrub-driven timeline alternates dwell → crossfade for all 23 players in place.',
+      'The squad section pins for ~15 viewport-heights and a master scrub-driven timeline alternates dwell → crossfade for all 24 players in place.',
   },
   {
     title: 'ScrollTrigger × Lenis bridge',
@@ -100,7 +106,17 @@ const TECHNIQUES = [
   {
     title: 'No 3D, no canvas',
     body:
-      'Original drafts used three.js + a procedural Camp Nou; final cut is all-DOM with real photos. Bundle is ~310 KB JS + CSS.',
+      'Original drafts used three.js + a procedural Camp Nou; final cut is all-DOM with real photos. Bundle is ~380 KB JS + CSS.',
+  },
+  {
+    title: 'Provisional live table',
+    body:
+      "ESPN's standings only move at full time, so mid-match the table is stale by exactly the thing you're watching. In-flight scores are applied as provisional results and the table re-ranks, with ▲/▼ chips showing what each result is currently worth.",
+  },
+  {
+    title: 'One parser, two runtimes',
+    body:
+      'The La Liga table is baked into JSON at build time so the section paints instantly, then the very same ES module re-fetches ESPN in the browser and takes over. A failed refresh leaves the baked table on screen and labels itself.',
   },
   {
     title: 'Procedural pitch lines (early draft)',
@@ -207,9 +223,10 @@ export function AboutModal({
           <p className="text-bone/75 leading-relaxed max-w-2xl text-[0.98rem]">
             A scroll-driven matchday story at Camp Nou. Single page, no router,
             no 3D — built on top of a smooth-scroll engine with a GSAP
-            timeline per scene. Every photo is sourced from Wikimedia Commons
-            under a Creative Commons licence; the squad roster, captain badges
-            and bios are pulled from Wikipedia.
+            timeline per scene. The squad roster, captain badges, bios and the
+            bios come from Wikipedia and the live table from ESPN; photos are Wikimedia
+            Commons thumbnails where a freely-licensed one exists, and the
+            Outro credits every file individually.
           </p>
 
           <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
@@ -259,11 +276,11 @@ export function AboutModal({
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-bone/80">
             <div className="stat">
-              <div className="stat__value">~310 KB</div>
+              <div className="stat__value">~380 KB</div>
               <div className="stat__label">JS + CSS</div>
             </div>
             <div className="stat">
-              <div className="stat__value">23</div>
+              <div className="stat__value">24</div>
               <div className="stat__label">Player cards</div>
             </div>
             <div className="stat">
@@ -271,8 +288,8 @@ export function AboutModal({
               <div className="stat__label">Page · no router</div>
             </div>
             <div className="stat">
-              <div className="stat__value">100%</div>
-              <div className="stat__label">CC-licensed photos</div>
+              <div className="stat__value">25s</div>
+              <div className="stat__label">Refresh during a match</div>
             </div>
           </div>
 

@@ -79,4 +79,26 @@ export const MOMENTS: Moment[] = [
     caption:
       'Three down from Paris. Sergi Roberto in the 95th. Camp Nou unleashes the loudest night in its history.',
   },
+  {
+    year: 2025,
+    date: '22 November 2025',
+    competition: 'La Liga',
+    score: '4 – 0',
+    opponent: 'Athletic Bilbao',
+    venue: 'Camp Nou · Barcelona',
+    title: 'The bowl reopens.',
+    caption:
+      'Two and a half seasons of exile end. Lewandowski inside four minutes, Ferran twice, Fermín — the first match back in the rebuilt Camp Nou.',
+  },
+  {
+    year: 2026,
+    date: '10 May 2026',
+    competition: 'La Liga',
+    score: '2 – 0',
+    opponent: 'Real Madrid',
+    venue: 'Camp Nou · Barcelona',
+    title: 'A title won in a Clásico.',
+    caption:
+      'Rashford at 9, Ferran at 18. Barça clinch a 29th league title against Madrid — the first time in their history the championship is sealed in a Clásico.',
+  },
 ];

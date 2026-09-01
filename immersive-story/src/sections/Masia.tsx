@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { SplitText } from '@/components/SplitText';
 import { MASIA } from '@/data/masia';
 import { SQUAD } from '@/data/squad';
+import { NoPhoto } from '@/components/NoPhoto';
 
 // La Masia. A typographic grid of the academy graduates currently in the
 // first team. Reuses the same staff-card visual pattern with the player
@@ -59,8 +60,9 @@ export function Masia() {
         />
         <p className="mt-8 max-w-xl text-bone/70 leading-relaxed text-[1.05rem]">
           Six of the players you just met came up through the academy on the
-          edge of Sant Joan Despí. The pipeline isn't a marketing line — it's
-          half the starting eleven.
+          edge of Sant Joan Despí. In a summer that spent nine figures on
+          Rodri, Gordon and Adeyemi, the pipeline still supplies the ten, the
+          left-back and the centre-back the whole defence is built around.
         </p>
       </div>
 
@@ -73,7 +75,7 @@ export function Masia() {
               data-masia-card
               className="staff-card group relative overflow-hidden aspect-[3/4]"
             >
-              {p && (
+              {p?.image ? (
                 <div
                   className="absolute inset-0 bg-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
                   style={{
@@ -82,6 +84,8 @@ export function Masia() {
                     filter: 'saturate(0.95) contrast(1.05)',
                   }}
                 />
+              ) : (
+                <NoPhoto name={p?.name ?? m.name} compact />
               )}
               <div
                 className="absolute inset-0"

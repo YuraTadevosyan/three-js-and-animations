@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SQUAD, type Player } from '@/data/squad';
+import { NoPhoto } from '@/components/NoPhoto';
 
 // Pinned carousel. All player cards are stacked absolutely in the same
 // viewport-sized stage; a master scrubbed timeline crossfades between them
@@ -11,7 +12,7 @@ import { SQUAD, type Player } from '@/data/squad';
 //
 // The total scroll-length of the pin is (N-1) * DWELL + N * STEP viewport
 // heights, where DWELL is the per-card hold and STEP is the per-transition
-// fade. Tuned so 23 players take ~14 screens of scroll — long enough to
+// fade. Tuned so the 24-man squad takes ~15 screens of scroll — long enough to
 // breathe, short enough to not feel endless.
 const DWELL = 0.55;
 const STEP = 0.45;
@@ -238,18 +239,22 @@ function PlayerCard({
       <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-12">
         {/* Photo column. On phones it's the top 55vh; on desktop the left 7/12. */}
         <div className="md:col-span-7 relative overflow-hidden h-[55vh] md:h-full">
-          <div
-            data-player-photo
-            className="absolute inset-0 bg-cover will-change-transform"
-            style={{
-              // bg-position: top keeps heads in frame on tall portrait
-              // crops (most FCB CDN photos are 2:3 portraits where centring
-              // cuts off the face). Horizontally centred.
-              backgroundPosition: 'center top',
-              backgroundImage: `url(${player.image})`,
-              filter: 'saturate(0.88) contrast(1.06)',
-            }}
-          />
+          {player.image ? (
+            <div
+              data-player-photo
+              className="absolute inset-0 bg-cover will-change-transform"
+              style={{
+                // bg-position: top keeps heads in frame on tall portrait
+                // crops (most FCB CDN photos are 2:3 portraits where centring
+                // cuts off the face). Horizontally centred.
+                backgroundPosition: 'center top',
+                backgroundImage: `url(${player.image})`,
+                filter: 'saturate(0.88) contrast(1.06)',
+              }}
+            />
+          ) : (
+            <NoPhoto name={player.name} />
+          )}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -282,9 +287,9 @@ function PlayerCard({
             className="caption mb-6 text-[var(--gold)] flex items-center gap-3 flex-wrap"
           >
             <span>#{player.number} · {player.role}</span>
-            {player.captain && (
+            {player.armband && (
               <span className="px-2 py-0.5 border border-[var(--gold)] text-[0.62rem] tracking-[0.2em]">
-                Captain
+                {player.armband === 'captain' ? 'Captain' : 'Vice-captain'}
               </span>
             )}
           </div>

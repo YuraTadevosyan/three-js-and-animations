@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.0",
   "type": "module",
-  "description": "An FC Barcelona-styled scroll-driven matchday story — full-bleed Camp Nou hero, pinned squad gallery, coaching staff, fans bleed — animated with GSAP ScrollTrigger and smoothed with Lenis.",
+  "description": "An FC Barcelona-styled scroll-driven matchday story — full-bleed Camp Nou hero, pinned squad gallery, a live La Liga table, coaching staff, fans bleed — animated with GSAP ScrollTrigger and smoothed with Lenis.",
   "scripts": {
     "dev": "vite",
     "fetch:standings": "node scripts/fetch-standings.mjs",
