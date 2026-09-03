@@ -16,7 +16,7 @@ are torn into a few hundred particles, and a mated king topples over.
 | Framework | [Nuxt 4](https://nuxt.com/) (SPA, prerendered shell, `github-pages` Nitro preset) |
 | Engine | [PlayCanvas 2](https://playcanvas.com/) — engine-only, no editor, no scene files |
 | Chess | Hand-written: 0x88 board, legal move generation, SAN, alpha-beta search in a Web Worker |
-| Audio | Web Audio API, synthesised per event |
+| Audio | Web Audio API — modal synthesis, no audio files |
 | Build | Vite 8, TypeScript 5.9, Tailwind v3 |
 
 Both are new to this repo: Nuxt is the first Nuxt app here, and PlayCanvas the
@@ -97,7 +97,28 @@ business being verified by eye:
 | `check:geometry` | Face winding. Back-face culling means geometry wound the wrong way is simply not there — this computes every triangle's normal and asserts it points outward, or up for anything lying on the board. |
 | `check:ui` | The click → select → move → capture → undo path, and drag-and-drop, driven against a stub renderer. |
 | `check:world` | The whole world on PlayCanvas's null device: every piece type's choreography, castling, promotion, a replay, every palette. It also audits the scene for mesh instances left pointing at freed meshes. |
+| `check:audio` | The shape of the synthesis: sub-millisecond attacks, nothing droning, heavier pieces voiced lower and longer, a capture landing as separate contacts. |
 | `check:cinema` | Cinema playback end to end — load a game, press play, pause, seek — with a frame pump standing in for the browser. |
+
+## Sound
+
+Everything you hear is one sound re-voiced: a piece being set down on a wooden
+board. That is a broadband contact tick lasting a few milliseconds, the piece's
+own body ringing in five inharmonic modes, and a low thump from the board
+underneath. Inharmonic is the important part — harmonic partials would make it
+a marimba.
+
+Each piece is voiced by its weight, so a pawn lands at 545 Hz and dies in 85 ms
+while a king lands at 274 Hz and rings for 170. A capture is wood knocking wood,
+the loser tumbling clear, then the winner taking the square — three contacts
+across 140 ms. Check is two knuckles on the board. Checkmate is the king
+toppling: five strikes falling in pitch, the gaps closing as it rocks to a stop.
+Every strike is nudged a few percent in pitch and level, because no two pieces
+ever sound the same twice.
+
+`npm run check:audio` measures all of that — it records the audio graph and
+asserts the attack times, ring lengths, the pitch order from pawn to king, and
+the spacing of a capture's contacts.
 
 ## Colours
 

@@ -461,13 +461,15 @@ export class ChessWorld {
       board: this.board,
       fx: this.fx,
       camera: this.rig,
+      // The voicing of every strike depends on which piece is making it, so
+      // the sounds are bound to this move's pieces rather than to the side.
       sound: {
-        step: (side) => this.sound.step(side),
-        slide: (side) => this.sound.slide(side),
-        leap: (side) => this.sound.leap(side),
-        impact: (strength) => this.sound.impact(strength),
+        step: (side) => this.sound.step(side, mover.type),
+        slide: (side) => this.sound.slide(side, mover.type),
+        leap: (side) => this.sound.leap(side, mover.type),
+        impact: (strength) => this.sound.impact(strength, mover.type),
         teleport: (side) => this.sound.teleport(side),
-        capture: () => this.sound.capture(),
+        capture: () => this.sound.capture(captured?.type ?? 1, mover.type),
         check: () => this.sound.check(),
         mate: () => this.sound.mate(),
         promote: () => this.sound.promote(),

@@ -1,11 +1,48 @@
 /**
- * Synthesised audio. No files: every sound is oscillators and filtered noise
- * built at the moment it plays, which keeps the app asset-free and lets the
- * two armies have different voices — the cyan side a fifth above the magenta.
+ * Synthesised audio — no files.
+ *
+ * The brief is "chess", so the whole set is built from one sound: a piece being
+ * set down on a wooden board. That is a very short broadband contact tick,
+ * followed by the piece's own body ringing — a handful of inharmonic partials
+ * decaying fast — over a low thump from the board underneath.
+ *
+ * Everything else is that same strike, re-voiced: a capture is wood knocking
+ * wood before the piece lands, castling is two placements a beat apart, a
+ * toppling king is a run of strikes falling in pitch as it rolls over.
+ *
+ * Heavier pieces ring lower and longer, and every strike is nudged a few
+ * percent in pitch and level, because no two pieces ever sound identical.
  */
 import type { SideKey } from './theme'
 
-const SIDE_PITCH: Record<SideKey, number> = { white: 1.5, black: 1 }
+/**
+ * Per-piece voicing. `fundamental` is the first mode of the piece body,
+ * `body` the board resonance it excites, `weight` scales the whole strike.
+ */
+interface Voice {
+  fundamental: number
+  decay: number
+  body: number
+  weight: number
+}
+
+const PIECE_VOICE: Record<number, Voice> = {
+  1: { fundamental: 545, decay: 0.085, body: 152, weight: 0.55 }, // pawn
+  2: { fundamental: 452, decay: 0.10, body: 138, weight: 0.7 }, // knight
+  3: { fundamental: 415, decay: 0.11, body: 131, weight: 0.72 }, // bishop
+  4: { fundamental: 352, decay: 0.13, body: 121, weight: 0.86 }, // rook
+  5: { fundamental: 306, decay: 0.15, body: 113, weight: 0.95 }, // queen
+  6: { fundamental: 274, decay: 0.17, body: 105, weight: 1 }, // king
+}
+
+const DEFAULT_VOICE: Voice = PIECE_VOICE[1]!
+
+/**
+ * Mode ratios of a struck wooden block — deliberately inharmonic, which is
+ * what stops this sounding like a bell or a marimba.
+ */
+const MODES = [1, 1.58, 2.24, 3.02, 4.15]
+const MODE_GAINS = [1, 0.5, 0.29, 0.17, 0.1]
 
 export class Sound {
   private context: AudioContext | null = null
@@ -18,7 +55,9 @@ export class Sound {
   resume(): void {
     if (!this.enabled) return
     if (!this.context) {
-      const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      const Ctor =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
       if (!Ctor) return
       this.context = new Ctor()
       this.master = this.context.createGain()
@@ -45,143 +84,224 @@ export class Sound {
     return this.enabled && this.context !== null && this.master !== null && this.context.state === 'running'
   }
 
-  /** One enveloped oscillator. */
-  private tone(
-    frequency: number,
-    options: {
-      type?: OscillatorType
-      duration?: number
-      gain?: number
-      attack?: number
-      sweepTo?: number
-      delay?: number
-      detune?: number
-    } = {},
-  ): void {
-    if (!this.ready) return
-    const context = this.context!
-    const start = context.currentTime + (options.delay ?? 0)
-    const duration = options.duration ?? 0.25
-    const attack = options.attack ?? 0.006
-
-    const oscillator = context.createOscillator()
-    oscillator.type = options.type ?? 'sine'
-    oscillator.frequency.setValueAtTime(frequency, start)
-    if (options.sweepTo) oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, options.sweepTo), start + duration)
-    if (options.detune) oscillator.detune.value = options.detune
-
-    const gain = context.createGain()
-    gain.gain.setValueAtTime(0.0001, start)
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, options.gain ?? 0.25), start + attack)
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration)
-
-    oscillator.connect(gain).connect(this.master!)
-    oscillator.start(start)
-    oscillator.stop(start + duration + 0.05)
+  private voice(type: number): Voice {
+    return PIECE_VOICE[type] ?? DEFAULT_VOICE
   }
 
-  /** Filtered noise — impacts, dust, slides. */
-  private hit(
-    options: {
-      duration?: number
-      gain?: number
-      frequency?: number
-      sweepTo?: number
-      q?: number
-      type?: BiquadFilterType
-      delay?: number
-    } = {},
-  ): void {
+  /** ±6% pitch, ±12% level: the same piece never lands twice the same way. */
+  private vary(): { pitch: number; level: number } {
+    return { pitch: 0.94 + Math.random() * 0.12, level: 0.88 + Math.random() * 0.24 }
+  }
+
+  /* ------------------------------------------------------------ atoms --- */
+
+  /** One decaying sine partial. */
+  private partial(frequency: number, gain: number, decay: number, delay: number, type: OscillatorType = 'sine'): void {
+    if (!this.ready) return
+    const context = this.context!
+    const start = context.currentTime + delay
+
+    const oscillator = context.createOscillator()
+    oscillator.type = type
+    oscillator.frequency.setValueAtTime(frequency, start)
+
+    const envelope = context.createGain()
+    envelope.gain.setValueAtTime(0.0001, start)
+    // Sub-millisecond attack — a struck object has no fade-in.
+    envelope.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), start + 0.0008)
+    envelope.gain.exponentialRampToValueAtTime(0.0001, start + decay)
+
+    oscillator.connect(envelope).connect(this.master!)
+    oscillator.start(start)
+    oscillator.stop(start + decay + 0.02)
+  }
+
+  /** A burst of filtered noise — contact, scrape, felt. */
+  private burst(options: {
+    duration: number
+    gain: number
+    frequency: number
+    sweepTo?: number
+    q?: number
+    type?: BiquadFilterType
+    delay?: number
+    attack?: number
+  }): void {
     if (!this.ready || !this.noise) return
     const context = this.context!
     const start = context.currentTime + (options.delay ?? 0)
-    const duration = options.duration ?? 0.2
+    const duration = options.duration
 
     const source = context.createBufferSource()
     source.buffer = this.noise
-    source.playbackRate.value = 0.8 + Math.random() * 0.4
+    source.playbackRate.value = 0.85 + Math.random() * 0.3
+    // Start somewhere random in the buffer so repeats never phase-match.
+    const offset = Math.random() * 1.2
 
     const filter = context.createBiquadFilter()
-    filter.type = options.type ?? 'lowpass'
-    filter.frequency.setValueAtTime(options.frequency ?? 1200, start)
-    if (options.sweepTo) filter.frequency.exponentialRampToValueAtTime(Math.max(60, options.sweepTo), start + duration)
+    filter.type = options.type ?? 'bandpass'
+    filter.frequency.setValueAtTime(options.frequency, start)
+    if (options.sweepTo) {
+      filter.frequency.exponentialRampToValueAtTime(Math.max(60, options.sweepTo), start + duration)
+    }
     filter.Q.value = options.q ?? 1
 
-    const gain = context.createGain()
-    gain.gain.setValueAtTime(0.0001, start)
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, options.gain ?? 0.2), start + 0.008)
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration)
+    const envelope = context.createGain()
+    envelope.gain.setValueAtTime(0.0001, start)
+    envelope.gain.exponentialRampToValueAtTime(Math.max(0.0002, options.gain), start + (options.attack ?? 0.001))
+    envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration)
 
-    source.connect(filter).connect(gain).connect(this.master!)
-    source.start(start)
+    source.connect(filter).connect(envelope).connect(this.master!)
+    source.start(start, offset, duration + 0.05)
     source.stop(start + duration + 0.05)
   }
 
-  step(side: SideKey): void {
-    const pitch = SIDE_PITCH[side]
-    this.tone(180 * pitch, { type: 'triangle', duration: 0.1, gain: 0.09, sweepTo: 120 * pitch })
-    this.hit({ duration: 0.07, gain: 0.06, frequency: 2600, sweepTo: 700 })
-  }
+  /**
+   * The core sound: a piece meeting the board. Contact tick, the piece body
+   * ringing in inharmonic modes, and the board answering underneath.
+   */
+  private strike(type: number, strength = 1, delay = 0, brightness = 1): void {
+    if (!this.ready) return
+    const voice = this.voice(type)
+    const { pitch, level } = this.vary()
+    const force = Math.max(0.2, Math.min(1.4, strength)) * voice.weight * level
 
-  slide(side: SideKey): void {
-    const pitch = SIDE_PITCH[side]
-    this.hit({ duration: 0.32, gain: 0.07, frequency: 500, sweepTo: 3200, type: 'bandpass', q: 3 })
-    this.tone(320 * pitch, { type: 'sawtooth', duration: 0.3, gain: 0.035, sweepTo: 620 * pitch })
-  }
-
-  leap(side: SideKey): void {
-    const pitch = SIDE_PITCH[side]
-    this.tone(220 * pitch, { type: 'triangle', duration: 0.42, gain: 0.1, sweepTo: 760 * pitch })
-    this.hit({ duration: 0.12, gain: 0.05, frequency: 900, sweepTo: 2400, type: 'bandpass', q: 2 })
-  }
-
-  impact(strength: number): void {
-    const amount = Math.max(0.15, Math.min(1, strength))
-    this.tone(78, { type: 'sine', duration: 0.26 + amount * 0.2, gain: 0.14 * amount, sweepTo: 38 })
-    this.hit({ duration: 0.16 + amount * 0.14, gain: 0.13 * amount, frequency: 1800 * amount + 400, sweepTo: 180 })
-  }
-
-  teleport(side: SideKey): void {
-    const pitch = SIDE_PITCH[side]
-    this.tone(420 * pitch, { type: 'sine', duration: 0.34, gain: 0.07, sweepTo: 1500 * pitch })
-    this.tone(423 * pitch, { type: 'sine', duration: 0.34, gain: 0.05, sweepTo: 1480 * pitch, detune: 12 })
-    this.tone(1600 * pitch, { type: 'sine', duration: 0.45, gain: 0.05, sweepTo: 300 * pitch, delay: 0.34 })
-    this.hit({ duration: 0.5, gain: 0.05, frequency: 3000, sweepTo: 600, type: 'bandpass', q: 6, delay: 0.2 })
-  }
-
-  capture(): void {
-    this.tone(90, { type: 'square', duration: 0.34, gain: 0.1, sweepTo: 34 })
-    this.hit({ duration: 0.45, gain: 0.2, frequency: 4200, sweepTo: 220 })
-    this.hit({ duration: 0.2, gain: 0.09, frequency: 900, sweepTo: 2800, type: 'bandpass', q: 2, delay: 0.02 })
-  }
-
-  check(): void {
-    this.tone(880, { type: 'square', duration: 0.13, gain: 0.07 })
-    this.tone(932, { type: 'square', duration: 0.18, gain: 0.07, delay: 0.11 })
-  }
-
-  mate(): void {
-    // A minor triad, falling.
-    const root = 196
-    this.tone(root * 2, { type: 'sawtooth', duration: 1.2, gain: 0.07, sweepTo: root })
-    this.tone(root * 2 * 1.189, { type: 'triangle', duration: 1.3, gain: 0.05, delay: 0.08 })
-    this.tone(root * 2 * 1.498, { type: 'triangle', duration: 1.4, gain: 0.05, delay: 0.16 })
-    this.tone(root / 2, { type: 'sine', duration: 1.6, gain: 0.1, delay: 0.2 })
-  }
-
-  promote(): void {
-    const notes = [523.25, 659.25, 783.99, 1046.5]
-    notes.forEach((frequency, index) => {
-      this.tone(frequency, { type: 'triangle', duration: 0.35, gain: 0.06, delay: index * 0.07 })
+    // Contact: the click of the felt-and-wood base touching the square.
+    this.burst({
+      duration: 0.012 + 0.006 * force,
+      gain: 0.16 * force * brightness,
+      frequency: 2600 * brightness,
+      sweepTo: 900,
+      q: 0.7,
+      type: 'highpass',
+      delay,
     })
+
+    // The piece itself.
+    for (let i = 0; i < MODES.length; i++) {
+      this.partial(
+        voice.fundamental * MODES[i]! * pitch,
+        0.12 * MODE_GAINS[i]! * force,
+        // Higher modes die away first, which is what makes it wood.
+        voice.decay / (1 + i * 0.55),
+        delay,
+      )
+    }
+
+    // The board: a short low thump, louder the heavier the piece.
+    this.partial(voice.body * pitch, 0.1 * force, 0.11 + 0.05 * force, delay)
   }
 
+  /* ----------------------------------------------------------- moves --- */
+
+  /** Lifting a piece off its square: a small tick of fingers and felt. */
+  step(_side: SideKey, type = 1): void {
+    const voice = this.voice(type)
+    this.burst({ duration: 0.02, gain: 0.05, frequency: 3200, sweepTo: 1400, q: 0.8, type: 'highpass' })
+    this.partial(voice.fundamental * 1.6, 0.02, 0.03, 0)
+  }
+
+  /** A piece dragged across the board rather than lifted. */
+  slide(_side: SideKey, type = 1): void {
+    const voice = this.voice(type)
+    this.burst({
+      duration: 0.26,
+      gain: 0.055 * voice.weight,
+      frequency: 900,
+      sweepTo: 1700,
+      q: 1.4,
+      attack: 0.05,
+    })
+    // A faint rumble of the board as it travels.
+    this.partial(voice.body * 1.4, 0.018, 0.22, 0)
+  }
+
+  /** The knight leaving the board: felt lifting, then air. */
+  leap(_side: SideKey, type = 2): void {
+    this.step('white', type)
+    this.burst({ duration: 0.3, gain: 0.035, frequency: 520, sweepTo: 1500, q: 1.1, attack: 0.09, delay: 0.05 })
+  }
+
+  /** A piece arriving on its square. */
+  impact(strength: number, type = 1): void {
+    this.strike(type, 0.7 + strength * 0.8)
+  }
+
+  /**
+   * Wood knocking wood, then the survivor settling. Two objects meeting is a
+   * brighter, shorter sound than either of them landing alone.
+   */
+  capture(victim = 1, attacker = 1): void {
+    const knock = this.voice(victim)
+    this.burst({ duration: 0.026, gain: 0.2, frequency: 3400, sweepTo: 1100, q: 0.6, type: 'highpass' })
+    this.partial(knock.fundamental * 1.22, 0.11, 0.055, 0)
+    this.partial(knock.fundamental * 2.1, 0.06, 0.035, 0)
+    // The captured piece tumbling out of the way.
+    this.strike(victim, 0.5, 0.055, 1.15)
+    // The attacker taking the square.
+    this.strike(attacker, 1.05, 0.14)
+  }
+
+  /**
+   * The queen's move is the one thing here that is not literal chess, so it
+   * keeps a breath of air and shimmer — but built on the same wooden body, so
+   * it still belongs on the board.
+   */
+  teleport(_side: SideKey): void {
+    const voice = this.voice(5)
+    this.step('white', 5)
+    this.burst({ duration: 0.34, gain: 0.045, frequency: 1200, sweepTo: 3600, q: 2.4, attack: 0.16, delay: 0.04 })
+    this.partial(voice.fundamental * 2, 0.03, 0.4, 0.06)
+    this.partial(voice.fundamental * 3.02, 0.02, 0.34, 0.1)
+  }
+
+  /* --------------------------------------------------------- moments --- */
+
+  /** Two firm knuckles on the board. */
+  check(): void {
+    this.knock(0)
+    this.knock(0.11)
+  }
+
+  private knock(delay: number): void {
+    this.burst({ duration: 0.02, gain: 0.13, frequency: 1800, sweepTo: 600, q: 0.7, type: 'highpass', delay })
+    this.partial(196, 0.09, 0.1, delay)
+    this.partial(196 * 1.61, 0.045, 0.06, delay)
+  }
+
+  /** The king toppling: a run of strikes rolling over, then settling. */
+  mate(): void {
+    const rolls = 5
+    let delay = 0
+    for (let i = 0; i < rolls; i++) {
+      // Each contact is closer and lower than the last, the way a falling
+      // piece rocks to a stop.
+      this.strike(6, 0.75 - i * 0.11, delay, 1 - i * 0.1)
+      delay += 0.14 - i * 0.02
+    }
+    this.partial(96, 0.09, 0.5, delay)
+    this.burst({ duration: 0.4, gain: 0.03, frequency: 320, sweepTo: 120, q: 0.9, delay })
+  }
+
+  /** A new piece taking the square: three rising taps and a soft ring. */
+  promote(): void {
+    this.strike(1, 0.5, 0, 1.1)
+    this.strike(3, 0.6, 0.09, 1.05)
+    this.strike(5, 0.95, 0.19)
+    this.partial(523.25, 0.045, 0.5, 0.2)
+    this.partial(783.99, 0.03, 0.42, 0.24)
+  }
+
+  /** Fingertip on a piece before lifting it. */
   select(): void {
-    this.tone(660, { type: 'sine', duration: 0.07, gain: 0.045 })
+    this.burst({ duration: 0.014, gain: 0.05, frequency: 3600, sweepTo: 1600, q: 0.9, type: 'highpass' })
+    this.partial(640, 0.025, 0.035, 0)
   }
 
+  /** A piece put back down where it came from. */
   deny(): void {
-    this.tone(150, { type: 'square', duration: 0.12, gain: 0.05, sweepTo: 90 })
+    this.burst({ duration: 0.03, gain: 0.06, frequency: 700, sweepTo: 240, q: 0.8, type: 'lowpass' })
+    this.partial(150, 0.06, 0.09, 0)
   }
 
   destroy(): void {
