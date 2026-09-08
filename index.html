@@ -961,6 +961,100 @@
           </span>
         </div>
       </a>
+
+      <a class="card" href="./chess-world/" data-reveal data-accent="violet">
+        <div class="card-spotlight" aria-hidden="true"></div>
+        <div class="card-art" aria-hidden="true">
+          <svg viewBox="0 0 200 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="chess-surface" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#36d8ff" stop-opacity=".04" />
+                <stop offset="100%" stop-color="#36d8ff" stop-opacity=".2" />
+              </linearGradient>
+              <linearGradient id="chess-arc" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="#36d8ff" />
+                <stop offset="100%" stop-color="#ff3ea5" />
+              </linearGradient>
+              <radialGradient id="chess-bloom">
+                <stop offset="0%" stop-color="#8f6bff" stop-opacity=".5" />
+                <stop offset="100%" stop-color="#8f6bff" stop-opacity="0" />
+              </radialGradient>
+            </defs>
+
+            <ellipse cx="100" cy="76" rx="80" ry="36" fill="url(#chess-bloom)" />
+
+            <!-- the board, seen from a low camera -->
+            <path d="M52 96 L148 96 L128 58 L72 58 Z" fill="url(#chess-surface)" stroke="#36d8ff"
+              stroke-opacity=".45" stroke-width="1" />
+
+            <!-- two lit squares: where the knight left, and where it lands -->
+            <path d="M64 96 L76 96 L79 86.5 L69 86.5 Z" fill="#36d8ff" opacity=".28" />
+            <path d="M107 67.5 L114 67.5 L114.8 58 L107.9 58 Z" fill="#ff3ea5" opacity=".3" />
+
+            <g stroke="#36d8ff" stroke-opacity=".28" stroke-width=".6">
+              <path d="M57 86.5H143M62 77H138M67 67.5H133" />
+              <path d="M64 96 69 58M76 96 79.5 58M88 96 86.5 58M100 96V58M112 96 113.5 58M124 96 120.5 58M136 96 127.5 58"
+                transform="translate(0 0)" />
+            </g>
+
+            <!-- the knight's jump: an arc through the corner of its L -->
+            <path d="M70 88 Q86 40 111 63" fill="none" stroke="url(#chess-arc)" stroke-width="2"
+              stroke-linecap="round" stroke-dasharray="5 4" />
+
+            <!-- sparks from a capture on the landing square -->
+            <g fill="#ff3ea5">
+              <circle cx="118" cy="55" r="1.6" opacity=".9" />
+              <circle cx="124" cy="62" r="1.2" opacity=".7" />
+              <circle cx="104" cy="52" r="1.1" opacity=".65" />
+              <circle cx="128" cy="52" r=".9" opacity=".5" />
+              <circle cx="112" cy="46" r="1.3" opacity=".55" />
+            </g>
+
+            <!-- pieces: cyan takes off, magenta waits -->
+            <g fill="#9be8ff">
+              <circle cx="70" cy="83" r="3.1" />
+              <path d="M66.5 96h7l-1.6-8h-3.8z" opacity=".85" />
+            </g>
+            <g fill="#ff8fd0">
+              <circle cx="93" cy="72" r="2.6" />
+              <path d="M90 82h6l-1.4-7h-3.2z" opacity=".8" />
+            </g>
+            <g fill="#ff8fd0" opacity=".75">
+              <circle cx="121" cy="76" r="2.4" />
+              <path d="M118.2 86h5.6l-1.3-7h-3z" />
+            </g>
+          </svg>
+        </div>
+        <div class="card-body">
+          <span class="card-index">15</span>
+          <h2 class="card-title">Interactive Chess World</h2>
+          <p class="card-desc">
+            Chess where no piece simply slides. Knights crouch and somersault
+            over the corner of their L, landing hard enough to shake the camera.
+            Queens never cross the board at all — they come apart into a column
+            of sparks and rebuild themselves on the far square. Rooks charge
+            behind a shockwave, bishops streak down the diagonal, captured pieces
+            burst apart, and a mated king falls over. Play it against a
+            hand-written engine, or watch six famous games replayed in Cinema.
+            No models, no textures, no audio files — pieces are turned on a
+            lathe at boot and every sound is an oscillator.
+          </p>
+          <ul class="chips">
+            <li>Nuxt 4</li>
+            <li>PlayCanvas 2</li>
+            <li>Chess engine from scratch</li>
+            <li>Web Worker search</li>
+            <li>Custom palettes</li>
+            <li>Web Audio</li>
+          </ul>
+          <span class="card-cta">
+            Launch demo
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </span>
+        </div>
+      </a>
     </section>
 
     <section id="stack" class="stack" data-reveal>
@@ -969,7 +1063,7 @@
       <ul class="stack-grid">
         <li>React 18/19</li>
         <li>TypeScript</li>
-        <li>Next.js</li>
+        <li>Next.js 14</li>
         <li>Vite</li>
         <li>Tailwind CSS</li>
         <li>shadcn/ui</li>
@@ -978,31 +1072,33 @@
         <li>@react-three/drei</li>
         <li>@react-three/postprocessing</li>
         <li>@react-three/rapier</li>
+        <li>Babylon.js 9</li>
+        <li>PlayCanvas 2</li>
+        <li>OGL</li>
+        <li>GLSL ES 3.0</li>
+        <li>WebGL2</li>
         <li>GSAP</li>
         <li>ScrollTrigger</li>
         <li>Lenis</li>
+        <li>anime.js v4</li>
+        <li>KUTE.js</li>
+        <li>Lottie</li>
         <li>Matter.js</li>
         <li>simplex-noise</li>
+        <li>D3</li>
         <li>TanStack Router</li>
         <li>TanStack Query</li>
         <li>zustand</li>
         <li>Web Audio API</li>
         <li>MediaRecorder</li>
         <li>IntersectionObserver</li>
-        <li>GLSL ES 3.0</li>
-        <li>WebGL2</li>
+        <li>interact.js</li>
         <li>Vue 3</li>
-        <li>anime.js v4</li>
-        <li>KUTE.js</li>
-        <li>Lottie</li>
+        <li>Nuxt 4</li>
         <li>Svelte 5</li>
-        <li>D3</li>
-        <li>Babylon.js 9</li>
         <li>SolidJS</li>
         <li>Preact</li>
         <li>Preact Signals</li>
-        <li>OGL</li>
-        <li>interact.js</li>
         <li>Angular 21</li>
         <li>Angular signals</li>
       </ul>
