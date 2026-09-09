@@ -8,6 +8,44 @@ export type ProfilePoint = [radius: number, y: number]
 export type Point2 = [x: number, y: number]
 
 /**
+ * Points along a circle, in degrees, counter-clockwise from +X. Outlines are
+ * hand-written tables of points; this keeps the round parts of them — a pawn's
+ * head, a finial — round rather than a polygon someone typed out.
+ */
+export function arc(
+  cx: number,
+  cy: number,
+  radius: number,
+  fromDegrees: number,
+  toDegrees: number,
+  steps = 8,
+): Point2[] {
+  const points: Point2[] = []
+  const from = (fromDegrees * Math.PI) / 180
+  const to = (toDegrees * Math.PI) / 180
+  for (let i = 0; i <= steps; i++) {
+    const angle = from + ((to - from) * i) / steps
+    points.push([cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius])
+  }
+  return points
+}
+
+/**
+ * Mirrors a right-hand half-outline into a closed symmetric one. The half runs
+ * bottom to top with x >= 0; the reflection comes back down the left side, and
+ * the base closes it. Points sitting on the axis are not repeated, so a shape
+ * can end in a spire (x = 0) or a flat top (x > 0) with the same table.
+ */
+export function mirrorOutline(half: Point2[]): Point2[] {
+  const left: Point2[] = []
+  for (let i = half.length - 1; i >= 0; i--) {
+    const [x, y] = half[i]!
+    if (x > 1e-4) left.push([-x, y])
+  }
+  return [...half, ...left]
+}
+
+/**
  * Revolves a 2D profile around the Y axis. Points run bottom to top; a radius
  * of zero closes the surface into a point (a spire, a finial, a nose cone).
  */
@@ -54,6 +92,51 @@ export function lathe(profile: ProfilePoint[], segments = 24): Geometry {
   geometry.indices = indices
   geometry.calculateNormals()
   return geometry
+}
+
+/**
+ * Splits every shared vertex so each triangle keeps its own normal. Smooth
+ * normals round a low-segment lathe off into a lumpy cylinder; this is what
+ * makes a six-sided piece read as cut crystal instead.
+ */
+export function faceted(geometry: Geometry): Geometry {
+  const positions = geometry.positions ?? []
+  const indices = geometry.indices ?? []
+  const uvs = geometry.uvs
+  const outPositions: number[] = []
+  const outNormals: number[] = []
+  const outUvs: number[] = []
+  const outIndices: number[] = []
+
+  for (let i = 0; i < indices.length; i += 3) {
+    const corners = [indices[i]!, indices[i + 1]!, indices[i + 2]!]
+    const [ax, ay, az] = [positions[corners[0]! * 3]!, positions[corners[0]! * 3 + 1]!, positions[corners[0]! * 3 + 2]!]
+    const [bx, by, bz] = [positions[corners[1]! * 3]!, positions[corners[1]! * 3 + 1]!, positions[corners[1]! * 3 + 2]!]
+    const [cx, cy, cz] = [positions[corners[2]! * 3]!, positions[corners[2]! * 3 + 1]!, positions[corners[2]! * 3 + 2]!]
+    const ux = bx - ax, uy = by - ay, uz = bz - az
+    const vx = cx - ax, vy = cy - ay, vz = cz - az
+    let nx = uy * vz - uz * vy
+    let ny = uz * vx - ux * vz
+    let nz = ux * vy - uy * vx
+    const length = Math.hypot(nx, ny, nz) || 1
+    nx /= length
+    ny /= length
+    nz /= length
+
+    for (const corner of corners) {
+      outIndices.push(outPositions.length / 3)
+      outPositions.push(positions[corner * 3]!, positions[corner * 3 + 1]!, positions[corner * 3 + 2]!)
+      outNormals.push(nx, ny, nz)
+      if (uvs) outUvs.push(uvs[corner * 2]!, uvs[corner * 2 + 1]!)
+    }
+  }
+
+  const out = new Geometry()
+  out.positions = outPositions
+  out.normals = outNormals
+  out.indices = outIndices
+  if (uvs) out.uvs = outUvs
+  return out
 }
 
 /** Signed area — positive means counter-clockwise in a Y-up plane. */

@@ -18,6 +18,7 @@ import { Fx } from './fx'
 import {
   PieceMeshCache, applyPieceMaterials, createPiece, createPieceMaterials, type PieceMaterials,
 } from './pieces'
+import { DEFAULT_PIECE_SET, pieceSetById, type PieceSet } from './sets'
 import { Sound } from './sound'
 import {
   THEME, applyPaletteToTheme, sideKey, squareToWorld, worldToSquare, type PaletteValues,
@@ -44,6 +45,10 @@ export interface WorldStats {
    */
   renders: number
   particles: number
+  /** Pieces the world is holding — 32 at the start of a game. */
+  pieces: number
+  /** Id of the piece set currently on the board. */
+  pieceSet: string
   postProcessing: PostState
   effectsEnabled: boolean
   lastError: string | null
@@ -94,6 +99,7 @@ export class ChessWorld {
   private readonly meshes: PieceMeshCache
   private readonly materials: PieceMaterials
   private readonly pieces = new Map<number, PieceInstance>()
+  private pieceSet: PieceSet = DEFAULT_PIECE_SET
   private readonly shake = new Vec3()
   private readonly pointers = new Map<number, { x: number; y: number }>()
   private frame: CameraFrame | null = null
@@ -332,9 +338,47 @@ export class ChessWorld {
 
   /* ---------------------------------------------------------- pieces ---- */
 
+  /**
+   * Swaps the piece set under way. Every piece is rebuilt where it stands from
+   * the entries this world already holds, so nothing outside needs to hand the
+   * position back, and a game in progress simply changes shape.
+   */
+  setPieceSet(id: string): void {
+    const next = pieceSetById(id)
+    if (!next || next.id === this.pieceSet.id) return
+    this.pieceSet = next
+
+    // Anything mid-flight is tweening an entity that is about to be destroyed.
+    this.animator.finishAll()
+    this.grab = null
+
+    for (const [square, instance] of [...this.pieces]) {
+      instance.entity.destroy()
+      const replacement = this.spawnPiece(square, instance.type, instance.color)
+      const { x, z } = squareToWorld(square)
+      const delay = (square & 7) * 0.018 + (7 - (square >> 4)) * 0.024
+      replacement.entity.setLocalScale(0.55, 0.55, 0.55)
+      this.animator.spawn(
+        new Timeline().at(delay, {
+          duration: 0.42,
+          easing: ease.outBack,
+          onUpdate: (t) => {
+            const scale = 0.55 + t * 0.45
+            replacement.entity.setLocalScale(scale, scale, scale)
+            replacement.entity.setLocalPosition(x, (1 - t) * 0.22, z)
+          },
+          onComplete: () => {
+            replacement.entity.setLocalScale(1, 1, 1)
+            replacement.entity.setLocalPosition(x, 0, z)
+          },
+        }),
+      )
+    }
+  }
+
   private spawnPiece(square: number, type: number, color: 0 | 1): PieceInstance {
     const material = color === 0 ? this.materials.white : this.materials.black
-    const entity = createPiece(this.meshes, type, material, color === 0 ? -1 : 1)
+    const entity = createPiece(this.meshes, this.pieceSet, type, material, color === 0 ? -1 : 1)
     const { x, z } = squareToWorld(square)
     entity.setLocalPosition(x, 0, z)
     this.piecesRoot.addChild(entity)
@@ -425,6 +469,7 @@ export class ChessWorld {
     if (record.promotion) {
       const replacement = createPiece(
         this.meshes,
+        this.pieceSet,
         record.promotion,
         mover.color === 0 ? this.materials.white : this.materials.black,
         mover.color === 0 ? -1 : 1,
@@ -781,6 +826,8 @@ export class ChessWorld {
       frames: this.frames,
       renders: this.renders,
       particles: this.fx.particles.count,
+      pieces: this.pieces.size,
+      pieceSet: this.pieceSet.id,
       postProcessing: this.postState,
       effectsEnabled: this.effectsEnabled,
       lastError: this.lastError,

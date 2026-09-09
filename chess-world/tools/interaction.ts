@@ -20,6 +20,7 @@ async function main(): Promise<void> {
 
   check('world attached', world !== null)
   check('a palette is applied on attach', world.palette !== null, JSON.stringify(world.palette))
+  check('a piece set is applied on attach', world.pieceSet === state.pieceSets[0]!.id, world.pieceSet)
   check('pieces placed', world.log.includes('sync:32'), world.log.join(','))
   check('interactive on load', state.interactive.value === true,
     `mode=${state.mode.value} over=${state.status.value.over} thinking=${state.thinking.value} animating=${state.animating.value} turn=${state.turn.value} side=${state.playerSide.value}`)
@@ -109,6 +110,29 @@ async function main(): Promise<void> {
 
   state.setPalette('does-not-exist')
   check('an unknown palette is ignored', state.paletteId.value === state.palettes[0]!.id)
+
+  // Piece sets.
+  check('three sets are offered', state.pieceSets.length === 3,
+    state.pieceSets.map((set) => set.id).join(' '))
+  for (const set of state.pieceSets) {
+    check(`set "${set.name}" describes itself`, set.name.length > 0 && set.hint.length > 0)
+    check(`set "${set.name}" has all six pieces`,
+      [1, 2, 3, 4, 5, 6].every((type) => set.shapes[type] !== undefined))
+  }
+
+  state.setPieceSet('glyph')
+  check('choosing a set reaches the world',
+    state.pieceSetId.value === 'glyph' && world.pieceSet === 'glyph', world.pieceSet)
+
+  state.setPieceSet('does-not-exist')
+  check('an unknown set is ignored', state.pieceSetId.value === 'glyph', state.pieceSetId.value)
+
+  const logged = world.log.length
+  state.setPieceSet('glyph')
+  check('re-choosing the set in play does nothing', world.log.length === logged)
+
+  state.setPieceSet('classic')
+  check('switching back works', world.pieceSet === 'classic', world.pieceSet)
 }
 
 main()

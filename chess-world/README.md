@@ -25,7 +25,8 @@ first entity-component 3D engine (after three.js, Babylon, OGL and raw WebGL2).
 **No binary assets.** Every piece is a surface of revolution generated at boot,
 the knight's head is an extruded silhouette, the floor grid is drawn to a canvas,
 the particles are one dynamic mesh of camera-facing quads, and every sound is
-oscillators and filtered noise.
+oscillators and filtered noise. Three piece sets, six palettes — all of it
+tables of numbers, not files.
 
 ## The choreography
 
@@ -94,9 +95,9 @@ business being verified by eye:
 
 | Check | What it catches |
 | --- | --- |
-| `check:geometry` | Face winding. Back-face culling means geometry wound the wrong way is simply not there — this computes every triangle's normal and asserts it points outward, or up for anything lying on the board. |
+| `check:geometry` | Face winding, and every piece of every set. Back-face culling means geometry wound the wrong way is simply not there — this computes every triangle's normal and asserts it points outward, or up for anything lying on the board. Each piece is then checked for being a closed solid (every edge walked once in each direction), the right way out, drawn to the shared envelope, and built from an outline that does not cross itself. |
 | `check:ui` | The click → select → move → capture → undo path, and drag-and-drop, driven against a stub renderer. |
-| `check:world` | The whole world on PlayCanvas's null device: every piece type's choreography, castling, promotion, a replay, every palette. It also audits the scene for mesh instances left pointing at freed meshes. |
+| `check:world` | The whole world on PlayCanvas's null device: every piece type's choreography, castling, promotion, a replay, every palette and every piece set — including swapping sets in the middle of a move. It also audits the scene for mesh instances left pointing at freed meshes. |
 | `check:audio` | The shape of the synthesis: sub-millisecond attacks, nothing droning, heavier pieces voiced lower and longer, a capture landing as separate contacts. |
 | `check:cinema` | Cinema playback end to end — load a game, press play, pause, seek — with a frame pump standing in for the browser. |
 
@@ -120,6 +121,29 @@ ever sound the same twice.
 asserts the attack times, ring lengths, the pitch order from pawn to king, and
 the spacing of a capture's contacts.
 
+## Pieces
+
+Settings → **Pieces**. Three sets, switched mid-game — the board rebuilds where
+it stands and the pieces pop back up in the new shape:
+
+| Set | What it is |
+| --- | --- |
+| Turned | Lathe-turned Staunton: 28 sides to the round, battlements on the rook, a ring of points on the queen, a cross on the king |
+| Facet | The same pieces cut from crystal — six sides, and every triangle keeps its own normal so the edges stay hard instead of shading smooth |
+| Cut-out | Flat silhouettes extruded into slabs and stood on a disc, facing you across the board; the second army is turned round, so the two sets of knights mirror each other |
+
+A set is pure data in `app/world/sets.ts` — a lathe profile per piece, any
+extruded outlines, and the primitives for the details a lathe cannot turn. The
+same tables draw the previews in the settings panel, so a preview cannot show
+something other than what lands on the board.
+
+Every set is drawn to one envelope, so switching them never re-tunes the
+choreography, the camera framing or the capture bursts: a queen teleports
+through the same arc whichever set she is in. `npm run check:geometry` enforces
+that, along with the things hand-written point tables get wrong — an outline
+that crosses itself, a triangulation that gave up half way, a face wound
+inside out, a piece that overhangs its square.
+
 ## Colours
 
 Settings → **Colours**. Six built-in palettes (Neon Arena, Ember, Jade, Arctic,
@@ -140,7 +164,7 @@ and it is safe mid-animation. Your choice is remembered between visits.
 | Orbit | Drag the board |
 | Zoom | Scroll, or pinch |
 | Select / move | Drag a piece, or click it and click a highlighted square |
-| Modes | Play / Cinema in the top bar; colours, camera, sound and quality under Settings |
+| Modes | Play / Cinema in the top bar; pieces, colours, camera, sound and quality under Settings |
 
 ## Running it
 

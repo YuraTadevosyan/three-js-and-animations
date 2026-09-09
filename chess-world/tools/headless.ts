@@ -10,6 +10,7 @@
 import { NullGraphicsDevice } from 'playcanvas'
 import { CINEMA_BY_ID } from '../app/data/games'
 import { ChessGame } from '../app/game/game'
+import { PIECE_SETS } from '../app/world/sets'
 import { PALETTES, THEME, fromHex, toHex, type PaletteValues } from '../app/world/theme'
 import { ChessWorld } from '../app/world/world'
 
@@ -230,6 +231,54 @@ async function main(): Promise<void> {
   const repaintProblem = runFrames(world.app, 60)
   check('repainting mid-move is safe', repaintProblem === null, repaintProblem ?? '')
   auditMeshes('after every palette')
+
+  /* ---- piece sets ------------------------------------------------------ */
+
+  const sets = new ChessGame()
+  world.sync(sets.pieces())
+  runFrames(world.app, 10)
+
+  for (const set of PIECE_SETS) {
+    world.setPieceSet(set.id)
+    const problem = runFrames(world.app, 45)
+    check(`piece set "${set.name}" renders`, problem === null, problem ?? '')
+    const snapshot = world.stats()
+    check(
+      `piece set "${set.name}" keeps the position`,
+      snapshot.pieces === 32 && snapshot.pieceSet === set.id,
+      `${snapshot.pieces} pieces, set ${snapshot.pieceSet}`,
+    )
+    // Every set shares the mesh cache, so a swap frees 32 mesh instances at
+    // once — the same trap that once left the board drawing from dead buffers.
+    auditMeshes(`after switching to ${set.name}`)
+  }
+
+  // Swapping while a move is in the air: the animator is holding the very
+  // entities that are about to be replaced.
+  world.setPieceSet('classic')
+  sets.playSan('e4')
+  void world.playMove(sets.history[0]!, {})
+  runFrames(world.app, 12)
+  world.setPieceSet('facet')
+  const swapProblem = runFrames(world.app, 90)
+  check('switching sets mid-move is safe', swapProblem === null, swapProblem ?? '')
+  check('the position survives the swap', world.stats().pieces === 32, `${world.stats().pieces} pieces`)
+  auditMeshes('after a mid-move swap')
+
+  // A promoted piece is built from the set in play, not the set it started in.
+  const promotion = new ChessGame()
+  for (const san of ['e4', 'd5', 'exd5', 'c6', 'dxc6', 'Nf6', 'cxb7', 'e6', 'bxa8=Q']) {
+    const record = promotion.playSan(san)
+    if (!record) {
+      check(`promotion script move ${san} is legal`, false)
+      break
+    }
+    world.sync(promotion.pieces())
+  }
+  world.setPieceSet('glyph')
+  const promotionProblem = runFrames(world.app, 40)
+  check('a promoted queen survives a set swap', promotionProblem === null, promotionProblem ?? '')
+  auditMeshes('after promoting and swapping')
 
   if (errors.length) {
     failures += errors.length

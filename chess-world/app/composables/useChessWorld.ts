@@ -5,6 +5,7 @@ import { DIFFICULTIES, type Difficulty } from '~/game/search'
 import {
   BLACK, KING, QUEEN, WHITE, type Color, moveCaptured, moveTo, pieceColor, pieceType, squareName,
 } from '~/game/types'
+import { DEFAULT_PIECE_SET, PIECE_SETS, PIECE_SET_BY_ID, type PieceSet } from '~/world/sets'
 import {
   DEFAULT_PALETTE, PALETTES, type Palette, type PaletteValues,
 } from '~/world/theme'
@@ -43,9 +44,11 @@ const promotionPrompt = ref<{ from: number; to: number } | null>(null)
 const hint = ref<{ from: number; to: number } | null>(null)
 
 const PALETTE_STORAGE_KEY = 'chess-world:palette'
+const PIECE_SET_STORAGE_KEY = 'chess-world:piece-set'
 
 const paletteId = ref<string>(PALETTES[0]!.id)
 const paletteValues = ref<PaletteValues>({ ...DEFAULT_PALETTE })
+const pieceSetId = ref<string>(DEFAULT_PIECE_SET.id)
 
 const worldError = ref<string | null>(null)
 const frameError = ref<string | null>(null)
@@ -142,6 +145,16 @@ function savePalette(): void {
     )
   } catch {
     // Not being able to remember the choice is not worth interrupting play.
+  }
+}
+
+/** The chosen piece set, like the palette, survives a reload. */
+function loadPieceSet(): void {
+  try {
+    const stored = localStorage.getItem(PIECE_SET_STORAGE_KEY)
+    if (stored && PIECE_SET_BY_ID.has(stored)) pieceSetId.value = stored
+  } catch {
+    // Private browsing or cleared storage — the default set is fine.
   }
 }
 
@@ -268,7 +281,9 @@ export function useChessWorld() {
     }
     world.value = instance
     loadPalette()
+    loadPieceSet()
     instance.applyPalette(paletteValues.value)
+    instance.setPieceSet(pieceSetId.value)
     instance.setCameraMode(cameraMode.value)
     instance.faceSide(playerSide.value, true)
     instance.sound.enabled = soundOn.value
@@ -487,6 +502,18 @@ export function useChessWorld() {
     setPalette(PALETTES[0]!.id)
   }
 
+  /** Switches the piece set. Pieces are rebuilt where they stand. */
+  function setPieceSet(id: string): void {
+    if (!PIECE_SET_BY_ID.has(id) || id === pieceSetId.value) return
+    pieceSetId.value = id
+    world.value?.setPieceSet(id)
+    try {
+      localStorage.setItem(PIECE_SET_STORAGE_KEY, id)
+    } catch {
+      // Not being able to remember the choice is not worth interrupting play.
+    }
+  }
+
   function setPostProcessing(enabled: boolean): void {
     postProcessing.value = enabled
     world.value?.setPostProcessing(enabled)
@@ -590,6 +617,8 @@ export function useChessWorld() {
     palettes: PALETTES as Palette[],
     paletteId,
     paletteValues,
+    pieceSets: PIECE_SETS as PieceSet[],
+    pieceSetId,
     engineLine,
     animating,
     playerSide,
@@ -633,6 +662,7 @@ export function useChessWorld() {
     setPalette,
     setPaletteColor,
     resetPalette,
+    setPieceSet,
     refreshStats,
     setOpponent: (value: Opponent) => {
       opponent.value = value

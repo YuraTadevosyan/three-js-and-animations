@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import ColourPanel from '~/components/ColourPanel.vue'
+import PieceSetPanel from '~/components/PieceSetPanel.vue'
 import { useChessWorld } from '~/composables/useChessWorld'
 
 const state = useChessWorld()
@@ -38,8 +39,12 @@ const CAMERAS = [
       </div>
 
       <div class="mt-4">
-        <ColourPanel />
+        <PieceSetPanel />
       </div>
+
+      <div class="rule my-4" />
+
+      <ColourPanel />
 
       <div class="rule my-4" />
 
@@ -127,6 +132,8 @@ const CAMERAS = [
           </dd>
           <dt class="text-muted-foreground">live particles</dt>
           <dd>{{ state.stats.value?.particles ?? '—' }}</dd>
+          <dt class="text-muted-foreground">pieces</dt>
+          <dd>{{ state.stats.value ? `${state.stats.value.pieces} ${state.stats.value.pieceSet}` : '—' }}</dd>
           <dt class="text-muted-foreground">effects</dt>
           <dd>{{ state.stats.value?.effectsEnabled === false ? 'disabled' : 'on' }}</dd>
           <dt class="text-muted-foreground">post-processing</dt>

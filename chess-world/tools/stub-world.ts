@@ -44,6 +44,13 @@ export class ChessWorld {
     this.markers = []
   }
 
+  pieceSet = ''
+
+  setPieceSet(id: string): void {
+    this.pieceSet = id
+    this.log.push(`pieces:${id}`)
+  }
+
   palette: Record<string, string> | null = null
 
   applyPalette(values: Record<string, string>): void {
