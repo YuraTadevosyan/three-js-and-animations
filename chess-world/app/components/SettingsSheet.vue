@@ -2,9 +2,11 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import ColourPanel from '~/components/ColourPanel.vue'
 import PieceSetPanel from '~/components/PieceSetPanel.vue'
+import { useAnalysis } from '~/composables/useAnalysis'
 import { useChessWorld } from '~/composables/useChessWorld'
 
 const state = useChessWorld()
+const analysis = useAnalysis()
 const emit = defineEmits<{ close: [] }>()
 
 // Diagnostics are live only while this panel is open.
@@ -62,6 +64,18 @@ const CAMERAS = [
             <span class="text-[11px] font-normal text-muted-foreground">{{ option.hint }}</span>
           </button>
         </div>
+      </section>
+
+      <section class="mt-4 flex items-center justify-between">
+        <div>
+          <span class="label">Evaluation bar</span>
+          <p class="text-[11px] text-muted-foreground">A second engine, reading the position as you play</p>
+        </div>
+        <button
+          class="btn text-xs"
+          :class="analysis.evalEnabled.value ? 'btn-primary' : ''"
+          @click="analysis.setEvalEnabled(!analysis.evalEnabled.value)"
+        >{{ analysis.evalEnabled.value ? 'On' : 'Off' }}</button>
       </section>
 
       <section class="mt-4 flex items-center justify-between">

@@ -269,6 +269,23 @@ export class Sound {
     this.partial(196 * 1.61, 0.045, 0.06, delay)
   }
 
+  /**
+   * The clock, under the last ten seconds. Deliberately thin and dry: it has
+   * to sit under everything else without ever being mistaken for a piece.
+   */
+  tick(): void {
+    this.burst({ duration: 0.008, gain: 0.03, frequency: 5200, sweepTo: 2600, q: 1.2, type: 'highpass' })
+    this.partial(1240, 0.016, 0.022, 0)
+  }
+
+  /** The flag falling: the lever lets go, then the weight of it lands. */
+  flag(): void {
+    this.burst({ duration: 0.012, gain: 0.06, frequency: 4200, sweepTo: 1200, q: 1, type: 'highpass' })
+    this.partial(880, 0.035, 0.05, 0)
+    this.strike(6, 0.8, 0.07, 0.75)
+    this.partial(88, 0.07, 0.4, 0.09)
+  }
+
   /** The king toppling: a run of strikes rolling over, then settling. */
   mate(): void {
     const rolls = 5

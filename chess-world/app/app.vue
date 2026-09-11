@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import BoardCanvas from '~/components/BoardCanvas.vue'
 import CinemaPanel from '~/components/CinemaPanel.vue'
+import EvalBar from '~/components/EvalBar.vue'
 import IntroOverlay from '~/components/IntroOverlay.vue'
 import PlayPanel from '~/components/PlayPanel.vue'
 import PromotionDialog from '~/components/PromotionDialog.vue'
@@ -23,7 +24,7 @@ function start(): void {
 }
 
 watch(
-  () => state.status.value.over,
+  () => state.gameOver.value,
   (over) => {
     if (over) resultDismissed.value = false
   },
@@ -40,6 +41,8 @@ watch(
 <template>
   <div class="relative h-full w-full overflow-hidden bg-background">
     <BoardCanvas />
+
+    <EvalBar />
 
     <TopBar @settings="settingsOpen = true" @about="aboutOpen = true" />
 
@@ -64,7 +67,7 @@ watch(
     </aside>
 
     <ResultCard
-      v-if="state.status.value.over && !resultDismissed"
+      v-if="state.gameOver.value && !resultDismissed"
       @dismiss="resultDismissed = true"
     />
 

@@ -5,17 +5,26 @@ import { useChessWorld } from '~/composables/useChessWorld'
 const state = useChessWorld()
 const emit = defineEmits<{ dismiss: [] }>()
 
+const flag = computed(() => state.adjudication.value)
+
 const headline = computed(() => {
+  if (flag.value) return flag.value.winner === null ? 'Draw' : 'Out of time'
   const outcome = state.status.value.outcome
   if (outcome === 'checkmate') return 'Checkmate'
   if (outcome === 'stalemate') return 'Stalemate'
   return 'Draw'
 })
 
+const glyph = computed(() => {
+  if (flag.value) return flag.value.winner === null ? '½' : '⏱'
+  return state.status.value.outcome === 'checkmate' ? '♚' : '½'
+})
+
 const detail = computed(() => state.resultText.value ?? '')
-const won = computed(
-  () => state.status.value.outcome === 'checkmate' && state.status.value.winner === state.playerSide.value,
-)
+const won = computed(() => {
+  if (flag.value) return flag.value.winner === state.playerSide.value
+  return state.status.value.outcome === 'checkmate' && state.status.value.winner === state.playerSide.value
+})
 </script>
 
 <template>
@@ -25,7 +34,7 @@ const won = computed(
         class="grid h-10 w-10 place-items-center rounded-full text-lg"
         :class="won ? 'bg-light/15 text-light' : 'bg-dark/15 text-dark'"
       >
-        {{ state.status.value.outcome === 'checkmate' ? '♚' : '½' }}
+        {{ glyph }}
       </div>
       <div>
         <p class="text-sm font-semibold">{{ headline }}</p>

@@ -133,6 +133,94 @@ async function main(): Promise<void> {
 
   state.setPieceSet('classic')
   check('switching back works', world.pieceSet === 'classic', world.pieceSet)
+
+  /* ---- walking back through a game ------------------------------------ */
+
+  // `loadCinema` above emptied the board; put a few moves back on it.
+  for (const [from, to] of [['e2', 'e4'], ['e7', 'e5'], ['g1', 'f3']] as const) {
+    await state.pick(parseSquare(from))
+    await state.pick(parseSquare(to))
+  }
+  const played = state.history.value.length
+  check('three moves on the board to walk back through', played === 3,
+    state.history.value.map((h) => h.san).join(' '))
+  state.reviewSeek(1)
+  check('seeking parks the board on an earlier ply', state.browsingPly.value === 1,
+    `${state.browsingPly.value}`)
+  check('the live game is left alone', state.history.value.length === played,
+    `${state.history.value.length} of ${played}`)
+  check('the board stops taking moves while parked', state.interactive.value === false)
+  check('the move that was played is marked',
+    world.markers.filter((marker) => marker.kind === 'last').length === 2,
+    JSON.stringify(world.markers.map((m) => `${m.kind}@${squareName(m.square)}`)))
+
+  await state.pick(parseSquare('d2'))
+  check('and picking up a piece does nothing there', state.selected.value === -1)
+
+  state.exitBrowse()
+  check('leaving review hands the game back', state.browsingPly.value === null)
+  check('the board is put back on the live position',
+    state.interactive.value === true, `interactive=${state.interactive.value}`)
+
+  /* ---- the clock ------------------------------------------------------- */
+
+  // Wall-clock time is pushed forward by hand, so a one-minute game can be
+  // played out — and flagged — in a few hundred milliseconds.
+  const realNow = Date.now
+  let offset = 0
+  Date.now = () => realNow.call(Date) + offset
+  /** Moves time on, then waits for the clock's own interval to notice. */
+  const advance = async (ms: number): Promise<void> => {
+    offset += ms
+    await new Promise((resolve) => setTimeout(resolve, 140))
+  }
+
+  state.setTimeControl('bullet')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  check('choosing a time control starts a fresh game', state.history.value.length === 0,
+    `${state.history.value.length} moves`)
+  check('both sides start with the full minute',
+    state.clockTimes.value[0] === 60_000 && state.clockTimes.value[1] === 60_000,
+    state.clockTimes.value.join(' / '))
+  check('nothing is running before the first move', state.clockActive.value === null)
+
+  await state.pick(parseSquare('e2'))
+  await state.pick(parseSquare('e4'))
+  check('the first move hands the clock to the other side', state.clockActive.value === 1,
+    `${state.clockActive.value}`)
+  check('the side that opened is not charged for it', state.clockTimes.value[0] === 60_000,
+    `${state.clockTimes.value[0]}`)
+
+  await advance(20_000)
+  check('time comes off the side to move',
+    Math.abs(state.clockTimes.value[1] - 40_000) < 500, `${state.clockTimes.value[1]}`)
+  check('and not off the side waiting', state.clockTimes.value[0] === 60_000,
+    `${state.clockTimes.value[0]}`)
+
+  await advance(35_000)
+  check('the last ten seconds tick', world.ticks > 0, `${world.ticks} ticks`)
+
+  await advance(6_000)
+  check('the flag falls', state.adjudication.value?.outcome === 'timeout',
+    JSON.stringify(state.adjudication.value))
+  check('the win goes to the side that still had time',
+    state.adjudication.value?.winner === 0, `${state.adjudication.value?.winner}`)
+  check('the game is over', state.gameOver.value === true)
+  check('the board stops taking moves', state.interactive.value === false)
+  check('and it is audible', world.flags === 1, `${world.flags}`)
+
+  await state.undo()
+  check('taking the move back takes the flag back', state.adjudication.value === null)
+  check('and gives the time back',
+    state.clockTimes.value[0] === 60_000 && state.clockTimes.value[1] === 60_000,
+    state.clockTimes.value.join(' / '))
+  check('with the clock waiting for a first move again', state.clockActive.value === null)
+  check('the board is playable again', state.interactive.value === true)
+
+  state.setTimeControl('off')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  check('an untimed game keeps no clock', state.clockActive.value === null)
+  Date.now = realNow
 }
 
 main()

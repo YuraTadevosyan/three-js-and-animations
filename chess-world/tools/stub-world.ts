@@ -20,7 +20,16 @@ export class ChessWorld {
     resume: () => {},
     select: () => {},
     deny: () => {},
+    tick: () => {
+      this.ticks++
+    },
+    flag: () => {
+      this.flags++
+    },
   }
+
+  ticks = 0
+  flags = 0
 
   constructor(_canvas: unknown, readonly callbacks: WorldCallbacks = {}) {
     ChessWorld.last = this

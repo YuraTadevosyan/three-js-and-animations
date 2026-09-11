@@ -51,8 +51,8 @@ slow drift) and Manual are the three modes.
 
 **Play** — a full game against the engine at three strengths, or hotseat. Legal
 moves are highlighted on the board, with undo, a hint, a promotion picker, a
-captured-material tray and the engine's depth / evaluation / node count as it
-thinks.
+captured-material tray, a clock, a live evaluation bar, and the engine's depth /
+evaluation / node count as it thinks.
 
 **Cinema** — six famous games replayed with the full choreography: the Immortal
 Game, the Opera Game, the Evergreen Game, Réti–Tartakower, the Game of the
@@ -96,10 +96,65 @@ business being verified by eye:
 | Check | What it catches |
 | --- | --- |
 | `check:geometry` | Face winding, and every piece of every set. Back-face culling means geometry wound the wrong way is simply not there — this computes every triangle's normal and asserts it points outward, or up for anything lying on the board. Each piece is then checked for being a closed solid (every edge walked once in each direction), the right way out, drawn to the shared envelope, and built from an outline that does not cross itself. |
-| `check:ui` | The click → select → move → capture → undo path, and drag-and-drop, driven against a stub renderer. |
+| `check:ui` | The click → select → move → capture → undo path, drag-and-drop, walking back through a reviewed game, and a whole clocked game played out to the flag — all driven against a stub renderer. |
 | `check:world` | The whole world on PlayCanvas's null device: every piece type's choreography, castling, promotion, a replay, every palette and every piece set — including swapping sets in the middle of a move. It also audits the scene for mesh instances left pointing at freed meshes. |
-| `check:audio` | The shape of the synthesis: sub-millisecond attacks, nothing droning, heavier pieces voiced lower and longer, a capture landing as separate contacts. |
+| `check:audio` | The shape of the synthesis: sub-millisecond attacks, nothing droning, heavier pieces voiced lower and longer, a capture landing as separate contacts, and a clock tick that cannot be mistaken for a piece. |
+| `check:analysis` | The clock, driven a millisecond at a time — that polling it does not consume time, that the first move is free, that the flag falls at zero and not before, that an undo puts the time back. Then a real review of a real game: Scholar's mate has to come out as one blunder and one best move, which is where a flipped sign would show. |
 | `check:cinema` | Cinema playback end to end — load a game, press play, pause, seek — with a frame pump standing in for the browser. |
+
+## The clock
+
+Five time controls in the Play panel — untimed, 1+0, 3+2, 10+5, 30+0. The clock
+starts on the first move, the way it does online, and the increment goes on when
+a move completes.
+
+**Choreography is not thinking time.** A move stops the mover's clock the
+instant it is played; the other clock only starts once the knight has landed and
+the sparks have gone out. Nobody is charged for the animation they are watching.
+
+Nothing accumulates: `app/game/clock.ts` keeps a banked figure and the timestamp
+it started running at, and every read is that subtraction. Polling it a hundred
+times a second cannot make it drift, and a throttled tab cannot make it lose
+time. Nothing in it reads the wall clock either — every method takes `now` — so
+a whole game, flag included, is played out in milliseconds in the checks.
+
+Under thirty seconds the clock goes amber, under ten it counts tenths and the
+board ticks — a thin, dry escapement pitched well above the lightest piece so it
+can never be taken for a move. The flag falls with the lever letting go and the
+weight landing.
+
+A fallen flag only loses if the other side could actually mate: a lone king, or
+a king and one minor piece, is a draw (FIDE 6.9). Taking the move back takes the
+flag back with it.
+
+## Analysis
+
+**The evaluation bar** down the left edge is a second engine — its own worker —
+searching whatever is on the board to depth 9. It never shares a position with
+the one you are playing, so watching it costs the opponent nothing. Where a
+worker cannot be created at all there is simply no bar: a luxury is not worth a
+stutter on every move.
+
+**Review the game** searches every position once — the position after a move is
+the position before the next one, so a 40-move game costs 81 searches rather
+than 162 — and grades each move by what it threw away:
+
+| | Centipawns lost |
+| --- | --- |
+| ★ Best | the engine's own move |
+| Good | under 50 |
+| ?! Inaccuracy | 50 |
+| ? Mistake | 120 |
+| ?? Blunder | 250 |
+
+The scoresheet is marked up in place, with accuracy and average centipawn loss
+per side and the move the game turned on. Clicking any move stands the board on
+that position and shows what the engine would have played instead — on a scratch
+board, so walking back through a game cannot lose it.
+
+Accuracy is our own curve — `100 · e^(−loss/180)`, averaged per move, so one
+catastrophe is not the whole story of a long game. It is not Lichess's formula,
+which works from a win probability this engine does not model.
 
 ## Sound
 
@@ -164,7 +219,9 @@ and it is safe mid-animation. Your choice is remembered between visits.
 | Orbit | Drag the board |
 | Zoom | Scroll, or pinch |
 | Select / move | Drag a piece, or click it and click a highlighted square |
-| Modes | Play / Cinema in the top bar; pieces, colours, camera, sound and quality under Settings |
+| Modes | Play / Cinema in the top bar; pieces, colours, camera, sound, evaluation bar and quality under Settings |
+| Clock | Pick a time control in the Play panel; pause beside it |
+| Review | Review the game in the Play panel, then click any move to stand the board on it |
 
 ## Running it
 

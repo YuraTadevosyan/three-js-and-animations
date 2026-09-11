@@ -1,9 +1,13 @@
 import { computed, ref, shallowRef } from 'vue'
 import { CINEMA_BY_ID, CINEMA_GAMES, type CinemaGame } from '~/data/games'
+import {
+  Clock, DEFAULT_TIME_CONTROL, TIME_CONTROLS, TIME_CONTROL_BY_ID, URGENT_MS, type TimeControl,
+} from '~/game/clock'
 import { ChessGame, type GameStatus, type MoveRecord } from '~/game/game'
 import { DIFFICULTIES, type Difficulty } from '~/game/search'
 import {
-  BLACK, KING, QUEEN, WHITE, type Color, moveCaptured, moveTo, pieceColor, pieceType, squareName,
+  BISHOP, BLACK, KING, KNIGHT, QUEEN, STARTING_FEN, WHITE, type Color, moveCaptured, moveTo,
+  pieceColor, pieceType, squareName,
 } from '~/game/types'
 import { DEFAULT_PIECE_SET, PIECE_SETS, PIECE_SET_BY_ID, type PieceSet } from '~/world/sets'
 import {
@@ -11,6 +15,7 @@ import {
 } from '~/world/theme'
 import type { CameraMode, MarkerKind, WorldOptions, WorldStats } from '~/world/world'
 import { ChessWorld } from '~/world/world'
+import { useAnalysis } from './useAnalysis'
 import { createEngine } from './useEngine'
 
 export type Mode = 'play' | 'cinema'
@@ -24,6 +29,7 @@ export interface HistoryEntry {
 }
 
 const engine = createEngine()
+const analysis = useAnalysis()
 
 /* --------------------------------------------------------------- state -- */
 
@@ -45,10 +51,35 @@ const hint = ref<{ from: number; to: number } | null>(null)
 
 const PALETTE_STORAGE_KEY = 'chess-world:palette'
 const PIECE_SET_STORAGE_KEY = 'chess-world:piece-set'
+const TIME_CONTROL_STORAGE_KEY = 'chess-world:time-control'
 
 const paletteId = ref<string>(PALETTES[0]!.id)
 const paletteValues = ref<PaletteValues>({ ...DEFAULT_PALETTE })
 const pieceSetId = ref<string>(DEFAULT_PIECE_SET.id)
+
+/**
+ * A result the position cannot express. A flag falling ends the game while the
+ * board is still perfectly playable, so it is kept beside `status` rather than
+ * inside it — the engine's rules stay the engine's rules.
+ */
+interface Adjudication {
+  outcome: 'timeout' | 'timeout-insufficient'
+  winner: Color | null
+}
+
+const timeControlId = ref<string>(DEFAULT_TIME_CONTROL.id)
+let clock = new Clock(DEFAULT_TIME_CONTROL)
+/** Clocks as they stood before each ply, so undo can put them back. */
+let clockHistory: [number, number][] = []
+const clockTimes = ref<[number, number]>([0, 0])
+const clockPaused = ref(false)
+const clockActive = ref<Color | null>(null)
+const adjudication = ref<Adjudication | null>(null)
+let ticker: ReturnType<typeof setInterval> | null = null
+let lastTickSecond = -1
+
+/** Which ply the board is parked on while a review is being walked through. */
+const browsingPly = ref<number | null>(null)
 
 const worldError = ref<string | null>(null)
 const frameError = ref<string | null>(null)
@@ -79,21 +110,37 @@ let toastTimer: ReturnType<typeof setTimeout> | null = null
 const cinemaGame = computed<CinemaGame>(() => CINEMA_BY_ID.get(cinemaId.value) ?? CINEMA_GAMES[0]!)
 const cinemaLength = computed(() => cinemaGame.value.moves.length)
 
+const timeControl = computed<TimeControl>(
+  () => TIME_CONTROL_BY_ID.get(timeControlId.value) ?? DEFAULT_TIME_CONTROL,
+)
+
+/** Over by the rules, or over because someone ran out of time. */
+const gameOver = computed(() => status.value.over || adjudication.value !== null)
+
 const interactive = computed(
   () =>
     mode.value === 'play' &&
-    !status.value.over &&
+    !gameOver.value &&
+    browsingPly.value === null &&
+    !clockPaused.value &&
     !thinking.value &&
     !animating.value &&
     (opponent.value === 'human' || turn.value === playerSide.value),
 )
 
+const armyName = (color: Color): string => (color === WHITE ? 'Cyan' : 'Magenta')
+
 const resultText = computed(() => {
+  const flag = adjudication.value
+  if (flag) {
+    if (flag.winner === null) return 'Draw — time ran out, and nothing left to mate with'
+    return `${armyName(flag.winner)} wins on time`
+  }
   const value = status.value
   if (!value.over) return null
   switch (value.outcome) {
     case 'checkmate':
-      return `${value.winner === WHITE ? 'Cyan' : 'Magenta'} wins by checkmate`
+      return `${armyName(value.winner!)} wins by checkmate`
     case 'stalemate':
       return 'Draw — stalemate'
     case 'fifty-move':
@@ -158,6 +205,131 @@ function loadPieceSet(): void {
   }
 }
 
+/** The chosen time control, like the palette, survives a reload. */
+function loadTimeControl(): void {
+  try {
+    const stored = localStorage.getItem(TIME_CONTROL_STORAGE_KEY)
+    if (stored && TIME_CONTROL_BY_ID.has(stored)) timeControlId.value = stored
+  } catch {
+    // Private browsing or cleared storage — untimed is fine.
+  }
+}
+
+/* --------------------------------------------------------------- clock -- */
+
+function readClock(): void {
+  const now = Date.now()
+  clockTimes.value = [clock.remaining(WHITE, now), clock.remaining(BLACK, now)]
+  clockActive.value = clock.active
+}
+
+function stopTicker(): void {
+  if (!ticker) return
+  clearInterval(ticker)
+  ticker = null
+}
+
+function startTicker(): void {
+  if (ticker || !clock.enabled) return
+  ticker = setInterval(pulse, 100)
+}
+
+/**
+ * One reading of the clock: refresh the display, tick off the last ten
+ * seconds, and drop the flag at zero. The clock itself keeps no running
+ * total — this only ever asks it what the time is — so a throttled tab or a
+ * dropped frame cannot make anyone's time drift.
+ */
+function pulse(): void {
+  readClock()
+  const running = clock.active
+  if (running === null) return
+  const left = clock.remaining(running, Date.now())
+  if (left <= 0) {
+    flagFall(running)
+    return
+  }
+  if (left >= URGENT_MS) {
+    lastTickSecond = -1
+    return
+  }
+  const second = Math.ceil(left / 1000)
+  if (second === lastTickSecond) return
+  lastTickSecond = second
+  world.value?.sound.tick()
+}
+
+/**
+ * FIDE 6.9: running out of time only loses if the other side could mate by
+ * *some* legal series of moves. A lone king, or a king and one minor piece,
+ * cannot — so that is a draw, not a win on time.
+ */
+function canMate(color: Color): boolean {
+  let minors = 0
+  const board = game.value.position.board
+  for (let square = 0; square < 128; square++) {
+    if (square & 0x88) continue
+    const piece = board[square] ?? 0
+    if (piece === 0 || pieceColor(piece) !== color) continue
+    const type = pieceType(piece)
+    if (type === KING) continue
+    if (type === BISHOP || type === KNIGHT) {
+      minors++
+      continue
+    }
+    return true
+  }
+  return minors >= 2
+}
+
+function flagFall(side: Color): void {
+  clock.stop(Date.now())
+  stopTicker()
+  readClock()
+  const other = (side ^ 1) as Color
+  const winner = canMate(other) ? other : null
+  adjudication.value = { outcome: winner === null ? 'timeout-insufficient' : 'timeout', winner }
+  clearSelection()
+  world.value?.sound.flag()
+  notify(resultText.value ?? 'Out of time', 5200)
+}
+
+/** Hands the clock to whoever is on move, unless the game is not running. */
+function startClockForTurn(): void {
+  if (!clock.enabled || clockPaused.value || mode.value !== 'play') return
+  if (adjudication.value !== null || status.value.over) return
+  clock.start(game.value.turn, Date.now())
+  lastTickSecond = -1
+  readClock()
+  startTicker()
+}
+
+function resetClock(): void {
+  stopTicker()
+  clock = new Clock(timeControl.value)
+  clockHistory = []
+  clockPaused.value = false
+  adjudication.value = null
+  lastTickSecond = -1
+  readClock()
+}
+
+/** Puts both clocks back to where they stood before `ply` was played. */
+function rewindClock(ply: number): void {
+  if (!clock.enabled) return
+  const times = clockHistory[ply]
+  clock.stop(Date.now())
+  if (times) clock.restore(times, Date.now())
+  clockHistory.length = Math.min(clockHistory.length, ply)
+  // Taking the move back takes the flag back with it, or the board would be
+  // playable while the game insisted it was over.
+  adjudication.value = null
+  readClock()
+  // Undone all the way back to the start, the clock waits for the first move
+  // again rather than running on an empty board.
+  if (game.value.history.length > 0) startClockForTurn()
+}
+
 function notify(message: string, duration = 2600): void {
   toast.value = message
   if (toastTimer) clearTimeout(toastTimer)
@@ -168,6 +340,9 @@ function refresh(): void {
   const current = game.value
   turn.value = current.turn
   status.value = current.status()
+  // The bar follows the board: one shallow search per position, on its own
+  // worker, cancelled the moment another position arrives.
+  void analysis.evaluate(current.fen, current.turn, status.value.over)
   captured.value = current.captured()
   history.value = current.history.map((record, index) => ({
     ply: index,
@@ -207,7 +382,18 @@ function clearSelection(): void {
 
 async function commit(move: number): Promise<void> {
   const current = game.value
+  const mover = current.turn
+  const timed = clock.enabled && mode.value === 'play'
+  if (timed) clockHistory[current.history.length] = clock.snapshot(Date.now())
+
   const record = current.play(move)
+  // The mover's time stops the moment the move is made. Everything that
+  // follows — a knight's somersault, a queen rebuilding herself out of sparks
+  // — is the app's time to spend, not theirs.
+  if (timed) {
+    clock.press(mover, Date.now())
+    readClock()
+  }
   clearSelection()
   refresh()
 
@@ -217,12 +403,17 @@ async function commit(move: number): Promise<void> {
   animating.value = false
   syncMarkers()
 
-  if (mode.value === 'play') await afterMove()
+  if (mode.value !== 'play') return
+  startClockForTurn()
+  await afterMove()
 }
 
 async function afterMove(): Promise<void> {
   refresh()
   if (status.value.over) {
+    clock.stop(Date.now())
+    stopTicker()
+    readClock()
     notify(resultText.value ?? 'Game over', 5200)
     world.value?.setCameraMode(cameraMode.value)
     return
@@ -282,6 +473,8 @@ export function useChessWorld() {
     world.value = instance
     loadPalette()
     loadPieceSet()
+    loadTimeControl()
+    resetClock()
     instance.applyPalette(paletteValues.value)
     instance.setPieceSet(pieceSetId.value)
     instance.setCameraMode(cameraMode.value)
@@ -294,6 +487,8 @@ export function useChessWorld() {
   }
 
   function detach(): void {
+    stopTicker()
+    analysis.cancelReview()
     world.value?.destroy()
     world.value = null
     ready.value = false
@@ -386,6 +581,9 @@ export function useChessWorld() {
     game.value.reset()
     cinemaNote.value = null
     engineLine.value = null
+    browsingPly.value = null
+    analysis.clearReview()
+    resetClock()
     clearSelection()
     world.value?.sync(game.value.pieces(), true)
     world.value?.faceSide(playerSide.value)
@@ -396,7 +594,7 @@ export function useChessWorld() {
   }
 
   async function undo(): Promise<void> {
-    if (mode.value !== 'play' || thinking.value) return
+    if (mode.value !== 'play' || thinking.value || browsingPly.value !== null) return
     const current = game.value
     if (!current.history.length) return
     world.value?.finishAnimations()
@@ -408,6 +606,7 @@ export function useChessWorld() {
     clearSelection()
     resync()
     engineLine.value = null
+    rewindClock(current.history.length)
     // Undoing back past the engine's opening move leaves it on move with
     // nothing to trigger it — ask for a fresh one rather than deadlocking.
     if (opponent.value === 'engine' && !status.value.over && current.turn !== playerSide.value) {
@@ -436,6 +635,12 @@ export function useChessWorld() {
     mode.value = next
     clearSelection()
     engineLine.value = null
+
+    browsingPly.value = null
+    analysis.clearReview()
+    stopTicker()
+    clock.stop(Date.now())
+    readClock()
 
     if (next === 'cinema') {
       cameraMode.value = 'cinema'
@@ -512,6 +717,91 @@ export function useChessWorld() {
     } catch {
       // Not being able to remember the choice is not worth interrupting play.
     }
+  }
+
+  /* ---------------------------------------------------------- clock --- */
+
+  /** Changing the time control starts a fresh game; a clock cannot be added
+   *  to a position that has already been thought about for ten minutes. */
+  function setTimeControl(id: string): void {
+    if (!TIME_CONTROL_BY_ID.has(id) || id === timeControlId.value) return
+    timeControlId.value = id
+    try {
+      localStorage.setItem(TIME_CONTROL_STORAGE_KEY, id)
+    } catch {
+      // Not remembering the choice is not worth interrupting play.
+    }
+    void newGame()
+  }
+
+  function setClockPaused(paused: boolean): void {
+    if (!clock.enabled || !game.value.history.length) return
+    clockPaused.value = paused
+    if (paused) {
+      clock.stop(Date.now())
+      stopTicker()
+      readClock()
+      return
+    }
+    startClockForTurn()
+  }
+
+  /* --------------------------------------------------------- review --- */
+
+  /** Grades every move played so far. The clock waits while it runs. */
+  async function startReview(): Promise<void> {
+    if (mode.value !== 'play' || !game.value.history.length) return
+    setClockPaused(true)
+    const result = await analysis.runReview(STARTING_FEN, game.value.history)
+    if (!result) return
+    const mine = playerSide.value === WHITE ? result.white : result.black
+    notify(`Reviewed — ${mine.accuracy.toFixed(1)}% accurate, ${mine.acpl} centipawns a move`, 4200)
+  }
+
+  /**
+   * Parks the board on a position from the review. The live game is left
+   * alone: this replays into a scratch board, so walking back through a game
+   * cannot lose it.
+   */
+  function reviewSeek(ply: number): void {
+    const records = game.value.history
+    const target = Math.max(0, Math.min(ply, records.length))
+    world.value?.finishAnimations()
+    setClockPaused(true)
+
+    const scratch = new ChessGame()
+    for (let i = 0; i < target; i++) scratch.playSan(records[i]!.san)
+    browsingPly.value = target
+    selected.value = -1
+    targets.value = []
+    hint.value = null
+    world.value?.sync(scratch.pieces())
+    void analysis.evaluate(scratch.fen, scratch.turn, scratch.status().over)
+
+    const markers: { square: number; kind: MarkerKind }[] = []
+    const record = records[target - 1]
+    if (record) {
+      markers.push({ square: record.from, kind: 'last' }, { square: record.to, kind: 'last' })
+      const reviewed = analysis.reviewedAt(target - 1)
+      // What the engine would have played instead, where it disagreed.
+      if (reviewed && reviewed.bestFrom >= 0 && reviewed.best) {
+        markers.push({ square: reviewed.bestFrom, kind: 'select' })
+        markers.push({ square: reviewed.bestTo, kind: 'move' })
+      }
+    }
+    const checked = scratch.checkedKingSquare()
+    if (checked >= 0) markers.push({ square: checked, kind: 'check' })
+    world.value?.setMarkers(markers, ['select', 'move', 'capture', 'check', 'last'])
+  }
+
+  /** Back to the position the game is actually in. */
+  function exitBrowse(): void {
+    if (browsingPly.value === null) return
+    browsingPly.value = null
+    resync()
+    // "Back to the game" means back to the game: a clock left paused here
+    // would look like the board had stopped responding.
+    if (!gameOver.value) setClockPaused(false)
   }
 
   function setPostProcessing(enabled: boolean): void {
@@ -619,6 +909,14 @@ export function useChessWorld() {
     paletteValues,
     pieceSets: PIECE_SETS as PieceSet[],
     pieceSetId,
+    timeControls: TIME_CONTROLS as TimeControl[],
+    timeControlId,
+    timeControl,
+    clockTimes,
+    clockActive,
+    clockPaused,
+    adjudication,
+    browsingPly,
     engineLine,
     animating,
     playerSide,
@@ -630,6 +928,7 @@ export function useChessWorld() {
     toast,
     // derived
     interactive,
+    gameOver,
     resultText,
     materialBalance,
     // cinema
@@ -663,6 +962,11 @@ export function useChessWorld() {
     setPaletteColor,
     resetPalette,
     setPieceSet,
+    setTimeControl,
+    setClockPaused,
+    startReview,
+    reviewSeek,
+    exitBrowse,
     refreshStats,
     setOpponent: (value: Opponent) => {
       opponent.value = value

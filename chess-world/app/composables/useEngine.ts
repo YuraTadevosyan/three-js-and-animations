@@ -80,11 +80,21 @@ export function createEngine() {
     })
   }
 
+  /**
+   * True when no worker could be made and a search would run here, on the
+   * thread that draws the board. Callers that are only *describing* a position
+   * rather than playing one use this to keep out of the way.
+   */
+  function blocking(): boolean {
+    ensure()
+    return failed
+  }
+
   function destroy(): void {
     worker?.terminate()
     worker = null
     pending.clear()
   }
 
-  return { think, destroy }
+  return { think, blocking, destroy }
 }

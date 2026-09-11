@@ -7,7 +7,9 @@ const emit = defineEmits<{ settings: []; about: [] }>()
 
 const turnLabel = computed(() => (state.turn.value === 0 ? 'Cyan' : 'Magenta'))
 const statusLine = computed(() => {
-  if (state.status.value.over) return state.resultText.value ?? 'Game over'
+  if (state.gameOver.value) return state.resultText.value ?? 'Game over'
+  if (state.browsingPly.value !== null) return `Reviewing — ply ${state.browsingPly.value}`
+  if (state.clockPaused.value) return 'Paused'
   if (state.mode.value === 'cinema') {
     return `${state.cinemaGame.value.white} vs ${state.cinemaGame.value.black}, ${state.cinemaGame.value.year}`
   }

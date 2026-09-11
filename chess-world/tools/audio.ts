@@ -145,11 +145,29 @@ const everything: { name: string; voices: Voice[] }[] = [
   { name: 'promote', voices: record(() => sound.promote()) },
   { name: 'select', voices: record(() => sound.select()) },
   { name: 'deny', voices: record(() => sound.deny()) },
+  { name: 'tick', voices: record(() => sound.tick()) },
+  { name: 'flag', voices: record(() => sound.flag()) },
 ]
 for (const entry of everything) {
   check(`${entry.name} is percussive`, entry.voices.length > 0 && longest(entry.voices) <= 0.6,
     `${(longest(entry.voices) * 1000).toFixed(0)}ms`)
 }
+
+/* ---- the clock ---------------------------------------------------------- */
+
+// The tick has to sit under a game without ever being taken for a piece: it is
+// higher than the lightest piece's voice, and an order of magnitude shorter.
+const tick = record(() => sound.tick())
+const pawnVoice = record(() => sound.impact(1, 1))
+check('the clock tick is shorter than any piece', longest(tick) < 0.05,
+  `${(longest(tick) * 1000).toFixed(0)}ms`)
+check('the clock tick is pitched above the pieces', lowest(tick) > lowest(pawnVoice),
+  `${lowest(tick).toFixed(0)}Hz vs ${lowest(pawnVoice).toFixed(0)}Hz`)
+
+const flag = record(() => sound.flag())
+check('the flag falls in two parts', flag.length >= 3, `${flag.length} voices`)
+check('the flag ends lower than it starts', lowest(flag) < lowest(tick),
+  `${lowest(flag).toFixed(0)}Hz vs ${lowest(tick).toFixed(0)}Hz`)
 
 /* ---- no two strikes are identical -------------------------------------- */
 

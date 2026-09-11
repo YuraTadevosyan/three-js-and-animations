@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CapturedTray from '~/components/CapturedTray.vue'
+import ClockPanel from '~/components/ClockPanel.vue'
 import MoveList from '~/components/MoveList.vue'
+import ReviewPanel from '~/components/ReviewPanel.vue'
 import { useChessWorld } from '~/composables/useChessWorld'
 
 const state = useChessWorld()
@@ -64,11 +66,15 @@ const evaluation = computed(() => {
       </p>
     </section>
 
+    <ClockPanel />
+
     <section class="grid grid-cols-3 gap-1.5">
       <button class="btn" @click="state.newGame()">New</button>
-      <button class="btn" :disabled="!state.history.value.length || state.thinking.value" @click="state.undo()">
-        Undo
-      </button>
+      <button
+        class="btn"
+        :disabled="!state.history.value.length || state.thinking.value || state.browsingPly.value !== null"
+        @click="state.undo()"
+      >Undo</button>
       <button class="btn" :disabled="!state.interactive.value" @click="state.requestHint()">Hint</button>
     </section>
 
@@ -104,6 +110,10 @@ const evaluation = computed(() => {
         Its line appears here once it has moved.
       </p>
     </section>
+
+    <div class="rule" />
+
+    <ReviewPanel />
 
     <div class="rule" />
 

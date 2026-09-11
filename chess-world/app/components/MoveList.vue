@@ -1,10 +1,38 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useAnalysis } from '~/composables/useAnalysis'
 import { useChessWorld } from '~/composables/useChessWorld'
+import { QUALITY_LABEL, QUALITY_MARK, type MoveQuality } from '~/game/review'
 
 const props = withDefaults(defineProps<{ seekable?: boolean }>(), { seekable: false })
 const state = useChessWorld()
+const analysis = useAnalysis()
 const scroller = ref<HTMLElement | null>(null)
+
+/** A reviewed game can be walked through in Play as well as scrubbed in Cinema. */
+const browsable = computed(() => props.seekable || (state.mode.value === 'play' && !!analysis.review.value))
+
+const QUALITY_TONE: Record<MoveQuality, string> = {
+  best: 'text-accent',
+  good: '',
+  inaccuracy: 'text-muted-foreground',
+  mistake: 'text-warn',
+  blunder: 'text-danger',
+}
+
+/** The mark against a move, once the game has been reviewed. */
+function graded(ply: number | undefined): { mark: string; tone: string; title: string } | null {
+  if (ply === undefined) return null
+  const entry = analysis.reviewedAt(ply - 1)
+  if (!entry || !QUALITY_MARK[entry.quality]) return null
+  return {
+    mark: QUALITY_MARK[entry.quality],
+    tone: QUALITY_TONE[entry.quality],
+    title: entry.best
+      ? `${QUALITY_LABEL[entry.quality]} — ${entry.best} was better (${entry.loss}cp)`
+      : QUALITY_LABEL[entry.quality],
+  }
+}
 
 /** Grouped into numbered pairs, the way a scoresheet reads. */
 const rows = computed(() => {
@@ -25,7 +53,10 @@ const rows = computed(() => {
   return out
 })
 
-const activePly = computed(() => (state.mode.value === 'cinema' ? state.cinemaPly.value : state.history.value.length))
+const activePly = computed(() => {
+  if (state.mode.value === 'cinema') return state.cinemaPly.value
+  return state.browsingPly.value ?? state.history.value.length
+})
 
 watch(
   () => state.history.value.length,
@@ -37,8 +68,9 @@ watch(
 )
 
 function seek(ply: number | undefined): void {
-  if (!props.seekable || ply === undefined) return
-  state.cinemaSeek(ply)
+  if (ply === undefined || !browsable.value) return
+  if (state.mode.value === 'cinema') state.cinemaSeek(ply)
+  else state.reviewSeek(ply)
 }
 </script>
 
@@ -46,7 +78,11 @@ function seek(ply: number | undefined): void {
   <div class="flex min-h-0 flex-1 flex-col gap-2">
     <div class="flex items-center justify-between">
       <span class="label">Moves</span>
-      <span class="font-mono text-[11px] text-muted-foreground">{{ state.history.value.length }} ply</span>
+      <span
+        v-if="state.browsingPly.value !== null"
+        class="font-mono text-[11px] text-warn"
+      >at ply {{ state.browsingPly.value }} of {{ state.history.value.length }}</span>
+      <span v-else class="font-mono text-[11px] text-muted-foreground">{{ state.history.value.length }} ply</span>
     </div>
     <div ref="scroller" class="scroll-fade min-h-0 flex-1 overflow-y-auto pr-1">
       <table class="w-full border-collapse font-mono text-xs">
@@ -59,10 +95,16 @@ function seek(ply: number | undefined): void {
                 class="w-full rounded px-1.5 py-0.5 text-left transition-colors"
                 :class="[
                   activePly === row.whitePly ? 'bg-light/15 text-light' : 'text-foreground/85',
-                  seekable ? 'hover:bg-muted/60' : 'cursor-default',
+                  browsable ? 'hover:bg-muted/60' : 'cursor-default',
                 ]"
                 @click="seek(row.whitePly)"
-              >{{ row.white }}</button>
+              >{{ row.white
+                }}<span
+                  v-if="graded(row.whitePly)"
+                  class="ml-0.5"
+                  :class="graded(row.whitePly)!.tone"
+                  :title="graded(row.whitePly)!.title"
+                >{{ graded(row.whitePly)!.mark }}</span></button>
             </td>
             <td class="py-0.5">
               <button
@@ -70,10 +112,16 @@ function seek(ply: number | undefined): void {
                 class="w-full rounded px-1.5 py-0.5 text-left transition-colors"
                 :class="[
                   activePly === row.blackPly ? 'bg-dark/15 text-dark' : 'text-foreground/85',
-                  seekable ? 'hover:bg-muted/60' : 'cursor-default',
+                  browsable ? 'hover:bg-muted/60' : 'cursor-default',
                 ]"
                 @click="seek(row.blackPly)"
-              >{{ row.black }}</button>
+              >{{ row.black
+                }}<span
+                  v-if="graded(row.blackPly)"
+                  class="ml-0.5"
+                  :class="graded(row.blackPly)!.tone"
+                  :title="graded(row.blackPly)!.title"
+                >{{ graded(row.blackPly)!.mark }}</span></button>
             </td>
           </tr>
           <tr v-if="!rows.length">
