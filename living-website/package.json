@@ -1,0 +1,30 @@
+{
+  "name": "living-website",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Living Website — a page that behaves like an organism. One heartbeat drives a breathing WebGL sky, UI that watches the cursor, a garden that keeps growing between visits, weather that drifts on a Markov chain, and a real-time circadian cycle that repaints the entire Tailwind palette. Astro 5 + Lit 3 + Motion + PixiJS 8.",
+  "scripts": {
+    "dev": "astro dev --port 5186",
+    "build": "astro check && astro build",
+    "preview": "astro preview --port 5186",
+    "typecheck": "astro check",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist -e living-website"
+  },
+  "dependencies": {
+    "lit": "^3.3.3",
+    "motion": "^13.2.0",
+    "pixi.js": "^8.20.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@types/node": "^26.1.2",
+    "astro": "^5.18.2",
+    "autoprefixer": "^10.5.4",
+    "gh-pages": "^6.3.0",
+    "postcss": "^8.5.23",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6.0.3"
+  }
+}

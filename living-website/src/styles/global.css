@@ -1,0 +1,254 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * These are only the *first paint* values. Within one frame of boot the
+ * circadian system takes over and rewrites every one of them continuously
+ * from src/organism/theme.ts. The `data-boot` attribute is set by a tiny
+ * blocking script in the layout so a visitor arriving at 3am never gets a
+ * full-brightness white flash before JavaScript runs.
+ */
+@layer base {
+  :root {
+    --background: 204 44% 95%;
+    --foreground: 216 36% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 216 38% 14%;
+    --muted: 206 34% 89%;
+    --muted-foreground: 214 14% 40%;
+    --border: 206 28% 83%;
+    --primary: 152 54% 32%;
+    --primary-foreground: 150 40% 97%;
+    --accent: 208 84% 44%;
+    --accent-foreground: 208 60% 97%;
+    --canopy: 138 48% 34%;
+    --soil: 26 32% 26%;
+    --glow: 48 96% 60%;
+    --sky-top: 212 78% 52%;
+    --sky-mid: 202 76% 66%;
+    --sky-bottom: 196 68% 82%;
+    --sun: 48 100% 72%;
+    --radius: 18px;
+
+    /* Written every frame by the breath; read by CSS that rides it. */
+    --breath: 0;
+    --breath-01: 0.5;
+  }
+
+  :root[data-boot='night'] {
+    --background: 232 42% 6%;
+    --foreground: 220 30% 90%;
+    --card: 232 36% 11%;
+    --card-foreground: 220 30% 92%;
+    --muted: 232 28% 16%;
+    --muted-foreground: 224 18% 64%;
+    --border: 232 26% 20%;
+    --primary: 258 78% 68%;
+    --primary-foreground: 232 42% 8%;
+    --accent: 190 72% 62%;
+    --accent-foreground: 232 42% 8%;
+    --canopy: 152 34% 44%;
+    --soil: 24 24% 14%;
+    --glow: 258 80% 70%;
+    --sky-top: 238 52% 7%;
+    --sky-mid: 248 44% 13%;
+    --sky-bottom: 262 38% 21%;
+    --sun: 220 30% 92%;
+  }
+
+  :root[data-boot='dusk'] {
+    --background: 268 34% 18%;
+    --foreground: 42 40% 92%;
+    --card: 268 30% 23%;
+    --card-foreground: 40 36% 94%;
+    --muted: 268 22% 28%;
+    --muted-foreground: 274 14% 72%;
+    --border: 268 20% 32%;
+    --primary: 340 74% 64%;
+    --primary-foreground: 268 34% 14%;
+    --accent: 34 88% 62%;
+    --accent-foreground: 268 34% 14%;
+    --canopy: 150 30% 42%;
+    --soil: 24 26% 18%;
+    --glow: 336 82% 64%;
+    --sky-top: 252 48% 20%;
+    --sky-mid: 292 46% 34%;
+    --sky-bottom: 18 68% 48%;
+    --sun: 20 92% 62%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  /*
+   * The background lives on <html>, not <body>. The sky canvas is a fixed
+   * child at z-index -10, and an opaque <body> background would paint over
+   * it — body backgrounds only fall behind negative-z content by way of
+   * propagation to the canvas, which stops the moment anything sets a
+   * background on <html>. Putting it here makes the layering explicit.
+   */
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    background-color: hsl(var(--background));
+  }
+
+  body {
+    background-color: transparent;
+    color: hsl(var(--foreground));
+    font-family: theme('fontFamily.sans');
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    /* No CSS transition here: the organism interpolates the colours itself,
+       and a transition on top of that would lag the sky by a second. */
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.28);
+    color: hsl(var(--foreground));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  /* A card that inhales with the page. Amplitude is tiny on purpose — the
+     effect should be felt rather than seen. */
+  .organ {
+    background-color: hsl(var(--card) / 0.72);
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: var(--radius);
+    backdrop-filter: blur(14px) saturate(1.25);
+    -webkit-backdrop-filter: blur(14px) saturate(1.25);
+    box-shadow:
+      0 1px 0 0 hsl(var(--card) / 0.5) inset,
+      0 18px 48px -28px hsl(var(--soil) / 0.55);
+  }
+
+  /*
+   * Button skins live here rather than in the component, because the markup
+   * ships the real <a>/<button> in the static HTML and living-button only
+   * enhances it. The classes have to be authorable from .astro.
+   */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    user-select: none;
+    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .btn-primary {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 12px 30px -14px hsl(var(--primary) / 0.9);
+  }
+
+  .btn-ghost {
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--card) / 0.7);
+    color: hsl(var(--foreground));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .btn > span:not([class]) {
+    position: relative;
+  }
+
+  .eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .rule {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      hsl(var(--border)) 18%,
+      hsl(var(--border)) 82%,
+      transparent
+    );
+  }
+
+  /* Readout digits shouldn't reflow as values change. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-family: theme('fontFamily.mono');
+  }
+}
+
+@layer utilities {
+  /*
+   * Set by the blocking script in the layout and removed again by a failsafe
+   * timer if the bundle never arrives, so a JS failure cannot leave the page
+   * permanently blank. Motion writes the final opacity inline, which outranks
+   * this rule for elements that have been revealed.
+   */
+  .js-reveal [data-reveal] {
+    opacity: 0;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Fine film grain over the whole page — it stops the large flat colour
+     fields from banding on 8-bit displays. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Custom elements are display:inline until defined; that makes the page jump
+   as each organ upgrades. Declaring them up front avoids the reflow. */
+living-sky,
+living-eyes,
+living-button,
+garden-bed,
+vitals-panel,
+sky-controls,
+cursor-aura,
+organ-card,
+palette-strip,
+living-title {
+  display: block;
+}
+
+living-eyes,
+living-button,
+pulse-badge {
+  display: inline-block;
+}

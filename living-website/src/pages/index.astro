@@ -1,0 +1,356 @@
+---
+import Base from '@/layouts/Base.astro'
+
+const repo = 'https://github.com/YuraTadevosyan/three-js-and-animations'
+const index = 'https://yuratadevosyan.github.io/three-js-and-animations/'
+
+const gazeTraits = [
+  { title: 'Tracks', body: 'Pupils aim at the cursor itself, not at a bounding box, so the gaze stays honest at any angle.' },
+  { title: 'Dilates', body: 'Pupils open in the dark and when you move fast, and contract in full daylight.' },
+  { title: 'Blinks', body: 'On its own schedule, in clusters, and at anything you click.' },
+  { title: 'Searches', body: 'Leave the window and the eyes saccade around looking for where you went.' },
+  { title: 'Sags', body: 'Lids drop as the page gets drowsy, and close when it falls asleep.' },
+  { title: 'Leans', body: 'Buttons within reach pull toward the cursor before you arrive at them.' },
+]
+---
+
+<Base
+  title="Living Website"
+  description="A page that behaves like an organism — it breathes, watches your cursor, grows a garden between visits, changes weather, and follows a real day/night cycle."
+>
+  <living-sky></living-sky>
+  <cursor-aura></cursor-aura>
+
+  <a
+    href="#breath"
+    class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+  >
+    Skip to the systems
+  </a>
+
+  <header class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 pt-7">
+    <pulse-badge></pulse-badge>
+    <nav class="flex items-center gap-5 text-xs text-muted-foreground">
+      <a class="hover:text-foreground" href={index}>All showcases</a>
+      <a class="hover:text-foreground" href={repo} rel="noopener noreferrer" target="_blank">Source</a>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6">
+    <!-- ───────────────────────────── hero ───────────────────────────── -->
+    <section class="flex min-h-[78svh] flex-col justify-center py-20">
+      <p class="eyebrow">Astro · Lit · Motion · PixiJS</p>
+
+      <living-title
+        class="mt-5 block max-w-4xl text-[clamp(2.75rem,9vw,6.5rem)] font-semibold leading-[0.95] tracking-tight text-balance"
+      >
+        This website is alive.
+      </living-title>
+
+      <p class="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
+        Not animated — alive. One heartbeat drives everything that moves here.
+        The sky breathes, the interface follows your cursor, the garden further
+        down keeps growing while this tab is closed, the weather drifts on its
+        own, and the colour of every element on screen is a function of the
+        actual time where you are sitting.
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-4">
+        <living-button eyes>
+          <a class="btn btn-primary" href="#breath"><span>See what's alive</span></a>
+        </living-button>
+        <living-button>
+          <a class="btn btn-ghost" href="#colophon"><span>How it's built</span></a>
+        </living-button>
+      </div>
+
+      <p class="mt-14 max-w-lg text-sm text-muted-foreground/80">
+        Nothing here is on a timeline. Leave it alone and it gets drowsy, then
+        sleeps. Come back tomorrow and the plants will have grown without you.
+      </p>
+    </section>
+
+    <!-- ──────────────────────────── 01 breath ───────────────────────── -->
+    <section id="breath" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
+      <div class="grid gap-12 lg:grid-cols-12">
+        <div class="lg:col-span-5">
+          <p class="eyebrow">01 — Respiration</p>
+          <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">It breathes</h2>
+          <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
+            <p>
+              A single oscillator runs the whole page. The horizon in the sky
+              shader lifts on the inhale, cards ease forward, buttons swell by
+              half a percent, and the headline's letterforms soften — all from
+              the same number.
+            </p>
+            <p>
+              The curve is asymmetric on purpose. A real inhale takes about
+              forty percent of the cycle and the exhale takes the rest, with a
+              brief hold at the top. Make it a clean sine wave and it stops
+              reading as breathing and starts reading as a pulsing div.
+            </p>
+            <p>
+              The rate is not fixed either. Move around and it climbs toward
+              sixteen breaths a minute; sit still and it settles to seven; let
+              it fall asleep and it drops to five.
+            </p>
+          </div>
+        </div>
+
+        <organ-card class="organ p-6 sm:p-8 lg:col-span-7">
+          <vitals-panel></vitals-panel>
+        </organ-card>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── 02 attention ─────────────────────── -->
+    <section id="attention" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
+      <div class="max-w-2xl">
+        <p class="eyebrow">02 — Attention</p>
+        <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">It watches you</h2>
+        <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
+          <p>
+            Cursor position is the page's only sense organ, so a lot is made of
+            it. Every eye on this page shares one pointer stream and one set of
+            springs; what varies is where each element sits, which is enough to
+            make six faces look like six creatures rather than six copies.
+          </p>
+          <p>
+            The page also measures how much you are moving, not just where.
+            That figure drives the breath rate, the pupils, the strength of the
+            glow around your cursor, and how long it takes to get drowsy.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-12 flex flex-wrap items-center justify-center gap-10 rounded-[var(--radius)] border border-border/60 bg-card/30 py-14">
+        <living-eyes size="150" label="A large pair of eyes following the cursor"></living-eyes>
+        <living-eyes size="88"></living-eyes>
+        <living-eyes size="56"></living-eyes>
+      </div>
+
+      <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
+        {
+          gazeTraits.map((trait) => (
+            <li data-reveal-item>
+              <organ-card class="organ flex h-full items-start gap-4 p-5" tilt="6">
+                <living-eyes size="46"></living-eyes>
+                <div>
+                  <h3 class="font-semibold tracking-tight">{trait.title}</h3>
+                  <p class="mt-1.5 text-sm text-muted-foreground text-pretty">{trait.body}</p>
+                </div>
+              </organ-card>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="mt-10 flex flex-wrap items-center gap-4">
+        <living-button eyes>
+          <button class="btn btn-primary" type="button"><span>This one looks around</span></button>
+        </living-button>
+        <living-button eyes>
+          <button class="btn btn-ghost" type="button"><span>So does this one</span></button>
+        </living-button>
+        <p class="text-sm text-muted-foreground">
+          Both pull toward your cursor from about 170 pixels away.
+        </p>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────── 03 growth ───────────────────────── -->
+    <section id="growth" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
+      <div class="grid gap-12 lg:grid-cols-12">
+        <div class="lg:col-span-5">
+          <p class="eyebrow">03 — Growth</p>
+          <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">It grows</h2>
+          <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
+            <p>
+              Each plant is one integer. Species, branching angles, curl,
+              leaf spacing, flower size, colour shift and temperament are all
+              re-derived from that seed, so the entire garden persists in a few
+              hundred bytes of local storage.
+            </p>
+            <p>
+              Growth is real time, not a loop. Plants photosynthesise faster in
+              daylight, drink when it rains, wilt in drought, and slow down but
+              never stop at night. Around fifteen minutes of good conditions
+              takes a seedling to maturity.
+            </p>
+            <p>
+              Then they flower, go to seed, drop one child each, and fade back
+              into the soil — which raises the fertility for whatever grows
+              next. Close the tab and it keeps going at a reduced rate. Come
+              back in a week and you will find grandchildren.
+            </p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7">
+          <garden-bed></garden-bed>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────── 04 sky ─────────────────────────── -->
+    <section id="sky" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
+      <div class="grid gap-12 lg:grid-cols-12">
+        <div class="lg:col-span-5">
+          <p class="eyebrow">04 — Weather &amp; sun</p>
+          <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">The sky moves on</h2>
+          <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
+            <p>
+              Weather walks a Markov chain. Every ninety seconds to three and a
+              half minutes the current system rolls for a successor, weighted so
+              it can only move to something adjacent — clear never jumps
+              straight to storm, it has to get there through fair, cloudy and
+              rain. That constraint is the whole reason the sky feels continuous
+              instead of shuffled.
+            </p>
+            <p>
+              Today's real date picks the season, which re-weights the table:
+              snow is common in winter and impossible in summer, storms peak in
+              July, mist belongs to autumn. Aurora only rolls after dark.
+            </p>
+            <p>
+              The sun runs on the standard sunrise equation against the real
+              calendar day, so the night is genuinely long in December and short
+              in June. Everything you see is a crossfade — no system ever cuts.
+            </p>
+          </div>
+        </div>
+
+        <organ-card class="organ p-6 sm:p-8 lg:col-span-7" tilt="3">
+          <sky-controls></sky-controls>
+        </organ-card>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────── 05 colour ───────────────────────── -->
+    <section id="colour" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
+      <div class="max-w-2xl">
+        <p class="eyebrow">05 — Circadian colour</p>
+        <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">It keeps your hours</h2>
+        <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
+          <p>
+            There is no dark mode here, and no <code class="font-mono text-[0.85em] text-foreground">dark:</code>
+            variant anywhere in the markup. Seven palettes are pinned around the
+            clock — deep night, first light, sunrise, midday, golden hour, dusk
+            — and the current time is interpolated between the two it falls
+            between, hue by hue, on the short way round the wheel.
+          </p>
+          <p>
+            The result is written straight onto <code class="font-mono text-[0.85em] text-foreground">:root</code>
+            as the same HSL custom properties Tailwind compiles against. So
+            <code class="font-mono text-[0.85em] text-foreground">bg-primary</code> is a different green at
+            noon than it is at nine in the evening, and every component follows
+            without knowing anything about it.
+          </p>
+          <p>
+            Writing custom properties on the root element invalidates style for
+            the entire document, so this runs at eight hertz rather than sixty,
+            and skips any value that has not changed. The sun does not move
+            fast enough for anyone to notice the difference.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10">
+        <palette-strip></palette-strip>
+      </div>
+
+      <p class="mt-6 text-sm text-muted-foreground">
+        Drag the sun slider in the previous section to watch these move.
+      </p>
+    </section>
+
+    <!-- ─────────────────────────── 06 colophon ──────────────────────── -->
+    <section id="colophon" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
+      <div class="max-w-2xl">
+        <p class="eyebrow">06 — Anatomy</p>
+        <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">One heartbeat</h2>
+        <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
+          <p>
+            The rule that makes this hang together: there is exactly one
+            <code class="font-mono text-[0.85em] text-foreground">requestAnimationFrame</code> loop on the
+            page, and every system subscribes to it. CSS animations and
+            per-component loops each run on their own timeline and drift apart
+            within seconds — which is precisely why most animated pages read as
+            a pile of unrelated widgets rather than one thing.
+          </p>
+          <p>
+            Motion is used only for transitions that have a beginning and an
+            end: scroll reveals, the notice that appears when you come back, the
+            caption under the garden. Continuous motion belongs to the
+            heartbeat. One writer per property, always.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <organ-card class="organ p-5" tilt="5" data-reveal-item>
+          <h3 class="font-semibold tracking-tight">Three substrates</h3>
+          <p class="mt-2 text-sm text-muted-foreground text-pretty">
+            A WebGL sky in PixiJS, a garden in SVG, and the interface in plain
+            DOM — all reading the same state object on the same frame.
+          </p>
+        </organ-card>
+
+        <organ-card class="organ p-5" tilt="5" data-reveal-item>
+          <h3 class="font-semibold tracking-tight">Light-DOM web components</h3>
+          <p class="mt-2 text-sm text-muted-foreground text-pretty">
+            Lit elements render into themselves rather than a shadow root, so
+            one Tailwind sheet and one set of CSS variables reach every organ.
+          </p>
+        </organ-card>
+
+        <organ-card class="organ p-5" tilt="5" data-reveal-item>
+          <h3 class="font-semibold tracking-tight">Zero binary assets</h3>
+          <p class="mt-2 text-sm text-muted-foreground text-pretty">
+            Clouds, rain, snow and sun flares are all drawn into offscreen
+            canvases at boot. Nothing is fetched and nothing pops in.
+          </p>
+        </organ-card>
+
+        <organ-card class="organ p-5" tilt="5" data-reveal-item>
+          <h3 class="font-semibold tracking-tight">Organs sleep off-screen</h3>
+          <p class="mt-2 text-sm text-muted-foreground text-pretty">
+            Each element only ticks while it intersects the viewport, so an
+            idle tab costs one shader draw instead of nine live systems.
+          </p>
+        </organ-card>
+
+        <organ-card class="organ p-5" tilt="5" data-reveal-item>
+          <h3 class="font-semibold tracking-tight">It degrades quietly</h3>
+          <p class="mt-2 text-sm text-muted-foreground text-pretty">
+            No WebGL leaves a correct CSS gradient. No local storage starts a
+            fresh garden. No JavaScript at all still leaves a readable page.
+          </p>
+        </organ-card>
+
+        <organ-card class="organ p-5" tilt="5" data-reveal-item>
+          <h3 class="font-semibold tracking-tight">It respects the setting</h3>
+          <p class="mt-2 text-sm text-muted-foreground text-pretty">
+            Under <code class="font-mono text-[0.85em] text-foreground">prefers-reduced-motion</code> the
+            rhythm keeps running so timings stay correct, but the amplitude
+            collapses to nothing.
+          </p>
+        </organ-card>
+      </div>
+    </section>
+  </main>
+
+  <footer class="mx-auto max-w-6xl px-6 pb-16 pt-8">
+    <div class="rule"></div>
+    <div class="mt-8 flex flex-wrap items-center justify-between gap-5 text-sm text-muted-foreground">
+      <p>
+        Open the console and poke at <code class="font-mono text-foreground">window.organism</code>.
+        Everything on this page is one readable state object.
+      </p>
+      <div class="flex items-center gap-5">
+        <a class="hover:text-foreground" href={index}>Showcase index</a>
+        <a class="hover:text-foreground" href={repo} rel="noopener noreferrer" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</Base>

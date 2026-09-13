@@ -1,0 +1,71 @@
+---
+import '@/styles/global.css'
+
+interface Props {
+  title: string
+  description: string
+}
+
+const { title, description } = Astro.props
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const social = 'A website that behaves like an organism: it breathes, watches the cursor, grows a garden between visits, changes weather, and follows a real day/night cycle.'
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={social} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    />
+
+    <title>{title}</title>
+
+    <!--
+      Runs before the first paint. The full circadian palette needs the
+      organism, which needs the bundle; this coarse three-way split is only
+      here so that arriving at 3am doesn't flash a white page first.
+    -->
+    <script is:inline>
+      ;(function () {
+        try {
+          var now = new Date()
+          var h = now.getHours() + now.getMinutes() / 60
+          var mode = h < 5.6 || h >= 21 ? 'night' : h < 7.4 || h >= 19.4 ? 'dusk' : 'day'
+          var root = document.documentElement
+          root.dataset.boot = mode
+          root.style.colorScheme = mode === 'day' ? 'light' : 'dark'
+          if (mode !== 'day') root.classList.add('dark')
+
+          // Hide the sections that are about to be revealed on scroll...
+          root.classList.add('js-reveal')
+          // ...but never for longer than it should take the bundle to land.
+          // If it fails, is blocked, or the browser is too old for it, this
+          // hands the page back in full rather than leaving it blank.
+          setTimeout(function () {
+            if (root.dataset.awake !== '1') root.classList.remove('js-reveal')
+          }, 2500)
+        } catch (err) {
+          /* Date or classList blocked; the stylesheet default stands */
+        }
+      })()
+    </script>
+  </head>
+
+  <body class="min-h-dvh antialiased">
+    <slot />
+    <script>
+      import '@/client'
+    </script>
+  </body>
+</html>

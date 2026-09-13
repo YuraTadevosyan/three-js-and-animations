@@ -1,0 +1,16 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // Lit uses prototype accessors for reactive properties; ES2022 class
+    // fields would shadow them with own properties and break reactivity.
+    "useDefineForClassFields": false,
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] }
+  },
+  "include": [".astro/types.d.ts", "src/**/*", "*.mjs", "*.js"],
+  "exclude": ["dist", "node_modules"]
+}
