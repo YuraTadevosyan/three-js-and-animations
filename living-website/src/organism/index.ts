@@ -6,6 +6,7 @@ import { Bus } from './bus'
 import { paletteAt, seasonOf, solarDay, solarPosition } from './circadian'
 import { Heartbeat } from './clock'
 import { Garden, MAX_PLANTS } from './garden'
+import { Fauna } from './pollinators'
 import { forget, load, save } from './persistence'
 import type { OrganismState, WeatherId, WeatherParams } from './state'
 import { ThemeWriter } from './theme'
@@ -14,6 +15,8 @@ import { nextWeather, rollDwell, temperatureFor, WEATHER } from './weather'
 export * from './state'
 export { MATURITY, MAX_PLANTS, LIFESPAN, stageOf, revealOf, witherOf } from './garden'
 export { WEATHER } from './weather'
+export { isInFlower } from './garden'
+export type { FlowerSite } from './pollinators'
 export { breathCurve } from './breath'
 export { paletteAt, LATITUDE } from './circadian'
 
@@ -65,7 +68,8 @@ function createState(): OrganismState {
       inside: false, speed: 0, idleMs: 0,
       mood: 'awake', excitement: 0, interactions: 0,
     },
-    garden: { plants: [], fertility: 0.5, generations: 0 },
+    garden: { plants: [], fertility: 0.5, generations: 0, hybrids: 0, pollinations: 0 },
+    fauna: { pollinators: [], flowers: 0, capacity: 0, carrying: 0 },
     vitals: { fps: 60, age: 0, visits: 1, ticks: 0, organs: 0 },
   }
 }
@@ -77,6 +81,7 @@ class Organism {
   readonly bus = new Bus()
   readonly heart = new Heartbeat(this.state)
   readonly garden = new Garden(this.state, this.bus)
+  readonly fauna = new Fauna(this.state, this.bus)
   readonly attention = new Attention(this.state, this.bus)
   readonly theme = new ThemeWriter()
 
@@ -131,8 +136,10 @@ class Organism {
       this.#bornAt = saved.bornAt
       this.state.vitals.visits = saved.visits + 1
       this.state.garden.generations = saved.generations
+      this.state.garden.pollinations = saved.pollinations
       this.state.garden.fertility = saved.fertility
       this.state.garden.plants = saved.plants
+      for (const plant of saved.plants) if (plant.parents) this.state.garden.hybrids++
 
       const awayMs = Math.max(0, now - saved.lastSeen)
       const grewBy = this.garden.catchUp(awayMs)
@@ -156,6 +163,7 @@ class Organism {
       lastSeen: Date.now(),
       visits: this.state.vitals.visits,
       generations: this.state.garden.generations,
+      pollinations: this.state.garden.pollinations,
       fertility: this.state.garden.fertility,
       plants: this.state.garden.plants,
     })
@@ -174,6 +182,9 @@ class Organism {
     this.#tickWeather(dt, s)
     tickBreath(dt, s, this.bus)
     this.garden.tick(dt)
+    // Pollinators run after the garden so they see this frame's flowers, and
+    // before the components, which publish the flower positions they steer to.
+    this.fauna.tick(dt, s)
 
     s.vitals.age = (s.time.now - this.#bornAt) / 1000
     this.theme.tick(dt, s.circadian.palette, s.circadian.daylight)
@@ -298,7 +309,10 @@ class Organism {
     this.#bornAt = Date.now()
     this.state.vitals.visits = 1
     this.state.garden.generations = 0
+    this.state.garden.pollinations = 0
+    this.state.garden.hybrids = 0
     this.state.garden.fertility = 0.5
+    this.state.fauna.pollinators.length = 0
     for (let i = 0; i < 3; i++) {
       const plant = this.garden.plant({ x: 0.2 + i * 0.3 })
       if (plant) plant.age = 0.06 + i * 0.05

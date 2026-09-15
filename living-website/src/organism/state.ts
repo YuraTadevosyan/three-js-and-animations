@@ -1,4 +1,5 @@
 import type { Hsl } from '@/lib/color'
+import type { Genome } from '@/lib/genome'
 
 export type Mood = 'alert' | 'awake' | 'drowsy' | 'asleep'
 
@@ -53,7 +54,9 @@ export type Stage = 'seed' | 'sprout' | 'juvenile' | 'mature' | 'flowering' | 's
 
 export interface Plant {
   id: string
+  /** Drives the per-branch jitter only. The genome decides what the plant *is*. */
   seed: number
+  genome: Genome
   /** Horizontal position in the bed, 0..1. */
   x: number
   /** Accumulated growth seconds — not wall-clock age. Modifiers scale it. */
@@ -62,6 +65,38 @@ export interface Plant {
   vigor: number
   /** How many ancestors this plant has. Generation 0 was seeded on first visit. */
   gen: number
+  /**
+   * Genome delivered by a pollinator from another plant, held until this one
+   * goes to seed. Null means any seed it drops will be a self-seed.
+   */
+  pollen: Genome | null
+  /** The two species that produced this plant, when it came from a cross. */
+  parents: [Species, Species] | null
+}
+
+export type PollinatorKind = 'bee' | 'butterfly' | 'moth'
+
+export interface Pollinator {
+  id: string
+  kind: PollinatorKind
+  /** Position and velocity in bed units (see lib/bed.ts). */
+  x: number
+  y: number
+  vx: number
+  vy: number
+  /** Heading in radians, smoothed so they bank into turns. */
+  angle: number
+  /** Wingbeat phase. */
+  flap: number
+  state: 'seeking' | 'feeding'
+  targetKey: string | null
+  feedTimer: number
+  /** Plant the carried pollen came from, so it is never delivered back. */
+  pollenFrom: string | null
+  pollen: Genome | null
+  /** 0..1 fade, so they arrive and leave rather than popping. */
+  presence: number
+  wander: number
 }
 
 export interface OrganismState {
@@ -162,6 +197,20 @@ export interface OrganismState {
     fertility: number
     /** Plants that have completed a full life cycle this session. */
     generations: number
+    /** Plants in the bed that came from a cross rather than a self-seed. */
+    hybrids: number
+    /** Successful pollen deliveries, across every visit. */
+    pollinations: number
+  }
+
+  fauna: {
+    pollinators: Pollinator[]
+    /** Flowers currently open and worth visiting. */
+    flowers: number
+    /** How many pollinators the current conditions support. */
+    capacity: number
+    /** Pollen currently being carried between plants. */
+    carrying: number
   }
 
   vitals: {

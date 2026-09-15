@@ -1,4 +1,4 @@
-import type { Mood, Plant, WeatherId } from './state'
+import type { Mood, Plant, PollinatorKind, Species, WeatherId } from './state'
 
 /**
  * Discrete events. Per-frame values are NOT events — components read those
@@ -16,6 +16,10 @@ export interface OrganismEvents {
   bloomed: { plant: Plant }
   thunder: { strength: number }
   returned: { awayMs: number; grewBy: number }
+  /** A pollinator delivered pollen from one plant to another. */
+  pollinated: { from: string; to: string; kind: PollinatorKind }
+  /** A seed dropped by a plant that had been pollinated. */
+  crossed: { plant: Plant; parents: [Species, Species] }
 }
 
 type Handler<K extends keyof OrganismEvents> = (payload: OrganismEvents[K]) => void

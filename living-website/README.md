@@ -4,10 +4,12 @@ A page that behaves like an organism.
 
 The sky breathes. The interface follows your cursor — buttons lean toward it,
 pupils dilate in the dark, eyelids sag when you go quiet. A garden grows in real
-time and keeps growing while the tab is closed. Weather drifts on a Markov chain
-every couple of minutes. And the colour of every element on screen is a function
-of the actual hour where you are sitting, interpolated continuously from
-midnight to midnight.
+time, keeps growing while the tab is closed, and cross-breeds itself: bees and
+butterflies by day, moths after dark, carrying pollen between flowering plants
+so their seeds come out as hybrids. Weather drifts on a Markov chain every
+couple of minutes. And the colour of every element on screen is a function of
+the actual hour where you are sitting, interpolated continuously from midnight
+to midnight.
 
 **Live:** <https://yuratadevosyan.github.io/three-js-and-animations/living-website/>
 
@@ -56,7 +58,8 @@ setting target values that the heartbeat then springs toward.
 | **Breath** | One asymmetric oscillator — 40% inhale, a brief hold, 60% exhale. Rate runs 5–16 / min depending on how much you're moving. |
 | **Circadian** | Seven palettes pinned around the clock, interpolated hue-by-hue on the short way round the wheel, written onto `:root` at 8Hz. |
 | **Weather** | Ten systems on a Markov chain with a 90s–3.5min dwell. Seasonal re-weighting from the real date; aurora gated to night, snow to cold. |
-| **Garden** | Plants grown from integer seeds via an L-system, with a full life cycle: sprout → flower → seed → compost. |
+| **Garden** | Plants grown from a sixteen-trait genome via an L-system, with a full life cycle: sprout → flower → seed → compost. |
+| **Pollinators** | Bees, butterflies and moths that navigate to open flowers, carry pollen between plants, and ground themselves in rain or wind. |
 | **Attention** | Pointer position, smoothed speed, arousal, idle time, and a four-state mood that drives breath rate, pupils and the dormancy veil. |
 
 ### The colour system is the circadian system
@@ -70,17 +73,47 @@ Writing custom properties on the root element invalidates style for the whole
 document, so that runs at 8Hz with unchanged values skipped — far below the
 threshold where the sun's motion would look like it was stepping.
 
-### The garden persists
+### The garden persists, and inherits
 
-Each plant is stored as one integer. Species, branching angles, curl, leaf
-spacing, flower size, hue shift and temperament are all re-derived from that
-seed, so the whole garden fits in a few hundred bytes of `localStorage`.
+Each plant carries a **genome**: sixteen heritable traits (species, segment
+length, branching angle, curl, taper, leaf spacing, flower size, hue shift,
+vigour and so on). `growSkeleton(genome, seed)` builds the geometry from those
+means; the seed now only supplies per-branch jitter, so the same genome and
+seed always grow the same plant.
+
+That split is what makes heredity possible at all. Plants used to be a single
+integer, which is beautifully compact but has no notion of inheritance —
+crossing two seeds can only produce a third unrelated plant.
 
 Growth is real time, modulated by daylight, soil moisture and temperature —
 roughly 15 minutes of good conditions takes a seedling to maturity, and a night
 takes about an hour. Time spent away counts too, at 40% rate and capped at six
 hours, and it is replayed in 90-second chunks so a plant that was due to flower,
 seed and die during your absence actually does all three in order.
+
+### Pollination
+
+Bees and butterflies fly when `daylight > 0.28`, moths when it drops below
+`0.12`, and nothing flies through rain or a strong wind. They steer toward real
+flower positions — published every frame by the renderer, because flowers move
+with the wind and a target refreshed at 10Hz makes an insect visibly stutter —
+and they prefer a plant they are not already carrying pollen from.
+
+On arrival a pollinator delivers first and collects second, so one flower can
+receive pollen and donate its own on the same visit. The receiving plant holds
+that genome until it goes to seed; then:
+
+- **Pollinated** → `crossGenomes()`. Each trait is independently dominant from
+  one parent, dominant from the other, or intermediate, then given a small
+  mutation. Hue blends rather than segregating, because it is the trait people
+  actually read as "that one came from those two".
+- **Not pollinated** → `mutateGenome()`. A near-copy that drifts, with a 4%
+  chance of sporting into a different species outright. Without this a garden
+  nobody watched would clone itself forever and heredity would be invisible.
+
+Ferns never participate. Their wild type has no flowers, so nothing visits
+them — which is roughly the correct botany, and worth knowing before filing it
+as a bug.
 
 ## What's real, and what's simulated
 
@@ -136,6 +169,7 @@ with a 240px margin; only fixed backdrops set `alwaysTick`.
 | --- | --- |
 | WebGL is unavailable | `SkyStage.create()` returns `null`; the CSS gradient underneath (driven by the same `--sky-*` tokens) stays visible and simply stops moving. |
 | `localStorage` throws or is blocked | The garden starts fresh and runs in memory for the session. |
+| A saved plant predates genomes, or a field is corrupt | `reviveGenome()` falls back to the seed-derived genome per field, so old gardens migrate instead of being wiped. |
 | The bundle never loads | A failsafe timer in the layout's blocking script un-hides the scroll-revealed sections after 2.5s. All copy is in the static HTML. |
 | `prefers-reduced-motion` | The rhythm keeps running so every timing stays correct, but amplitude collapses to near zero and precipitation budgets drop to 0. |
 
@@ -154,13 +188,15 @@ src/
 │   ├── breath.ts      the master oscillator
 │   ├── circadian.ts   solar model + the seven palettes
 │   ├── weather.ts     profiles + the Markov transition table
-│   ├── garden.ts      growth, life cycle, catch-up
+│   ├── garden.ts      growth, life cycle, seeding, catch-up
+│   ├── pollinators.ts insect agents, flower registry, cross-pollination
 │   ├── attention.ts   pointer, arousal, mood
 │   ├── theme.ts       palette → CSS custom properties
 │   └── persistence.ts localStorage, defensively
 ├── gl/                PixiJS: stage, sky shader, weather layers, textures
 ├── components/        Lit organs (light DOM, viewport-gated)
-├── lib/               math, colour, seeded RNG, the L-system
+├── lib/               math, colour, seeded RNG, genomes, the L-system,
+│                       and the bed's shared coordinate space
 ├── layouts/           the shell + the no-flash boot script
 └── pages/             index.astro — all copy lives here
 ```

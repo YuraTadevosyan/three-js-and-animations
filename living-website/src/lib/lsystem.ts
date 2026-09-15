@@ -1,5 +1,6 @@
-import { makeRng, type Rng } from './rng'
-import type { Species } from '@/organism/state'
+import { type Genome, SPECIES_RANGES } from './genome'
+import { clamp } from './math'
+import { makeRng } from './rng'
 
 export interface Point {
   x: number
@@ -32,80 +33,69 @@ export interface Ornament {
 }
 
 export interface Skeleton {
-  species: Species
+  /** The traits this shape was grown from. */
+  genome: Genome
   branches: Branch[]
   ornaments: Ornament[]
   /** Local-unit extent, used to scale the plant into its slot in the bed. */
   height: number
   halfWidth: number
-  /** Hue offset applied to the canopy colour, so no two plants match. */
-  hueShift: number
-  /** How fast this individual grows, 0.7..1.35. */
-  vigorBias: number
 }
-
-interface SpeciesConfig {
-  depth: number
-  segLen: [number, number]
-  segments: [number, number]
-  children: [number, number]
-  spread: [number, number]
-  curl: [number, number]
-  taper: number
-  baseWidth: number
-  leafEvery: number
-  leafSize: [number, number]
-  flowers: number
-  flowerSize: [number, number]
-  trunkLean: number
-}
-
-const SPECIES: Record<Species, SpeciesConfig> = {
-  fern: {
-    depth: 2, segLen: [5.5, 7.5], segments: [7, 10], children: [2, 3], spread: [26, 46],
-    curl: [-3.5, 3.5], taper: 0.52, baseWidth: 2.6, leafEvery: 1, leafSize: [3.4, 5.4],
-    flowers: 0, flowerSize: [0, 0], trunkLean: 8,
-  },
-  vine: {
-    depth: 3, segLen: [7, 10], segments: [8, 12], children: [1, 2], spread: [34, 62],
-    curl: [2, 7.5], taper: 0.6, baseWidth: 2.1, leafEvery: 3, leafSize: [4, 6.5],
-    flowers: 1, flowerSize: [2.4, 3.4], trunkLean: 16,
-  },
-  bloom: {
-    depth: 1, segLen: [9, 12], segments: [6, 8], children: [1, 2], spread: [16, 30],
-    curl: [-2, 2], taper: 0.62, baseWidth: 3, leafEvery: 2, leafSize: [5, 8],
-    flowers: 3, flowerSize: [3.6, 5.6], trunkLean: 6,
-  },
-  reed: {
-    depth: 1, segLen: [11, 15], segments: [5, 7], children: [2, 4], spread: [6, 16],
-    curl: [-1.5, 1.5], taper: 0.7, baseWidth: 1.7, leafEvery: 0, leafSize: [3, 4.5],
-    flowers: 2, flowerSize: [1.6, 2.4], trunkLean: 10,
-  },
-  succulent: {
-    depth: 1, segLen: [3.4, 4.6], segments: [3, 4], children: [4, 6], spread: [40, 76],
-    curl: [-6, 6], taper: 0.78, baseWidth: 4.4, leafEvery: 1, leafSize: [4.5, 7],
-    flowers: 1, flowerSize: [2, 3], trunkLean: 3,
-  },
-}
-
-export const SPECIES_LIST = Object.keys(SPECIES) as Species[]
 
 const DEG = Math.PI / 180
 
 /**
- * Grow a plant's full adult skeleton once, at load. Growth is then just a
- * matter of revealing branches whose [t0,t1] window the plant's age has
- * reached — no geometry is recomputed per frame, which is what lets a dozen
- * plants animate inside one SVG without touching the layout engine.
+ * Hard ceiling on paths per plant. The heaviest wild type (a fern, with a leaf
+ * on every segment) lands around 145, so this leaves room for hybrids without
+ * letting one loose in the bed.
  */
-export function growSkeleton(seed: number): Skeleton {
-  const rng = makeRng(seed)
-  const species = rng.pick(SPECIES_LIST)
-  const cfg = SPECIES[species]
+const BRANCH_BUDGET = 260
+
+/** Stems produced by a branching factor `c` carried to depth `d`. */
+const stemCount = (c: number, d: number) =>
+  c <= 1 ? d + 1 : (Math.pow(c, d + 1) - 1) / (c - 1)
+
+/**
+ * How deep to branch.
+ *
+ * Species sets the intent, but the branching factor gets a veto. Crossing is
+ * free to hand a vine's depth of 3 to a genome that also inherited a
+ * succulent's six children — which is 259 stems before a single leaf, and
+ * thousands of SVG paths once leaves are added. Trading depth for width keeps
+ * the plant plausible instead of merely truncating it mid-draw.
+ */
+function depthFor(g: Genome): number {
+  let depth = g.species === 'fern' ? 2 : g.species === 'vine' ? 3 : 1
+
+  // Leaves are the real multiplier: a fern puts one on every segment, so the
+  // estimate has to count them or the stem budget is meaningless.
+  const every = Math.round(g.leafEvery)
+  const leavesPerStem = every > 0 ? g.segments / every : 0
+
+  while (depth > 0 && stemCount(g.children, depth) * (1 + leavesPerStem) > 200) depth--
+  return depth
+}
+
+/**
+ * Grow a plant's full adult skeleton once, at load.
+ *
+ * The genome supplies the means; the seed supplies the jitter around them. A
+ * plant's branches share its genetics, so a high-`curl` genome coils
+ * throughout rather than coiling in one arm and not the next — which is what
+ * makes an inherited trait legible when you put parent and child side by side.
+ *
+ * Growth is then just a matter of revealing branches whose [t0, t1] window the
+ * plant's age has reached; no geometry is recomputed per frame.
+ */
+export function growSkeleton(genome: Genome, seed: number): Skeleton {
+  const rng = makeRng(seed >>> 0)
+  const g = genome
+  const wild = SPECIES_RANGES[g.species]
 
   const branches: Branch[] = []
   const ornaments: Ornament[] = []
-  const scale = rng.range(0.82, 1.24)
+  const scale = g.scale
+  const maxDepth = depthFor(g)
 
   let maxY = 0
   let maxX = 0
@@ -118,9 +108,13 @@ export function growSkeleton(seed: number): Skeleton {
     t0: number,
     budget: number,
   ) => {
-    const segCount = rng.int(cfg.segments[0], cfg.segments[1])
-    const segLen = rng.range(cfg.segLen[0], cfg.segLen[1]) * scale * budget
-    const curl = rng.range(cfg.curl[0], cfg.curl[1])
+    // Backstop. depthFor() handles the common blow-up, but a genome can be odd
+    // in more than one way at once.
+    if (branches.length >= BRANCH_BUDGET) return
+
+    const segCount = clamp(Math.round(g.segments * rng.range(0.85, 1.15)), 3, 16)
+    const segLen = g.segLen * rng.range(0.9, 1.1) * scale * budget
+    const curl = g.curl + rng.gauss() * 1.5
 
     const pts: Point[] = [{ ...origin }]
     let pos = { ...origin }
@@ -140,17 +134,15 @@ export function growSkeleton(seed: number): Skeleton {
 
     const span = (0.34 / (depth + 1)) * budget
     const t1 = Math.min(1, t0 + span)
-    branches.push({
-      pts, length, width, depth, t0, t1, kind: 'stem',
-      sway: 0.35 + depth * 0.45,
-    })
+    branches.push({ pts, length, width, depth, t0, t1, kind: 'stem', sway: 0.35 + depth * 0.45 })
 
     // Leaves hang off the stem at regular intervals.
-    if (cfg.leafEvery > 0) {
-      for (let i = 1; i < pts.length; i += cfg.leafEvery) {
+    const every = Math.round(g.leafEvery)
+    if (every > 0) {
+      for (let i = 1; i < pts.length && branches.length < BRANCH_BUDGET; i += every) {
         const at = pts[i]!
         const side = i % 2 === 0 ? 1 : -1
-        const leafLen = rng.range(cfg.leafSize[0], cfg.leafSize[1]) * scale * budget
+        const leafLen = g.leafSize * rng.range(0.85, 1.15) * scale * budget
         const leafAngle = dir + side * rng.range(50, 85) * DEG
         const tip = {
           x: at.x + Math.sin(leafAngle) * leafLen,
@@ -178,24 +170,19 @@ export function growSkeleton(seed: number): Skeleton {
 
     const tip = pts[pts.length - 1]!
 
-    if (depth >= cfg.depth) {
-      // Tips of the outermost branches carry the flowers and seed heads.
-      if (cfg.flowers > 0 && rng.chance(0.75)) {
-        const r = rng.range(cfg.flowerSize[0], cfg.flowerSize[1]) * scale
-        ornaments.push({
-          x: tip.x, y: tip.y, r, angle: dir,
-          t0: rng.range(0.72, 0.86),
-          kind: 'flower',
-          sway: 1.4,
-        })
+    if (depth >= maxDepth) {
+      // Tips of the outermost branches carry the flowers.
+      if (g.flowers > 0 && g.flowerSize > 0.4 && rng.chance(0.75)) {
+        const r = g.flowerSize * rng.range(0.85, 1.15) * scale
+        ornaments.push({ x: tip.x, y: tip.y, r, angle: dir, t0: rng.range(0.72, 0.86), kind: 'flower', sway: 1.4 })
         maxY = Math.max(maxY, tip.y + r)
       }
       return
     }
 
-    const kids = rng.int(cfg.children[0], cfg.children[1])
+    const kids = clamp(Math.round(g.children * rng.range(0.8, 1.25)), 1, 6)
     for (let i = 0; i < kids; i++) {
-      const spread = rng.range(cfg.spread[0], cfg.spread[1]) * DEG
+      const spread = g.spread * rng.range(0.8, 1.2) * DEG
       const side = kids === 1 ? (rng.chance(0.5) ? 1 : -1) : (i / (kids - 1)) * 2 - 1
       // Children branch from somewhere along the parent, not only its tip.
       const fromIndex = Math.max(1, Math.floor(pts.length * rng.range(0.45, 1)) - 1)
@@ -203,24 +190,24 @@ export function growSkeleton(seed: number): Skeleton {
         pts[fromIndex]!,
         dir + side * spread,
         depth + 1,
-        width * cfg.taper,
+        width * g.taper,
         t1 - span * 0.25,
         budget * rng.range(0.62, 0.84),
       )
     }
   }
 
-  walk({ x: 0, y: 0 }, rng.range(-cfg.trunkLean, cfg.trunkLean) * DEG, 0, cfg.baseWidth * scale, 0, 1)
+  walk({ x: 0, y: 0 }, rng.range(-g.trunkLean, g.trunkLean) * DEG, 0, g.baseWidth * scale, 0, 1)
 
   // Reeds are several separate blades from one root rather than one branching stem.
-  if (species === 'reed') {
+  if (g.species === 'reed') {
     const extra = rng.int(2, 4)
     for (let i = 0; i < extra; i++) {
       walk(
         { x: rng.range(-4, 4), y: 0 },
         rng.range(-22, 22) * DEG,
         0,
-        cfg.baseWidth * scale * rng.range(0.7, 1),
+        g.baseWidth * scale * rng.range(0.7, 1),
         rng.range(0.05, 0.3),
         rng.range(0.7, 1),
       )
@@ -238,16 +225,22 @@ export function growSkeleton(seed: number): Skeleton {
     })
   }
 
+  // A genome with no flower traits still needs somewhere to end; the wild type
+  // decides whether that tip is bare or carries a bud.
+  if (!ornaments.some((o) => o.kind === 'flower') && wild.flowers > 0 && g.flowerSize > 0.4) {
+    const host = branches[branches.length - 1]!
+    const at = host.pts[host.pts.length - 1]!
+    ornaments.push({
+      x: at.x, y: at.y, r: g.flowerSize * scale,
+      angle: 0, t0: 0.8, kind: 'flower', sway: 1.4,
+    })
+  }
+
   return {
-    species,
+    genome: g,
     branches,
     ornaments,
     height: Math.max(maxY, 1),
     halfWidth: Math.max(maxX, 1),
-    hueShift: rng.range(-22, 22),
-    vigorBias: rng.range(0.7, 1.35),
   }
 }
-
-/** Deterministic per-plant jitter used for wind phase offsets. */
-export const phaseOf = (rng: Rng) => rng.range(0, Math.PI * 2)

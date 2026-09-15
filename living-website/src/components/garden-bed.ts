@@ -1,27 +1,25 @@
 import { html, svg, type TemplateResult } from 'lit'
 import { repeat } from 'lit/directives/repeat.js'
 import { animate } from 'motion'
+import { BED_H, BED_W, plantX, SOIL_Y } from '@/lib/bed'
 import { toCss } from '@/lib/color'
+import { targetHeight } from '@/lib/genome'
 import type { Skeleton } from '@/lib/lsystem'
 import { clamp, lerp } from '@/lib/math'
 import { makeRng } from '@/lib/rng'
-import { LIFESPAN, MAX_PLANTS, organism, revealOf, stageOf, witherOf } from '@/organism'
-import type { Plant, Species } from '@/organism/state'
+import {
+  isInFlower,
+  LIFESPAN,
+  MAX_PLANTS,
+  organism,
+  revealOf,
+  stageOf,
+  witherOf,
+  type FlowerSite,
+} from '@/organism'
+import type { Plant, Pollinator, PollinatorKind } from '@/organism/state'
 import { Organ } from './base'
 import './living-button'
-
-const VIEW_W = 1000
-const VIEW_H = 340
-const SOIL_Y = 288
-
-/** Target on-screen height per species, before per-plant variation. */
-const TARGET_HEIGHT: Record<Species, number> = {
-  fern: 150,
-  vine: 168,
-  bloom: 186,
-  reed: 204,
-  succulent: 96,
-}
 
 const STAGE_COPY: Record<string, string> = {
   seed: 'just planted',
@@ -32,6 +30,8 @@ const STAGE_COPY: Record<string, string> = {
   seeding: 'going to seed',
   fading: 'fading back into the soil',
 }
+
+const FAUNA_SLOTS = 8
 
 interface PathRef {
   el: SVGPathElement
@@ -44,36 +44,65 @@ interface PathRef {
   shown: boolean
 }
 
+interface OrnamentRef {
+  el: SVGGElement
+  t0: number
+  open: number
+  kind: string
+  /** Local skeleton coordinates, already flipped into SVG's y-down space. */
+  lx: number
+  ly: number
+  /**
+   * The flower site handed to the pollinator system, when this ornament is an
+   * open flower. Shared by reference so its position can be updated in place
+   * every frame without rebuilding the registry.
+   */
+  site?: FlowerSite | undefined
+}
+
 interface PlantRefs {
   /** The live plant object from state — not a copy, and not looked up by id. */
   plant: Plant
   group: SVGGElement
   sway: SVGGElement
   paths: PathRef[]
-  ornaments: { el: SVGGElement; t0: number; open: number }[]
+  ornaments: OrnamentRef[]
   skeleton: Skeleton
   phase: number
-  /** Pre-computed scale that maps this skeleton's local units into the viewBox. */
+  /** Pre-computed scale that maps this skeleton's local units into the bed. */
   unit: number
   /** Last colours written, so unchanged strokes are skipped entirely. */
   lastStem: string
   lastLeaf: string
+  /** Live transform, kept so flower positions can be derived each frame. */
+  scale: number
+  bend: number
 }
 
 /**
- * A bed of plants grown from stored seeds.
+ * A bed of plants grown from genomes, and the insects that move pollen
+ * between them.
  *
  * The geometry is built once when a plant appears and never rebuilt. Growth is
  * a stroke-dashoffset sweep across branches whose [t0, t1] window the plant's
  * age has reached, so a fully grown bed costs the same per frame as an empty
- * one. Only the sway transform runs at frame rate; growth, colour and staging
- * update at 10Hz, which is far finer than anything you can perceive in a plant.
+ * one. Only transforms run at frame rate; growth, colour and staging update at
+ * 10Hz, which is far finer than anything you can perceive in a plant.
+ *
+ * Flower *positions* are the exception — they move with the wind, and a
+ * pollinator steering toward a 10Hz target visibly stutters, so those are
+ * refreshed every frame in place. The set of open flowers still only changes
+ * on the slow tick.
  */
 export class GardenBed extends Organ {
   #refs: PlantRefs[] = []
   #abort: AbortController | null = null
   #fireflies: SVGCircleElement[] = []
+  #faunaSlots: { group: SVGGElement; variants: Record<string, SVGGElement>; wings: Record<string, SVGGElement> }[] = []
+  /** Reused across frames: the pollinator system holds these same objects. */
+  #sites: FlowerSite[] = []
   #slow = 0
+  #lastPollenFlash = 0
   #hovered: string | null = null
 
   connectedCallback(): void {
@@ -96,32 +125,35 @@ export class GardenBed extends Organ {
       <figure class="m-0">
         <div class="relative overflow-hidden rounded-[var(--radius)] border border-border/70">
           <svg
-            viewBox="0 0 ${VIEW_W} ${VIEW_H}"
+            viewBox="0 0 ${BED_W} ${BED_H}"
             class="block w-full"
             role="img"
-            aria-label="A garden bed of ${plants.length} procedurally grown plants"
+            aria-label="A garden bed of ${plants.length} plants, visited by pollinating insects"
             style="background: linear-gradient(to bottom, hsl(var(--card) / .25), hsl(var(--soil) / .35))"
           >
             <g data-flies></g>
             ${repeat(plants, (p) => p.id, (p) => this.#plantTemplate(p))}
             <path
-              d="M0 ${SOIL_Y} Q 250 ${SOIL_Y - 8} 500 ${SOIL_Y} T 1000 ${SOIL_Y} L1000 ${VIEW_H} L0 ${VIEW_H} Z"
+              d="M0 ${SOIL_Y} Q 250 ${SOIL_Y - 8} 500 ${SOIL_Y} T ${BED_W} ${SOIL_Y} L${BED_W} ${BED_H} L0 ${BED_H} Z"
               style="fill: hsl(var(--soil))"
             ></path>
             <path
-              d="M0 ${SOIL_Y} Q 250 ${SOIL_Y - 8} 500 ${SOIL_Y} T 1000 ${SOIL_Y}"
+              d="M0 ${SOIL_Y} Q 250 ${SOIL_Y - 8} 500 ${SOIL_Y} T ${BED_W} ${SOIL_Y}"
               fill="none"
               style="stroke: hsl(var(--canopy) / .55); stroke-width: 3"
             ></path>
+            <g data-fauna></g>
           </svg>
 
           <figcaption
             data-caption
-            class="tnum absolute bottom-2 left-3 text-[11px] text-muted-foreground"
+            class="tnum absolute bottom-2 left-3 right-3 truncate text-[11px] text-muted-foreground"
           ></figcaption>
         </div>
 
-        <div class="mt-5 flex flex-wrap items-center gap-3">
+        <p class="mt-3 text-sm text-muted-foreground" data-fauna-line>&nbsp;</p>
+
+        <div class="mt-4 flex flex-wrap items-center gap-3">
           <living-button action="plant">
             <button class="btn btn-primary" type="button"><span>Plant a seed</span></button>
           </living-button>
@@ -137,8 +169,9 @@ export class GardenBed extends Organ {
           </button>
         </div>
 
-        <dl class="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-4">
+        <dl class="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
           ${this.#stat('Living', 'count')} ${this.#stat('Generations', 'gens')}
+          ${this.#stat('Hybrids in bed', 'hybrids')} ${this.#stat('Pollinations', 'pollen')}
           ${this.#stat('Soil moisture', 'wet')} ${this.#stat('Fertility', 'fert')}
         </dl>
       </figure>
@@ -155,7 +188,7 @@ export class GardenBed extends Organ {
   }
 
   #plantTemplate(plant: Plant): TemplateResult {
-    const sk = organism.garden.skeleton(plant.seed)
+    const sk = organism.garden.skeleton(plant)
 
     const paths = sk.branches.map(
       (b) => svg`<path
@@ -181,7 +214,10 @@ export class GardenBed extends Organ {
 
       return svg`<g
         data-ornament
+        data-kind=${o.kind}
         data-t0=${o.t0}
+        data-lx=${o.x}
+        data-ly=${-o.y}
         transform=${`translate(${o.x.toFixed(2)} ${(-o.y).toFixed(2)})`}
       >${body}</g>`
     })
@@ -193,6 +229,7 @@ export class GardenBed extends Organ {
 
   firstUpdated() {
     this.#buildFireflies()
+    this.#buildFauna()
     // No #collect() here — updated() runs immediately after firstUpdated() on
     // the same cycle and does it, and doing both would bind everything twice.
 
@@ -221,14 +258,31 @@ export class GardenBed extends Organ {
       )
     })
     this.listen('died', () => this.#flashCaption('One went back to the soil. It fed the rest.'))
+    this.listen('pollinated', ({ kind }) => {
+      // A busy bed can deliver pollen every few seconds; without a floor the
+      // caption would never return to the hover readout.
+      const now = performance.now()
+      if (now - this.#lastPollenFlash < 9000) return
+      this.#lastPollenFlash = now
+      this.#flashCaption(`A ${kind} carried pollen across. That seed will be a cross.`)
+    })
+    this.listen('crossed', ({ parents }) => {
+      this.#flashCaption(
+        parents[0] === parents[1]
+          ? `A cross between two ${parents[0]}s. Same species, different lines.`
+          : `A ${parents[0]} × ${parents[1]} cross just took root.`,
+      )
+    })
 
     this.tick((dt, state) => {
-      this.#tickSway(state.time.elapsed, state.weather.wind, state.breath.value)
+      this.#tickFast(state.time.elapsed, state.weather.wind, state.breath.value)
+      this.#tickFauna(state.fauna.pollinators)
 
       this.#slow += dt
       if (this.#slow < 0.1) return
       this.#slow = 0
       this.#tickGrowth()
+      this.#publishFlowers()
       this.#tickFireflies(state.time.elapsed, state.circadian.daylight)
       this.#tickStats()
     })
@@ -255,7 +309,7 @@ export class GardenBed extends Organ {
       const sway = group?.querySelector<SVGGElement>('[data-sway]')
       if (!group || !sway) continue
 
-      const skeleton = organism.garden.skeleton(plant.seed)
+      const skeleton = organism.garden.skeleton(plant)
       const rng = makeRng(plant.seed ^ 0x51ed)
 
       const paths: PathRef[] = [...sway.querySelectorAll<SVGPathElement>('path')].map((el) => {
@@ -273,17 +327,20 @@ export class GardenBed extends Organ {
         }
       })
 
-      const ornaments = [...sway.querySelectorAll<SVGGElement>('[data-ornament]')].map((el) => {
+      const ornaments: OrnamentRef[] = [
+        ...sway.querySelectorAll<SVGGElement>('[data-ornament]'),
+      ].map((el) => {
         el.style.transformBox = 'fill-box'
         el.style.transformOrigin = 'center'
-        return { el, t0: Number(el.dataset.t0 ?? 0.8), open: -1 }
+        return {
+          el,
+          t0: Number(el.dataset.t0 ?? 0.8),
+          open: -1,
+          kind: el.dataset.kind ?? 'seed',
+          lx: Number(el.dataset.lx ?? 0),
+          ly: Number(el.dataset.ly ?? 0),
+        }
       })
-
-      const unit = Math.min(
-        (TARGET_HEIGHT[skeleton.species] * lerp(0.85, 1.18, skeleton.vigorBias - 0.7)) /
-          skeleton.height,
-        6,
-      )
 
       this.#refs.push({
         plant,
@@ -293,9 +350,11 @@ export class GardenBed extends Organ {
         ornaments,
         skeleton,
         phase: rng.range(0, Math.PI * 2),
-        unit,
+        unit: Math.min(targetHeight(plant.genome) / skeleton.height, 6),
         lastStem: '',
         lastLeaf: '',
+        scale: 1,
+        bend: 0,
       })
 
       group.addEventListener('pointerenter', () => (this.#hovered = plant.id), { signal })
@@ -307,6 +366,9 @@ export class GardenBed extends Organ {
         { signal },
       )
     }
+
+    // A plant may have died mid-flight; drop any flower sites pointing at it.
+    this.#publishFlowers()
   }
 
   #buildFireflies() {
@@ -324,17 +386,58 @@ export class GardenBed extends Organ {
     }
   }
 
-  /** Frame-rate work: two transforms per plant, nothing else. */
-  #tickSway(t: number, wind: number, breath: number) {
+  /**
+   * Pollinators are pooled. Each slot carries all three body plans and shows
+   * one, because a slot's occupant changes species at dawn and dusk and
+   * rebuilding the DOM at those moments would be visible.
+   */
+  #buildFauna() {
+    const host = this.$<SVGGElement>('[data-fauna]')
+    if (!host) return
+    const ns = 'http://www.w3.org/2000/svg'
+    this.#faunaSlots = []
+
+    for (let i = 0; i < FAUNA_SLOTS; i++) {
+      const group = document.createElementNS(ns, 'g')
+      group.setAttribute('opacity', '0')
+      group.style.display = 'none'
+
+      const variants: Record<string, SVGGElement> = {}
+      const wings: Record<string, SVGGElement> = {}
+
+      for (const kind of ['bee', 'butterfly', 'moth'] as PollinatorKind[]) {
+        const variant = document.createElementNS(ns, 'g')
+        variant.style.display = 'none'
+        const wing = document.createElementNS(ns, 'g')
+        wing.innerHTML = WING_MARKUP[kind]
+        variant.appendChild(wing)
+
+        const body = document.createElementNS(ns, 'g')
+        body.innerHTML = BODY_MARKUP[kind]
+        variant.appendChild(body)
+
+        variants[kind] = variant
+        wings[kind] = wing
+        group.appendChild(variant)
+      }
+
+      host.appendChild(group)
+      this.#faunaSlots.push({ group, variants, wings })
+    }
+  }
+
+  /** Frame-rate work: transforms only. */
+  #tickFast(t: number, wind: number, breath: number) {
     for (let i = 0; i < this.#refs.length; i++) {
       const ref = this.#refs[i]!
       const plant = ref.plant
       const age = plant.age
+
       const growth = lerp(0.45, 1, clamp(age))
       const wither = witherOf(age)
       const scale = ref.unit * growth * (1 - wither * 0.22)
 
-      const x = lerp(60, VIEW_W - 60, plant.x)
+      const x = plantX(plant.x)
       ref.group.setAttribute('transform', `translate(${x.toFixed(1)} ${SOIL_Y}) scale(${scale.toFixed(4)})`)
 
       // Taller, older plants catch more wind; a seedling barely moves.
@@ -344,6 +447,100 @@ export class GardenBed extends Organ {
         breath * 0.5 +
         wither * 9
       ref.sway.setAttribute('transform', `rotate(${bend.toFixed(2)})`)
+
+      ref.scale = scale
+      ref.bend = bend
+    }
+
+    this.#trackFlowers()
+  }
+
+  /**
+   * Flower positions follow the sway every frame. The objects are shared by
+   * reference with the pollinator system, so mutating them in place updates
+   * what the insects are steering toward without any allocation.
+   */
+  #trackFlowers() {
+    if (!this.#sites.length) return
+
+    for (const ref of this.#refs) {
+      const rad = (ref.bend * Math.PI) / 180
+      const cos = Math.cos(rad)
+      const sin = Math.sin(rad)
+      const baseX = plantX(ref.plant.x)
+
+      for (const orn of ref.ornaments) {
+        const site = orn.site
+        if (!site) continue
+        // local → rotate(bend) → scale → translate, matching the SVG nesting.
+        site.x = baseX + (orn.lx * cos - orn.ly * sin) * ref.scale
+        site.y = SOIL_Y + (orn.lx * sin + orn.ly * cos) * ref.scale
+      }
+    }
+  }
+
+  /** 10Hz: decide which flowers are open and hand the set to the pollinators. */
+  #publishFlowers() {
+    const sites: FlowerSite[] = []
+
+    for (const ref of this.#refs) {
+      const open = isInFlower(ref.plant.age)
+      for (let i = 0; i < ref.ornaments.length; i++) {
+        const orn = ref.ornaments[i]!
+        if (orn.kind !== 'flower') continue
+        if (!open || orn.open < 0.55) {
+          orn.site = undefined
+          continue
+        }
+        const site: FlowerSite = {
+          key: `${ref.plant.id}:${i}`,
+          plantId: ref.plant.id,
+          x: plantX(ref.plant.x),
+          y: SOIL_Y,
+        }
+        orn.site = site
+        sites.push(site)
+      }
+    }
+
+    this.#sites = sites
+    this.#trackFlowers()
+    organism.fauna.setFlowers(sites)
+  }
+
+  #tickFauna(agents: Pollinator[]) {
+    for (let i = 0; i < this.#faunaSlots.length; i++) {
+      const slot = this.#faunaSlots[i]!
+      const agent = agents[i]
+
+      if (!agent) {
+        if (slot.group.style.display !== 'none') slot.group.style.display = 'none'
+        continue
+      }
+
+      if (slot.group.style.display !== '') slot.group.style.display = ''
+
+      for (const kind of Object.keys(slot.variants)) {
+        const wanted = kind === agent.kind ? '' : 'none'
+        if (slot.variants[kind]!.style.display !== wanted) {
+          slot.variants[kind]!.style.display = wanted
+        }
+      }
+
+      const deg = (agent.angle * 180) / Math.PI
+      // Flip rather than rotate past vertical, so nothing flies upside down.
+      const flip = Math.abs(deg) > 90 ? -1 : 1
+      const k = 0.7 + agent.presence * 0.3
+      slot.group.setAttribute(
+        'transform',
+        `translate(${agent.x.toFixed(1)} ${agent.y.toFixed(1)}) rotate(${deg.toFixed(1)}) scale(${k.toFixed(3)} ${(k * flip).toFixed(3)})`,
+      )
+      slot.group.setAttribute('opacity', agent.presence.toFixed(3))
+
+      // Wings fold rather than spin: a vertical squash reads as a wingbeat at
+      // any frame rate, where a rotation aliases badly at 34 beats a second.
+      const fold = agent.state === 'feeding' ? 0.55 : 0.3 + 0.7 * Math.abs(Math.cos(agent.flap))
+      slot.wings[agent.kind]!.setAttribute('transform', `scale(1 ${fold.toFixed(3)})`)
     }
   }
 
@@ -358,7 +555,7 @@ export class GardenBed extends Organ {
 
       // Vigour pulls the canopy toward the soil colour and drains saturation;
       // a thirsty plant goes yellow-brown before it starts to droop.
-      const hue = palette.canopy.h + ref.skeleton.hueShift + (1 - plant.vigor) * 34
+      const hue = palette.canopy.h + plant.genome.hueShift + (1 - plant.vigor) * 34
       const sat = palette.canopy.s * (0.45 + plant.vigor * 0.55) * (1 - wither * 0.5)
       const light = palette.canopy.l * (0.75 + plant.vigor * 0.3) * (1 - wither * 0.3)
       const stemColor = toCss({ h: hue, s: sat, l: light }, 1 - wither * 0.55)
@@ -406,7 +603,7 @@ export class GardenBed extends Organ {
     for (let i = 0; i < this.#fireflies.length; i++) {
       const fly = this.#fireflies[i]!
       const a = t * (0.22 + i * 0.03) + i * 2.4
-      const x = VIEW_W * (0.5 + 0.42 * Math.sin(a))
+      const x = BED_W * (0.5 + 0.42 * Math.sin(a))
       const y = SOIL_Y - 40 - 110 * (0.5 + 0.5 * Math.sin(a * 1.7 + i))
       fly.setAttribute('cx', x.toFixed(1))
       fly.setAttribute('cy', y.toFixed(1))
@@ -430,12 +627,19 @@ export class GardenBed extends Organ {
       return
     }
 
-    const sk = organism.garden.skeleton(plant.seed)
     const stage = stageOf(plant.age)
     const pct = Math.round(clamp(plant.age / LIFESPAN) * 100)
+    const lineage = plant.parents
+      ? `${plant.parents[0]} × ${plant.parents[1]} cross`
+      : plant.gen > 0
+        ? 'self-seeded'
+        : 'original stock'
+    const carrying = plant.pollen ? ` · carrying ${plant.pollen.species} pollen` : ''
+
     el.textContent =
-      `${sk.species} · gen ${plant.gen} · ${STAGE_COPY[stage] ?? stage} · ` +
-      `${pct}% through its life · vigour ${Math.round(plant.vigor * 100)}%`
+      `${plant.genome.species} · gen ${plant.gen} · ${lineage} · ` +
+      `${STAGE_COPY[stage] ?? stage} · ${pct}% through its life · ` +
+      `vigour ${Math.round(plant.vigor * 100)}%${carrying}`
   }
 
   #flashCaption(message: string) {
@@ -451,15 +655,37 @@ export class GardenBed extends Organ {
   }
 
   #tickStats() {
-    const { garden, weather } = organism.state
+    const { garden, fauna } = organism.state
     const set = (key: string, value: string) => {
       const el = this.$(`[data-stat="${key}"]`)
       if (el && el.textContent !== value) el.textContent = value
     }
     set('count', `${garden.plants.length} / ${MAX_PLANTS}`)
     set('gens', `${garden.generations}`)
-    set('wet', `${Math.round(weather.wetness * 100)}%`)
+    set('hybrids', `${garden.hybrids}`)
+    set('pollen', `${garden.pollinations}`)
+    set('wet', `${Math.round(organism.state.weather.wetness * 100)}%`)
     set('fert', `${Math.round(garden.fertility * 100)}%`)
+
+    const line = this.$('[data-fauna-line]')
+    if (line) {
+      const counts = new Map<string, number>()
+      for (const agent of fauna.pollinators) {
+        counts.set(agent.kind, (counts.get(agent.kind) ?? 0) + 1)
+      }
+      const parts = [...counts].map(([kind, n]) => `${n} ${kind}${n > 1 ? 's' : ''}`)
+
+      let text: string
+      if (parts.length) {
+        text = `${parts.join(', ')} working ${fauna.flowers} open flower${fauna.flowers === 1 ? '' : 's'}`
+        if (fauna.carrying) text += ` · ${fauna.carrying} carrying pollen`
+      } else if (fauna.flowers === 0) {
+        text = 'Nothing in flower, so nothing is visiting.'
+      } else {
+        text = 'No pollinators out — too wet, too windy, or the wrong hour.'
+      }
+      if (line.textContent !== text) line.textContent = text
+    }
   }
 }
 
@@ -477,6 +703,33 @@ function toPath(pts: { x: number; y: number }[]): string {
   const last = p[p.length - 1]!
   d += ` L${last.x.toFixed(2)} ${last.y.toFixed(2)}`
   return d
+}
+
+/* Bodies point along +x; the slot transform handles heading. */
+const WING_MARKUP: Record<PollinatorKind, string> = {
+  bee: `
+    <ellipse cx="-0.5" cy="-3.4" rx="4.6" ry="2.4" style="fill: hsl(var(--card)); opacity: .8"></ellipse>
+    <ellipse cx="-0.5" cy="3.4" rx="4.2" ry="2.2" style="fill: hsl(var(--card)); opacity: .6"></ellipse>`,
+  butterfly: `
+    <ellipse cx="-1.5" cy="-5" rx="6" ry="4.6" style="fill: hsl(var(--primary)); opacity: .92"></ellipse>
+    <ellipse cx="-1.5" cy="5" rx="6" ry="4.6" style="fill: hsl(var(--primary)); opacity: .92"></ellipse>
+    <ellipse cx="3.2" cy="-3.2" rx="4" ry="3.2" style="fill: hsl(var(--accent)); opacity: .88"></ellipse>
+    <ellipse cx="3.2" cy="3.2" rx="4" ry="3.2" style="fill: hsl(var(--accent)); opacity: .88"></ellipse>`,
+  moth: `
+    <ellipse cx="-1.2" cy="-4.4" rx="5.4" ry="4" style="fill: hsl(var(--muted-foreground)); opacity: .75"></ellipse>
+    <ellipse cx="-1.2" cy="4.4" rx="5.4" ry="4" style="fill: hsl(var(--muted-foreground)); opacity: .75"></ellipse>
+    <ellipse cx="2.8" cy="-2.8" rx="3.6" ry="2.8" style="fill: hsl(var(--glow)); opacity: .45"></ellipse>
+    <ellipse cx="2.8" cy="2.8" rx="3.6" ry="2.8" style="fill: hsl(var(--glow)); opacity: .45"></ellipse>`,
+}
+
+const BODY_MARKUP: Record<PollinatorKind, string> = {
+  bee: `
+    <ellipse rx="5" ry="2.9" style="fill: hsl(var(--glow))"></ellipse>
+    <rect x="-2.2" y="-2.9" width="1.7" height="5.8" style="fill: hsl(var(--soil))"></rect>
+    <rect x="0.6" y="-2.6" width="1.5" height="5.2" style="fill: hsl(var(--soil))"></rect>
+    <circle cx="5" cy="0" r="2.1" style="fill: hsl(var(--soil))"></circle>`,
+  butterfly: `<ellipse rx="4.6" ry="1.1" style="fill: hsl(var(--soil))"></ellipse>`,
+  moth: `<ellipse rx="4.4" ry="1.7" style="fill: hsl(var(--soil))"></ellipse>`,
 }
 
 customElements.define('garden-bed', GardenBed)

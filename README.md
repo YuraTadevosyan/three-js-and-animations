@@ -25,6 +25,7 @@ the same GitHub Pages site.
 | [`holographic-os`](./holographic-os) | [/holographic-os/](https://yuratadevosyan.github.io/three-js-and-animations/holographic-os/) | Preact, @preact/signals, OGL (WebGL2), interact.js, GLSL ES 3.0, Tailwind |
 | [`dna-visualization`](./dna-visualization) | [/dna-visualization/](https://yuratadevosyan.github.io/three-js-and-animations/dna-visualization/) | Angular 21 (zoneless, signals), TypeScript, raw WebGL2, GLSL ES 3.0, Tailwind |
 | [`chess-world`](./chess-world) | [/chess-world/](https://yuratadevosyan.github.io/three-js-and-animations/chess-world/) | Nuxt 4 (SPA), PlayCanvas 2, TypeScript, hand-written chess engine (Web Worker), Web Audio, Tailwind |
+| [`living-website`](./living-website) | [/living-website/](https://yuratadevosyan.github.io/three-js-and-animations/living-website/) | Astro 5 (static), Lit 3 web components, Motion, PixiJS 8, GLSL ES 3.0, L-systems, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -46,7 +47,8 @@ the same GitHub Pages site.
 ├── interactive-museum/         A portfolio you walk through — six rooms, first-person controls, per-room lighting and synthesized spatial ambience, six hidden interactions (Babylon.js 9 + SolidJS)
 ├── holographic-os/             A futuristic desktop — draggable/snapping glass windows, 3D folders, magnifying dock, live GPU graphs, a simulated weather system and a local assistant, over a volumetric WebGL lattice (Preact + signals + OGL)
 ├── dna-visualization/          Scale — a scrolled descent through nine biological scales, tissue to hydrogen bonds and back out to the p53 interaction network (Angular 21 + hand-written WebGL2, no 3D engine)
-└── chess-world/                Interactive Chess World — animated chess: knights somersault, queens dissolve and rematerialise, captures explode, the camera follows every move; play the built-in engine or replay six famous games (Nuxt 4 + PlayCanvas 2, chess engine written from scratch)
+├── chess-world/                Interactive Chess World — animated chess: knights somersault, queens dissolve and rematerialise, captures explode, the camera follows every move; play the built-in engine or replay six famous games (Nuxt 4 + PlayCanvas 2, chess engine written from scratch)
+└── living-website/             A page that behaves like an organism — one heartbeat drives a breathing WebGL sky, UI that watches the cursor, a garden that keeps growing and cross-breeding between visits (pollinating insects carry pollen between flowers), Markov-chain weather, and a circadian palette that rewrites every Tailwind token from real sunrise to real dusk (Astro 5 + Lit + Motion + PixiJS 8)
 ```
 
 ## Hosting model
@@ -84,6 +86,8 @@ cd ai-data-viz              && npm install && npm run dev
 cd interactive-museum       && npm install && npm run dev
 cd holographic-os           && npm install && npm run dev
 cd dna-visualization        && npm install && npm run dev   # Angular CLI, http://localhost:4210
+cd chess-world              && npm install --legacy-peer-deps && npm run dev   # Nuxt 4, requires Node 22
+cd living-website           && npm install && npm run dev   # Astro, http://localhost:5186
 ```
 
 For the landing page:
@@ -112,6 +116,8 @@ cd ai-data-viz              && npm run deploy
 cd interactive-museum       && npm run deploy
 cd holographic-os           && npm run deploy
 cd dna-visualization        && npm run deploy
+cd chess-world              && npm run deploy
+cd living-website           && npm run deploy
 ```
 
 To publish the landing page:
