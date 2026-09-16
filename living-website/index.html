@@ -25,16 +25,16 @@
           /* Date or classList blocked; the stylesheet default stands */
         }
       })()
-    </script><link rel="stylesheet" href="/three-js-and-animations/living-website/_astro/index.4030xRze.css"></head> <body class="min-h-dvh antialiased">  <living-sky></living-sky> <cursor-aura></cursor-aura> <a href="#breath" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
+    </script><link rel="stylesheet" href="/three-js-and-animations/living-website/_astro/index.D9ayCyy0.css"></head> <body class="min-h-dvh antialiased">  <living-sky></living-sky> <cursor-aura></cursor-aura> <a href="#breath" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
 Skip to the systems
 </a> <header class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 pt-7"> <pulse-badge></pulse-badge> <nav class="flex items-center gap-5 text-xs text-muted-foreground"> <a class="hover:text-foreground" href="https://yuratadevosyan.github.io/three-js-and-animations/">All showcases</a> <a class="hover:text-foreground" href="https://github.com/YuraTadevosyan/three-js-and-animations" rel="noopener noreferrer" target="_blank">Source</a> </nav> </header> <main class="mx-auto max-w-6xl px-6"> <!-- ───────────────────────────── hero ───────────────────────────── --> <section class="flex min-h-[78svh] flex-col justify-center py-20"> <p class="eyebrow">Astro · Lit · Motion · PixiJS</p> <living-title class="mt-5 block max-w-4xl text-[clamp(2.75rem,9vw,6.5rem)] font-semibold leading-[0.95] tracking-tight text-balance">
 This website is alive.
 </living-title> <p class="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
 Not animated — alive. One heartbeat drives everything that moves here.
         The sky breathes, the interface follows your cursor, the garden further
-        down keeps growing while this tab is closed, the weather drifts on its
-        own, and the colour of every element on screen is a function of the
-        actual time where you are sitting.
+        down keeps growing — and cross-breeding — while this tab is closed, the
+        weather drifts on its own, and the colour of every element on screen is
+        a function of the actual time where you are sitting.
 </p> <div class="mt-10 flex flex-wrap items-center gap-4"> <living-button eyes="true"> <a class="btn btn-primary" href="#breath"><span>See what's alive</span></a> </living-button> <living-button> <a class="btn btn-ghost" href="#colophon"><span>How it's built</span></a> </living-button> </div> <p class="mt-14 max-w-lg text-sm text-muted-foreground/80">
 Nothing here is on a timeline. Leave it alone and it gets drowsy, then
         sleeps. Come back tomorrow and the plants will have grown without you.
@@ -63,21 +63,34 @@ The page also measures how much you are moving, not just where.
             glow around your cursor, and how long it takes to get drowsy.
 </p> </div> </div> <div class="mt-12 flex flex-wrap items-center justify-center gap-10 rounded-[var(--radius)] border border-border/60 bg-card/30 py-14"> <living-eyes size="150" label="A large pair of eyes following the cursor"></living-eyes> <living-eyes size="88"></living-eyes> <living-eyes size="56"></living-eyes> </div> <ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list"> <li data-reveal-item> <organ-card class="organ flex h-full items-start gap-4 p-5" tilt="6"> <living-eyes size="46"></living-eyes> <div> <h3 class="font-semibold tracking-tight">Tracks</h3> <p class="mt-1.5 text-sm text-muted-foreground text-pretty">Pupils aim at the cursor itself, not at a bounding box, so the gaze stays honest at any angle.</p> </div> </organ-card> </li><li data-reveal-item> <organ-card class="organ flex h-full items-start gap-4 p-5" tilt="6"> <living-eyes size="46"></living-eyes> <div> <h3 class="font-semibold tracking-tight">Dilates</h3> <p class="mt-1.5 text-sm text-muted-foreground text-pretty">Pupils open in the dark and when you move fast, and contract in full daylight.</p> </div> </organ-card> </li><li data-reveal-item> <organ-card class="organ flex h-full items-start gap-4 p-5" tilt="6"> <living-eyes size="46"></living-eyes> <div> <h3 class="font-semibold tracking-tight">Blinks</h3> <p class="mt-1.5 text-sm text-muted-foreground text-pretty">On its own schedule, in clusters, and at anything you click.</p> </div> </organ-card> </li><li data-reveal-item> <organ-card class="organ flex h-full items-start gap-4 p-5" tilt="6"> <living-eyes size="46"></living-eyes> <div> <h3 class="font-semibold tracking-tight">Searches</h3> <p class="mt-1.5 text-sm text-muted-foreground text-pretty">Leave the window and the eyes saccade around looking for where you went.</p> </div> </organ-card> </li><li data-reveal-item> <organ-card class="organ flex h-full items-start gap-4 p-5" tilt="6"> <living-eyes size="46"></living-eyes> <div> <h3 class="font-semibold tracking-tight">Sags</h3> <p class="mt-1.5 text-sm text-muted-foreground text-pretty">Lids drop as the page gets drowsy, and close when it falls asleep.</p> </div> </organ-card> </li><li data-reveal-item> <organ-card class="organ flex h-full items-start gap-4 p-5" tilt="6"> <living-eyes size="46"></living-eyes> <div> <h3 class="font-semibold tracking-tight">Leans</h3> <p class="mt-1.5 text-sm text-muted-foreground text-pretty">Buttons within reach pull toward the cursor before you arrive at them.</p> </div> </organ-card> </li> </ul> <div class="mt-10 flex flex-wrap items-center gap-4"> <living-button eyes="true"> <button class="btn btn-primary" type="button"><span>This one looks around</span></button> </living-button> <living-button eyes="true"> <button class="btn btn-ghost" type="button"><span>So does this one</span></button> </living-button> <p class="text-sm text-muted-foreground">
 Both pull toward your cursor from about 170 pixels away.
-</p> </div> </section> <!-- ──────────────────────────── 03 growth ───────────────────────── --> <section id="growth" data-reveal class="scroll-mt-20 border-t border-border/60 py-24"> <div class="grid gap-12 lg:grid-cols-12"> <div class="lg:col-span-5"> <p class="eyebrow">03 — Growth</p> <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">It grows</h2> <div class="mt-6 space-y-4 text-muted-foreground text-pretty"> <p>
-Each plant is one integer. Species, branching angles, curl,
-              leaf spacing, flower size, colour shift and temperament are all
-              re-derived from that seed, so the entire garden persists in a few
-              hundred bytes of local storage.
+</p> </div> </section> <!-- ──────────────────────────── 03 growth ───────────────────────── --> <section id="growth" data-reveal class="scroll-mt-20 border-t border-border/60 py-24"> <div class="grid gap-12 lg:grid-cols-12"> <div class="lg:col-span-5"> <p class="eyebrow">03 — Growth &amp; heredity</p> <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">
+It grows, and it breeds
+</h2> <div class="mt-6 space-y-4 text-muted-foreground text-pretty"> <p>
+Every plant carries a genome: sixteen heritable traits covering
+              species, segment length, branching angle, curl, taper, leaf
+              spacing, flower size, hue shift and vigour. The whole shape is
+              grown from those numbers. A seed is still stored alongside, but
+              all it does now is supply the jitter that stops a plant looking
+              mechanically symmetrical — same genome, same seed, same plant.
 </p> <p>
 Growth is real time, not a loop. Plants photosynthesise faster in
               daylight, drink when it rains, wilt in drought, and slow down but
               never stop at night. Around fifteen minutes of good conditions
-              takes a seedling to maturity.
+              takes a seedling to maturity. Then they flower, seed, and fade
+              back into the soil, raising the fertility for whatever grows next.
 </p> <p>
-Then they flower, go to seed, drop one child each, and fade back
-              into the soil — which raises the fertility for whatever grows
-              next. Close the tab and it keeps going at a reduced rate. Come
-              back in a week and you will find grandchildren.
+What happens at the flowering stage depends on who visits. Bees
+              and butterflies work the bed by day, moths after dark; none of
+              them fly in rain or a strong wind. They navigate to open flowers
+              rather than drifting, and they prefer a plant they aren't already
+              carrying pollen from — so pollen genuinely crosses the bed.
+</p> <p>
+A plant that has been pollinated produces a seed whose genome is
+              a cross: each trait independently dominant from one parent,
+              dominant from the other, or intermediate, then nudged. One left
+              alone selfs instead, drifting slightly, so a garden nobody visits
+              still changes over generations. Ferns sit the whole thing out —
+              they have no flowers, so nothing comes to them.
 </p> </div> </div> <div class="lg:col-span-7"> <garden-bed></garden-bed> </div> </div> </section> <!-- ───────────────────────────── 04 sky ─────────────────────────── --> <section id="sky" data-reveal class="scroll-mt-20 border-t border-border/60 py-24"> <div class="grid gap-12 lg:grid-cols-12"> <div class="lg:col-span-5"> <p class="eyebrow">04 — Weather &amp; sun</p> <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">The sky moves on</h2> <div class="mt-6 space-y-4 text-muted-foreground text-pretty"> <p>
 Weather walks a Markov chain. Every ninety seconds to three and a
               half minutes the current system rolls for a successor, weighted so
@@ -146,4 +159,4 @@ Under <code class="font-mono text-[0.85em] text-foreground">prefers-reduced-moti
 </p> </organ-card> </div> </section> </main> <footer class="mx-auto max-w-6xl px-6 pb-16 pt-8"> <div class="rule"></div> <div class="mt-8 flex flex-wrap items-center justify-between gap-5 text-sm text-muted-foreground"> <p>
 Open the console and poke at <code class="font-mono text-foreground">window.organism</code>.
         Everything on this page is one readable state object.
-</p> <div class="flex items-center gap-5"> <a class="hover:text-foreground" href="https://yuratadevosyan.github.io/three-js-and-animations/">Showcase index</a> <a class="hover:text-foreground" href="https://github.com/YuraTadevosyan/three-js-and-animations" rel="noopener noreferrer" target="_blank">GitHub</a> </div> </div> </footer>  <script type="module" src="/three-js-and-animations/living-website/_astro/Base.astro_astro_type_script_index_0_lang.bG7iRIdp.js"></script> </body> </html>
+</p> <div class="flex items-center gap-5"> <a class="hover:text-foreground" href="https://yuratadevosyan.github.io/three-js-and-animations/">Showcase index</a> <a class="hover:text-foreground" href="https://github.com/YuraTadevosyan/three-js-and-animations" rel="noopener noreferrer" target="_blank">GitHub</a> </div> </div> </footer>  <script type="module" src="/three-js-and-animations/living-website/_astro/Base.astro_astro_type_script_index_0_lang.Df3N92F8.js"></script> </body> </html>
