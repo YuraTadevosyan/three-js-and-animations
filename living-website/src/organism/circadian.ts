@@ -243,3 +243,68 @@ export function seasonOf(date: Date): 'winter' | 'spring' | 'summer' | 'autumn' 
   if (m <= 7) return 'summer'
   return 'autumn'
 }
+
+export interface SeasonMix {
+  winter: number
+  spring: number
+  summer: number
+  autumn: number
+}
+
+/** 0..1 through the calendar year. */
+export function yearPhase(date: Date): number {
+  const start = Date.UTC(date.getFullYear(), 0, 0)
+  const doy = (date.getTime() - start) / 86400000
+  return ((doy / 365.25) % 1 + 1) % 1
+}
+
+/** Shortest distance between two points on a circle of circumference 1. */
+const circularDistance = (a: number, b: number) => {
+  const d = Math.abs(a - b) % 1
+  return Math.min(d, 1 - d)
+}
+
+/**
+ * Centres of each season, as a fraction of the year — roughly Jan 20, Apr 21,
+ * Jul 22, Oct 21.
+ *
+ * They are spaced at exactly 0.25. With a triangular window of the same width
+ * that makes the four weights a partition of unity: they sum to exactly 1 on
+ * every day of the year. Nudging a centre by a day or two to match a "real"
+ * mid-season date breaks that and leaves the total wobbling by a couple of
+ * percent, which then shows up in the growth rate.
+ */
+const CENTRES: Record<keyof SeasonMix, number> = {
+  winter: 0.055,
+  spring: 0.305,
+  summer: 0.555,
+  autumn: 0.805,
+}
+
+const SPAN = 0.25
+
+/**
+ * Continuous season weights, summing to roughly 1.
+ *
+ * `seasonOf` returns a label, which is all the weather table needs — but a
+ * label steps on the first of a month, and a canopy that turns gold overnight
+ * looks like a bug. These weights cross-fade, so mid-October is mostly autumn
+ * with summer still bleeding through.
+ */
+export function seasonMix(date: Date): SeasonMix {
+  const phase = yearPhase(date)
+  const weight = (centre: number) => clamp(1 - circularDistance(phase, centre) / SPAN)
+  return {
+    winter: weight(CENTRES.winter),
+    spring: weight(CENTRES.spring),
+    summer: weight(CENTRES.summer),
+    autumn: weight(CENTRES.autumn),
+  }
+}
+
+/**
+ * Seasonal multiplier on growth. Spring is the strongest, winter barely moves,
+ * and the range is deliberately wide enough to be felt across a few visits.
+ */
+export const growthSeasonFactor = (mix: SeasonMix) =>
+  0.45 + mix.spring * 0.75 + mix.summer * 0.65 + mix.autumn * 0.3 + mix.winter * 0.05

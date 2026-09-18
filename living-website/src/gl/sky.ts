@@ -42,6 +42,7 @@ uniform float uGloom;
 uniform float uAurora;
 uniform float uStars;
 uniform float uReduced;
+uniform float uDream;
 uniform float uAspect;
 uniform vec2 uSunPos;
 uniform vec2 uParallax;
@@ -89,7 +90,9 @@ void main() {
   float y = clamp(p.y + breathLift, 0.0, 1.0);
 
   // A slow domain warp so the bands never look like a CSS linear-gradient.
-  float warp = (fbm(vec2(p.x * 1.6, p.y * 2.4 - uTime * 0.012)) - 0.5) * 0.06;
+  // Dreaming loosens it: the bands start to move in ways a sky does not.
+  float warp = (fbm(vec2(p.x * 1.6, p.y * 2.4 - uTime * 0.012)) - 0.5)
+    * 0.06 * (1.0 + uDream * 4.0);
   y = clamp(y + warp * (0.4 + uDaylight * 0.6), 0.0, 1.0);
 
   vec3 col = y < 0.5
@@ -137,6 +140,15 @@ void main() {
   col = mix(col, vec3(luma), uGloom * 0.45);
   col *= 1.0 - uGloom * 0.22;
 
+  // While the page sleeps, the sky drifts off-palette. A cosine gradient is
+  // cheap and reads as "not a real sky" without going garish — and it sits
+  // after the gloom pass so overcast weather can't desaturate the dream.
+  if (uDream > 0.001) {
+    vec3 drift = 0.5 + 0.5 * cos(6.28318 * (vec3(0.0, 0.33, 0.67)
+      + p.x * 0.55 + p.y * 0.35 + uTime * 0.035));
+    col = mix(col, drift, uDream * 0.45);
+  }
+
   // Pixel-stable dither: large smooth gradients band badly on 8-bit panels.
   col += (hash21(gl_FragCoord.xy) - 0.5) * (1.5 / 255.0);
 
@@ -179,6 +191,7 @@ export class SkyMesh {
           uAurora: { value: 0, type: 'f32' },
           uStars: { value: 0, type: 'f32' },
           uReduced: { value: 0, type: 'f32' },
+          uDream: { value: 0, type: 'f32' },
           uAspect: { value: 1.6, type: 'f32' },
           uSunPos: { value: this.#sunPos, type: 'vec2<f32>' },
           uParallax: { value: this.#parallax, type: 'vec2<f32>' },
@@ -226,6 +239,7 @@ export class SkyMesh {
     // Cloud cover hides the stars as effectively as daylight does.
     u.uStars = clamp((1 - c.daylight) * (1 - w.params.cloud * 0.9))
     u.uReduced = prefs.reducedMotion ? 1 : 0
+    u.uDream = attention.dream
   }
 
   destroy() {

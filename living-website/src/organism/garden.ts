@@ -2,6 +2,7 @@ import { crossGenomes, genomeFromSeed, mutateGenome, type Genome } from '@/lib/g
 import { growSkeleton, type Skeleton } from '@/lib/lsystem'
 import { clamp, damp } from '@/lib/math'
 import { makeRng } from '@/lib/rng'
+import { growthSeasonFactor } from './circadian'
 import type { Bus } from './bus'
 import type { OrganismState, Plant, Species, Stage } from './state'
 
@@ -240,6 +241,8 @@ export class Garden {
     const t = weather.temperature
     const warmth = Math.max(0.15, Math.exp(-Math.pow((t - 18) / 16, 2)))
     const soil = 0.62 + garden.fertility * 0.62
+    // Roughly 0.5 in midwinter to 1.2 at the height of spring.
+    const season = growthSeasonFactor(weather.seasonMix)
 
     for (const plant of garden.plants) {
       const drought = weather.wetness < 0.16
@@ -252,6 +255,6 @@ export class Garden {
       plant.vigor = clamp(plant.vigor + delta * dt)
     }
 
-    this.#advance(dt * light * water * warmth * soil)
+    this.#advance(dt * light * water * warmth * soil * season)
   }
 }

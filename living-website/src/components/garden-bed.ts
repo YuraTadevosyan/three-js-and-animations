@@ -5,7 +5,7 @@ import { BED_H, BED_W, plantX, SOIL_Y } from '@/lib/bed'
 import { toCss } from '@/lib/color'
 import { targetHeight } from '@/lib/genome'
 import type { Skeleton } from '@/lib/lsystem'
-import { clamp, lerp } from '@/lib/math'
+import { clamp, lerp, lerpAngle } from '@/lib/math'
 import { makeRng } from '@/lib/rng'
 import {
   isInFlower,
@@ -15,6 +15,7 @@ import {
   revealOf,
   stageOf,
   witherOf,
+  growthSeasonFactor,
   type FlowerSite,
 } from '@/organism'
 import type { Plant, Pollinator, PollinatorKind } from '@/organism/state'
@@ -32,6 +33,25 @@ const STAGE_COPY: Record<string, string> = {
 }
 
 const FAUNA_SLOTS = 8
+const LEAF_SLOTS = 18
+
+/** Bed units of snow at full depth. */
+const SNOW_MAX_DEPTH = 17
+
+interface Leaf {
+  el: SVGGElement
+  active: boolean
+  x: number
+  y: number
+  vx: number
+  vy: number
+  rot: number
+  rotV: number
+  size: number
+  /** Seconds left once it has landed. */
+  fade: number
+  landed: boolean
+}
 
 interface PathRef {
   el: SVGPathElement
@@ -74,6 +94,10 @@ interface PlantRefs {
   /** Last colours written, so unchanged strokes are skipped entirely. */
   lastStem: string
   lastLeaf: string
+  /** How far into autumn this individual waits before turning. */
+  turnBias: number
+  /** Canopy height in bed units, for spawning leaves at the right altitude. */
+  canopy: number
   /** Live transform, kept so flower positions can be derived each frame. */
   scale: number
   bend: number
@@ -101,6 +125,9 @@ export class GardenBed extends Organ {
   #faunaSlots: { group: SVGGElement; variants: Record<string, SVGGElement>; wings: Record<string, SVGGElement> }[] = []
   /** Reused across frames: the pollinator system holds these same objects. */
   #sites: FlowerSite[] = []
+  #leaves: Leaf[] = []
+  #leafDebt = 0
+  #lastSnow = -1
   #slow = 0
   #lastPollenFlash = 0
   #hovered: string | null = null
@@ -142,6 +169,8 @@ export class GardenBed extends Organ {
               fill="none"
               style="stroke: hsl(var(--canopy) / .55); stroke-width: 3"
             ></path>
+            <path data-snow d="" style="fill: hsl(var(--card))" opacity="0"></path>
+            <g data-leaves></g>
             <g data-fauna></g>
           </svg>
 
@@ -152,6 +181,7 @@ export class GardenBed extends Organ {
         </div>
 
         <p class="mt-3 text-sm text-muted-foreground" data-fauna-line>&nbsp;</p>
+        <p class="mt-1 text-sm text-muted-foreground" data-season-line>&nbsp;</p>
 
         <div class="mt-4 flex flex-wrap items-center gap-3">
           <living-button action="plant">
@@ -230,6 +260,7 @@ export class GardenBed extends Organ {
   firstUpdated() {
     this.#buildFireflies()
     this.#buildFauna()
+    this.#buildLeaves()
     // No #collect() here — updated() runs immediately after firstUpdated() on
     // the same cycle and does it, and doing both would bind everything twice.
 
@@ -278,12 +309,17 @@ export class GardenBed extends Organ {
       this.#tickFast(state.time.elapsed, state.weather.wind, state.breath.value)
       this.#tickFauna(state.fauna.pollinators)
 
+      const autumn = state.weather.seasonMix.autumn
+      const leafHue = lerpAngle(state.circadian.palette.canopy.h, 32, clamp(autumn * 1.1))
+      this.#tickLeaves(dt, autumn, state.weather.wind, leafHue)
+
       this.#slow += dt
       if (this.#slow < 0.1) return
       this.#slow = 0
       this.#tickGrowth()
       this.#publishFlowers()
       this.#tickFireflies(state.time.elapsed, state.circadian.daylight)
+      this.#tickSnow(state.weather.snowpack)
       this.#tickStats()
     })
   }
@@ -353,6 +389,10 @@ export class GardenBed extends Organ {
         unit: Math.min(targetHeight(plant.genome) / skeleton.height, 6),
         lastStem: '',
         lastLeaf: '',
+        // Some individuals turn a fortnight before their neighbours, which is
+        // the difference between a season and a global colour filter.
+        turnBias: rng.range(0, 0.34),
+        canopy: Math.min(targetHeight(plant.genome), skeleton.height * 6),
         scale: 1,
         bend: 0,
       })
@@ -424,6 +464,129 @@ export class GardenBed extends Organ {
       host.appendChild(group)
       this.#faunaSlots.push({ group, variants, wings })
     }
+  }
+
+  /**
+   * Fallen leaves. Pooled like the pollinators — an autumn gale can put a
+   * dozen in the air at once and allocating them per gust would stutter.
+   */
+  #buildLeaves() {
+    const host = this.$<SVGGElement>('[data-leaves]')
+    if (!host) return
+    const ns = 'http://www.w3.org/2000/svg'
+    this.#leaves = []
+
+    for (let i = 0; i < LEAF_SLOTS; i++) {
+      const el = document.createElementNS(ns, 'g')
+      el.innerHTML =
+        '<path d="M0 0 C4 -3.4 9.5 -2.2 11.5 2 C8.4 6.4 3 6.2 0 0 Z"></path>' +
+        '<path d="M0.4 0.4 L10.8 2" fill="none" stroke-width="0.5" opacity=".45"></path>'
+      el.style.display = 'none'
+      host.appendChild(el)
+      this.#leaves.push({
+        el, active: false, x: 0, y: 0, vx: 0, vy: 0,
+        rot: 0, rotV: 0, size: 1, fade: 0, landed: false,
+      })
+    }
+  }
+
+  #spawnLeaf(autumn: number, wind: number, hue: number) {
+    if (!this.#refs.length) return
+    const slot = this.#leaves.find((l) => !l.active)
+    if (!slot) return
+
+    const ref = this.#refs[Math.floor(Math.random() * this.#refs.length)]!
+    // Only a plant with a canopy worth shedding.
+    if (ref.plant.age < 0.35) return
+
+    const height = ref.canopy * lerp(0.45, 1, clamp(ref.plant.age))
+    slot.active = true
+    slot.landed = false
+    slot.x = plantX(ref.plant.x) + (Math.random() - 0.5) * height * 0.5
+    slot.y = SOIL_Y - height * (0.45 + Math.random() * 0.5)
+    slot.vx = wind * 26 + (Math.random() - 0.5) * 12
+    slot.vy = 6 + Math.random() * 10
+    slot.rot = Math.random() * 360
+    slot.rotV = (Math.random() - 0.5) * 160
+    slot.size = 0.55 + Math.random() * 0.55 + autumn * 0.2
+    slot.fade = 0
+    slot.el.style.display = ''
+    // Written here rather than per frame: an 18-leaf pool reparsing its style
+    // sixty times a second is a lot of work for a colour that barely moves.
+    slot.el.setAttribute(
+      'style',
+      `fill: hsl(${hue.toFixed(0)} 62% 46%); stroke: hsl(${hue.toFixed(0)} 55% 30%)`,
+    )
+  }
+
+  #tickLeaves(dt: number, autumn: number, wind: number, hue: number) {
+    // Shedding scales with how far into autumn it is and how hard it's blowing.
+    if (autumn > 0.06) {
+      this.#leafDebt += dt * autumn * (0.5 + Math.abs(wind) * 2.2)
+      while (this.#leafDebt >= 1) {
+        this.#leafDebt -= 1
+        this.#spawnLeaf(autumn, wind, hue)
+      }
+    } else {
+      this.#leafDebt = 0
+    }
+
+    for (const leaf of this.#leaves) {
+      if (!leaf.active) continue
+
+      if (!leaf.landed) {
+        // Terminal velocity plus a flutter, so they tumble rather than drop.
+        leaf.vy = Math.min(leaf.vy + 22 * dt, 46)
+        leaf.vx += (wind * 34 - leaf.vx) * dt * 1.4
+        leaf.x += (leaf.vx + Math.sin(leaf.rot * 0.05) * 14) * dt
+        leaf.y += leaf.vy * dt
+        leaf.rot += leaf.rotV * dt
+
+        if (leaf.y >= SOIL_Y - 3) {
+          leaf.y = SOIL_Y - 3
+          leaf.landed = true
+          leaf.fade = 5 + Math.random() * 5
+          // Lie flat once down.
+          leaf.rotV = 0
+          leaf.rot = leaf.rot > 180 ? 178 : 4
+        }
+      } else {
+        leaf.fade -= dt
+        if (leaf.fade <= 0) {
+          leaf.active = false
+          leaf.el.style.display = 'none'
+          continue
+        }
+      }
+
+      const alpha = leaf.landed ? clamp(leaf.fade / 3) * 0.75 : 0.9
+      leaf.el.setAttribute(
+        'transform',
+        `translate(${leaf.x.toFixed(1)} ${leaf.y.toFixed(1)}) rotate(${leaf.rot.toFixed(1)}) scale(${leaf.size.toFixed(2)})`,
+      )
+      leaf.el.setAttribute('opacity', alpha.toFixed(3))
+    }
+  }
+
+  /** The snow band along the soil line. Redrawn only when the depth moves. */
+  #tickSnow(depth: number) {
+    const el = this.$<SVGPathElement>('[data-snow]')
+    if (!el || Math.abs(depth - this.#lastSnow) < 0.004) return
+    this.#lastSnow = depth
+
+    if (depth < 0.004) {
+      el.setAttribute('opacity', '0')
+      return
+    }
+
+    const h = depth * SNOW_MAX_DEPTH
+    const y = (f: number) => (SOIL_Y - h * f).toFixed(1)
+    el.setAttribute(
+      'd',
+      `M0 ${SOIL_Y} Q250 ${SOIL_Y - 8} 500 ${SOIL_Y} T${BED_W} ${SOIL_Y}` +
+        ` L${BED_W} ${y(0.65)} Q750 ${y(1.35)} 500 ${y(0.8)} Q250 ${y(1.5)} 0 ${y(1)} Z`,
+    )
+    el.setAttribute('opacity', clamp(depth * 4, 0, 0.94).toFixed(3))
   }
 
   /** Frame-rate work: transforms only. */
@@ -547,17 +710,29 @@ export class GardenBed extends Organ {
   /** 10Hz work: reveal, colour and staging — all of it change-guarded. */
   #tickGrowth() {
     const palette = organism.state.circadian.palette
+    const mix = organism.state.weather.seasonMix
 
     for (const ref of this.#refs) {
       const plant = ref.plant
       const reveal = revealOf(plant.age)
       const wither = witherOf(plant.age)
 
+      // How far this individual has turned. The bias staggers the bed so the
+      // change spreads through it over weeks rather than happening at once.
+      const turn = clamp((mix.autumn - ref.turnBias) / Math.max(1 - ref.turnBias, 0.1))
+
       // Vigour pulls the canopy toward the soil colour and drains saturation;
       // a thirsty plant goes yellow-brown before it starts to droop.
-      const hue = palette.canopy.h + plant.genome.hueShift + (1 - plant.vigor) * 34
-      const sat = palette.canopy.s * (0.45 + plant.vigor * 0.55) * (1 - wither * 0.5)
-      const light = palette.canopy.l * (0.75 + plant.vigor * 0.3) * (1 - wither * 0.3)
+      const green = palette.canopy.h + plant.genome.hueShift + (1 - plant.vigor) * 34
+      const gold = 32 + plant.genome.hueShift * 0.25
+      const hue = lerpAngle(green, gold, turn * 0.88)
+      const sat =
+        palette.canopy.s *
+        (0.45 + plant.vigor * 0.55) *
+        (1 - wither * 0.5) *
+        clamp(1 + turn * 0.3 - mix.winter * 0.3, 0.2, 1.6)
+      const light =
+        palette.canopy.l * (0.75 + plant.vigor * 0.3) * (1 - wither * 0.3) * (1 + turn * 0.12)
       const stemColor = toCss({ h: hue, s: sat, l: light }, 1 - wither * 0.55)
       const leafColor = toCss({ h: hue + 8, s: sat * 1.05, l: light * 1.18 }, 1 - wither * 0.55)
 
@@ -685,6 +860,22 @@ export class GardenBed extends Organ {
         text = 'No pollinators out — too wet, too windy, or the wrong hour.'
       }
       if (line.textContent !== text) line.textContent = text
+    }
+
+    const season = this.$('[data-season-line]')
+    if (season) {
+      const mix = organism.state.weather.seasonMix
+      const name = organism.state.weather.season
+      const parts = [
+        `${name[0]!.toUpperCase()}${name.slice(1)}`,
+        `growth at ${Math.round(growthSeasonFactor(mix) * 100)}%`,
+      ]
+      if (mix.autumn > 0.12) parts.push(`canopy ${Math.round(mix.autumn * 100)}% turned`)
+      if (organism.state.weather.snowpack > 0.01) {
+        parts.push(`${Math.round(organism.state.weather.snowpack * 100)}% snow cover`)
+      }
+      const text = parts.join(' · ')
+      if (season.textContent !== text) season.textContent = text
     }
   }
 }

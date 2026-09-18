@@ -20,6 +20,8 @@ export interface OrganismEvents {
   pollinated: { from: string; to: string; kind: PollinatorKind }
   /** A seed dropped by a plant that had been pollinated. */
   crossed: { plant: Plant; parents: [Species, Species] }
+  /** The visitor turned sound on or off. */
+  voice: { enabled: boolean }
 }
 
 type Handler<K extends keyof OrganismEvents> = (payload: OrganismEvents[K]) => void

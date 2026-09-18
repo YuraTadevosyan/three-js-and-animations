@@ -29,7 +29,10 @@ const gazeTraits = [
   </a>
 
   <header class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 pt-7">
-    <pulse-badge></pulse-badge>
+    <div class="flex items-center gap-3">
+      <pulse-badge></pulse-badge>
+      <voice-toggle compact></voice-toggle>
+    </div>
     <nav class="flex items-center gap-5 text-xs text-muted-foreground">
       <a class="hover:text-foreground" href={index}>All showcases</a>
       <a class="hover:text-foreground" href={repo} rel="noopener noreferrer" target="_blank">Source</a>
@@ -66,7 +69,9 @@ const gazeTraits = [
 
       <p class="mt-14 max-w-lg text-sm text-muted-foreground/80">
         Nothing here is on a timeline. Leave it alone and it gets drowsy, then
-        sleeps. Come back tomorrow and the plants will have grown without you.
+        sleeps, then dreams. Switch tabs and it carries on in the favicon. Come
+        back tomorrow and the plants will have grown without you. It has a
+        voice too, but it stays quiet until you ask.
       </p>
     </section>
 
@@ -119,6 +124,15 @@ const gazeTraits = [
             The page also measures how much you are moving, not just where.
             That figure drives the breath rate, the pupils, the strength of the
             glow around your cursor, and how long it takes to get drowsy.
+          </p>
+          <p>
+            Stop entirely and it works through the stages: alert, awake, drowsy
+            at twenty-two seconds, asleep at fifty-five. Then it starts to
+            dream — a value that builds over about fifteen seconds of sleep and
+            is handed to the sky shader, which slowly abandons the real palette
+            for a cosine gradient that no sky has ever been. Move the cursor
+            and it collapses almost instantly. It should never look like the
+            page is still hallucinating once you are obviously back.
           </p>
         </div>
       </div>
@@ -197,6 +211,17 @@ const gazeTraits = [
               still changes over generations. Ferns sit the whole thing out —
               they have no flowers, so nothing comes to them.
             </p>
+            <p>
+              The calendar reaches the bed too, and as a cross-fade rather than
+              a switch: four season weights that sum to one, so mid-October is
+              mostly autumn with summer still bleeding through. Growth runs at
+              about half speed in midwinter and a fifth above normal in spring.
+              Canopies turn gold on a per-plant delay, so the change moves
+              through the bed over weeks instead of happening at once, and the
+              leaves that come off drift on the same wind the clouds are using.
+              Snow lies on the soil while it falls and melts back into the
+              moisture budget when the temperature climbs.
+            </p>
           </div>
         </div>
 
@@ -236,6 +261,23 @@ const gazeTraits = [
 
         <organ-card class="organ p-6 sm:p-8 lg:col-span-7" tilt="3">
           <sky-controls></sky-controls>
+          <div class="rule mt-7"></div>
+          <div class="mt-6">
+            <p class="eyebrow">Voice</p>
+            <p class="mt-3 text-sm text-muted-foreground text-pretty">
+              All of this can be heard as well as seen. Wind is filtered noise
+              whose band and level track the real wind vector; rain is the same
+              noise through a highpass, scaled by precipitation; thunder fires
+              on the same event the lightning does, as a burst with a filter
+              sweeping down over two and a half seconds. Crickets chirp at a
+              rate taken from Dolbear's law, which really is a thermometer.
+              Birds arrive within an hour of your actual sunrise. Underneath it
+              all is a sub-bass swell on the breath.
+            </p>
+            <div class="mt-4">
+              <voice-toggle></voice-toggle>
+            </div>
+          </div>
         </organ-card>
       </div>
     </section>
@@ -321,8 +363,19 @@ const gazeTraits = [
         <organ-card class="organ p-5" tilt="5" data-reveal-item>
           <h3 class="font-semibold tracking-tight">Zero binary assets</h3>
           <p class="mt-2 text-sm text-muted-foreground text-pretty">
-            Clouds, rain, snow and sun flares are all drawn into offscreen
-            canvases at boot. Nothing is fetched and nothing pops in.
+            Clouds, rain, snow and sun flares are drawn into offscreen canvases
+            at boot, and every sound is synthesized from noise and oscillators.
+            Nothing is fetched and nothing pops in.
+          </p>
+        </organ-card>
+
+        <organ-card class="organ p-5" tilt="5" data-reveal-item>
+          <h3 class="font-semibold tracking-tight">Alive in the tab</h3>
+          <p class="mt-2 text-sm text-muted-foreground text-pretty">
+            The favicon is a canvas redrawn every two seconds with the live sky
+            and the sun at its real position. It runs on an interval rather
+            than the heartbeat, because the heartbeat correctly stops when the
+            document is hidden — which is exactly when this matters.
           </p>
         </organ-card>
 

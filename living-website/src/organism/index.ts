@@ -3,13 +3,14 @@ import { fbm2D } from '@/lib/rng'
 import { Attention } from './attention'
 import { tickBreath } from './breath'
 import { Bus } from './bus'
-import { paletteAt, seasonOf, solarDay, solarPosition } from './circadian'
+import { paletteAt, seasonMix, seasonOf, solarDay, solarPosition } from './circadian'
 import { Heartbeat } from './clock'
 import { Garden, MAX_PLANTS } from './garden'
 import { Fauna } from './pollinators'
 import { forget, load, save } from './persistence'
 import type { OrganismState, WeatherId, WeatherParams } from './state'
 import { ThemeWriter } from './theme'
+import { Voice } from './voice'
 import { nextWeather, rollDwell, temperatureFor, WEATHER } from './weather'
 
 export * from './state'
@@ -18,7 +19,8 @@ export { WEATHER } from './weather'
 export { isInFlower } from './garden'
 export type { FlowerSite } from './pollinators'
 export { breathCurve } from './breath'
-export { paletteAt, LATITUDE } from './circadian'
+export { paletteAt, LATITUDE, seasonMix, growthSeasonFactor } from './circadian'
+export type { SeasonMix } from './circadian'
 
 /** Local time as a decimal hour, 0..24. */
 export function hourNow(d = new Date()): number {
@@ -61,12 +63,14 @@ function createState(): OrganismState {
       wetness: 0.4,
       temperature: 14,
       season: seasonOf(date),
+      seasonMix: seasonMix(date),
+      snowpack: 0,
       flash: 0,
     },
     attention: {
       x: 0, y: 0, nx: 0, ny: 0,
       inside: false, speed: 0, idleMs: 0,
-      mood: 'awake', excitement: 0, interactions: 0,
+      mood: 'awake', dream: 0, excitement: 0, interactions: 0,
     },
     garden: { plants: [], fertility: 0.5, generations: 0, hybrids: 0, pollinations: 0 },
     fauna: { pollinators: [], flowers: 0, capacity: 0, carrying: 0 },
@@ -82,6 +86,7 @@ class Organism {
   readonly heart = new Heartbeat(this.state)
   readonly garden = new Garden(this.state, this.bus)
   readonly fauna = new Fauna(this.state, this.bus)
+  readonly voice = new Voice(this.bus)
   readonly attention = new Attention(this.state, this.bus)
   readonly theme = new ThemeWriter()
 
@@ -121,6 +126,11 @@ class Organism {
 
     this.heart.subscribe(this.#tick)
     this.heart.start()
+
+    // A visitor who had sound on last time still needs a gesture before the
+    // browser will let it play, so the next interaction is armed rather than
+    // prompting for one.
+    this.voice.armFromMemory()
 
     addEventListener('pagehide', this.#persist)
     document.addEventListener('visibilitychange', () => {
@@ -185,6 +195,7 @@ class Organism {
     // Pollinators run after the garden so they see this frame's flowers, and
     // before the components, which publish the flower positions they steer to.
     this.fauna.tick(dt, s)
+    this.voice.tick(dt, s)
 
     s.vitals.age = (s.time.now - this.#bornAt) / 1000
     this.theme.tick(dt, s.circadian.palette, s.circadian.daylight)
@@ -218,6 +229,10 @@ class Organism {
     c.sunX = sun.sunX
     c.sunY = sun.sunY
     c.palette = palette
+
+    // Calendar-derived like sunrise, and the date is already in hand here.
+    s.weather.seasonMix = seasonMix(date)
+    s.weather.season = seasonOf(date)
   }
 
   #tickWeather(dt: number, s: OrganismState) {
@@ -248,6 +263,14 @@ class Organism {
       0.3,
       dt,
     )
+
+    // Snow lies on the ground and melts back into the soil. Accumulation is
+    // slow on purpose — a bed that whitens in twenty seconds reads as a filter
+    // rather than as weather.
+    const falling = w.params.precip * w.params.snowiness
+    const melt = Math.min(w.snowpack, Math.max(0, w.temperature - 0.5) * 0.0006 * dt)
+    w.snowpack = clamp(w.snowpack + falling * 0.008 * dt - melt)
+    w.wetness = clamp(w.wetness + melt * 1.6)
 
     // Lightning. Roughly one strike every four seconds at full intensity.
     w.flash = Math.max(0, w.flash - dt * 3.2)

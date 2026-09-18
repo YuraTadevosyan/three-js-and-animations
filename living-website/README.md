@@ -7,9 +7,11 @@ pupils dilate in the dark, eyelids sag when you go quiet. A garden grows in real
 time, keeps growing while the tab is closed, and cross-breeds itself: bees and
 butterflies by day, moths after dark, carrying pollen between flowering plants
 so their seeds come out as hybrids. Weather drifts on a Markov chain every
-couple of minutes. And the colour of every element on screen is a function of
-the actual hour where you are sitting, interpolated continuously from midnight
-to midnight.
+couple of minutes, and the real calendar turns the canopy gold in autumn and
+lies snow on the soil in winter. The colour of every element on screen is a
+function of the actual hour where you are sitting, interpolated continuously
+from midnight to midnight. Leave it alone long enough and it sleeps, then
+dreams. Switch tabs and it carries on in the favicon. Ask, and it has a voice.
 
 **Live:** <https://yuratadevosyan.github.io/three-js-and-animations/living-website/>
 
@@ -60,6 +62,9 @@ setting target values that the heartbeat then springs toward.
 | **Weather** | Ten systems on a Markov chain with a 90s–3.5min dwell. Seasonal re-weighting from the real date; aurora gated to night, snow to cold. |
 | **Garden** | Plants grown from a sixteen-trait genome via an L-system, with a full life cycle: sprout → flower → seed → compost. |
 | **Pollinators** | Bees, butterflies and moths that navigate to open flowers, carry pollen between plants, and ground themselves in rain or wind. |
+| **Seasons** | Four weights from the real date that cross-fade rather than step, driving growth rate, canopy colour, leaf fall and snow depth. |
+| **Voice** | Opt-in Web Audio: wind, rain, thunder, dawn birds, night crickets and a pulse — all synthesized from noise and oscillators. |
+| **Presence** | A favicon redrawn from the live sky every two seconds, and a title that reports state while the tab is hidden. |
 | **Attention** | Pointer position, smoothed speed, arousal, idle time, and a four-state mood that drives breath rate, pupils and the dormancy veil. |
 
 ### The colour system is the circadian system
@@ -114,6 +119,54 @@ that genome until it goes to seed; then:
 Ferns never participate. Their wild type has no flowers, so nothing visits
 them — which is roughly the correct botany, and worth knowing before filing it
 as a bug.
+
+### Seasons
+
+`seasonMix()` returns four weights from the calendar date. Their centres are
+spaced at **exactly** 0.25 of a year, which with a triangular window of the
+same width makes them a partition of unity — they sum to 1.0 on every day of
+the year. Nudging a centre to match a "real" mid-season date breaks that and
+leaves the total wobbling by a couple of percent, which then shows up as a
+wobble in the growth rate.
+
+From those weights: growth runs 0.50× in midwinter to 1.20× at the height of
+spring; canopies interpolate toward gold on a per-plant delay so the change
+spreads through the bed over weeks; leaves detach and drift on the same wind
+vector the clouds use; and snow accumulates along the soil line while it falls,
+melting back into the moisture budget above freezing.
+
+### The voice
+
+Opt-in, and silent until asked — a browser will not play audio before a user
+gesture, so the toggle is both the consent and the gesture. A single looping
+noise buffer feeds every noise layer; the filters are what make it wind rather
+than rain.
+
+| Layer | How |
+| --- | --- |
+| Wind | Bandpass over noise; band and level track the real wind vector. |
+| Rain | Highpass over the same noise, scaled by precipitation minus snowiness. |
+| Thunder | Fires on the same event as the lightning: a noise burst with a lowpass sweeping 1.8kHz → 90Hz over 2.4s. |
+| Crickets | A tone gated by a square LFO whose rate comes from **Dolbear's law** — chirps/min ≈ 4(°F − 40) + 40. Cricket chirp rate really is a thermometer. |
+| Birds | Scheduled frequency sweeps within 1.5 hours of your actual sunrise. |
+| Pulse | A 52Hz sine whose gain rides the breath. |
+
+Parameters are retargeted at 8Hz with `setTargetAtTime`, not per frame and not
+by assignment: stepping a gain eight times a second is audible as zipper noise,
+an exponential approach is not.
+
+### Presence
+
+The favicon is a 64px canvas — sky gradient, sun or moon at its real position,
+rain if it is raining, and an eye whose lid closes as the page sleeps —
+re-encoded every two seconds.
+
+It deliberately does **not** run on the heartbeat. The heartbeat cancels its rAF
+when the document is hidden, which is correct, but a frozen favicon is exactly
+the opposite of the point. So the sun and palette are recomputed from the clock
+on a plain `setInterval`, which browsers still fire (throttled to about a
+second) in a background tab. The document title reports state only while hidden;
+announcing it into a tab you are already looking at is noise.
 
 ## What's real, and what's simulated
 
@@ -172,6 +225,8 @@ with a 240px margin; only fixed backdrops set `alwaysTick`.
 | A saved plant predates genomes, or a field is corrupt | `reviveGenome()` falls back to the seed-derived genome per field, so old gardens migrate instead of being wiped. |
 | The bundle never loads | A failsafe timer in the layout's blocking script un-hides the scroll-revealed sections after 2.5s. All copy is in the static HTML. |
 | `prefers-reduced-motion` | The rhythm keeps running so every timing stays correct, but amplitude collapses to near zero and precipitation budgets drop to 0. |
+| No `AudioContext`, or audio is blocked | `enable()` returns false and the toggle stays off. Nothing else is affected. |
+| `canvas.toDataURL` fails | The favicon keeps its last frame; the interval carries on. |
 
 The blocking script in `src/layouts/Base.astro` also does a coarse three-way
 day/dusk/night split before first paint, so arriving at 3am doesn't flash a
@@ -186,11 +241,13 @@ src/
 │   ├── clock.ts       the single heartbeat
 │   ├── state.ts       one typed state object, read by everything
 │   ├── breath.ts      the master oscillator
-│   ├── circadian.ts   solar model + the seven palettes
+│   ├── circadian.ts   solar model, seven palettes, season weights
 │   ├── weather.ts     profiles + the Markov transition table
 │   ├── garden.ts      growth, life cycle, seeding, catch-up
 │   ├── pollinators.ts insect agents, flower registry, cross-pollination
-│   ├── attention.ts   pointer, arousal, mood
+│   ├── attention.ts   pointer, arousal, mood, dreaming
+│   ├── voice.ts       the Web Audio graph
+│   ├── presence.ts    dynamic favicon and tab title
 │   ├── theme.ts       palette → CSS custom properties
 │   └── persistence.ts localStorage, defensively
 ├── gl/                PixiJS: stage, sky shader, weather layers, textures

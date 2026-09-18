@@ -1,5 +1,6 @@
 import type { Hsl } from '@/lib/color'
 import type { Genome } from '@/lib/genome'
+import type { SeasonMix } from './circadian'
 
 export type Mood = 'alert' | 'awake' | 'drowsy' | 'asleep'
 
@@ -169,6 +170,10 @@ export interface OrganismState {
     /** Rough °C, driven by season and daylight. */
     temperature: number
     season: 'winter' | 'spring' | 'summer' | 'autumn'
+    /** Continuous season weights, so nothing steps on the first of a month. */
+    seasonMix: SeasonMix
+    /** 0..1 snow lying on the ground. Builds while it falls, melts above zero. */
+    snowpack: number
     /** Rises to 1 on a lightning strike, then decays. */
     flash: number
   }
@@ -185,6 +190,11 @@ export interface OrganismState {
     speed: number
     idleMs: number
     mood: Mood
+    /**
+     * 0..1. Climbs once the page has been asleep a while and drains the moment
+     * you move. Drives how far the sky is allowed to wander off-palette.
+     */
+    dream: number
     /** 0..1 arousal, an EMA of how much you have been moving. */
     excitement: number
     /** Number of distinct interactions this visit. */

@@ -144,5 +144,11 @@ export class Attention {
       a.mood = mood
       this.bus.emit('mood', { from, to: mood })
     }
+
+    // Dreaming builds over roughly fifteen seconds of sleep and collapses the
+    // instant you move. Slow in, fast out — the page should never look like it
+    // is still hallucinating once you are clearly back.
+    const asleep = mood === 'asleep'
+    a.dream = damp(a.dream, asleep ? 1 : 0, asleep ? 0.93 : 0.0005, dt)
   }
 }
