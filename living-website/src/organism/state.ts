@@ -73,6 +73,33 @@ export interface Plant {
   pollen: Genome | null
   /** The two species that produced this plant, when it came from a cross. */
   parents: [Species, Species] | null
+  /**
+   * 0..1 aphid colony size, relative to what this plant can support. Drains
+   * vigour, slows growth, and past about half suppresses flowering entirely.
+   */
+  infestation: number
+}
+
+export type PredatorKind = 'ladybird' | 'lacewing'
+
+export interface Predator {
+  id: string
+  kind: PredatorKind
+  /** Position and velocity in bed units (see lib/bed.ts). */
+  x: number
+  y: number
+  vx: number
+  vy: number
+  angle: number
+  flap: number
+  state: 'hunting' | 'feeding'
+  targetId: string | null
+  feedTimer: number
+  /** Total infestation this individual has eaten, for the readout. */
+  eaten: number
+  /** 0..1 fade, so they arrive and leave rather than popping. */
+  presence: number
+  wander: number
 }
 
 export type PollinatorKind = 'bee' | 'butterfly' | 'moth'
@@ -211,6 +238,24 @@ export interface OrganismState {
     hybrids: number
     /** Successful pollen deliveries, across every visit. */
     pollinations: number
+  }
+
+  ecology: {
+    predators: Predator[]
+    /** Summed infestation across the bed. Drives how many predators arrive. */
+    aphidLoad: number
+    /**
+     * A lagged follower of the aphid load. The lag is deliberate: predators
+     * that tracked prey instantly would damp the system to a flat line
+     * instead of letting it oscillate.
+     */
+    pressure: number
+    /** Plants currently carrying a colony worth seeing. */
+    infested: number
+    /** Colonies that crossed the outbreak threshold this visit. */
+    outbreaks: number
+    /** Total infestation eaten by predators, across every visit. */
+    eaten: number
   }
 
   fauna: {

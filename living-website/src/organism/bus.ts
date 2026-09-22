@@ -1,4 +1,4 @@
-import type { Mood, Plant, PollinatorKind, Species, WeatherId } from './state'
+import type { Mood, Plant, PollinatorKind, PredatorKind, Species, WeatherId } from './state'
 
 /**
  * Discrete events. Per-frame values are NOT events — components read those
@@ -22,6 +22,14 @@ export interface OrganismEvents {
   crossed: { plant: Plant; parents: [Species, Species] }
   /** The visitor turned sound on or off. */
   voice: { enabled: boolean }
+  /** A clean plant picked up an aphid colony. */
+  infested: { plant: Plant }
+  /** A colony crossed the threshold where it starts doing real damage. */
+  outbreak: { plant: Plant; load: number }
+  /** A colony was eaten or washed away entirely. */
+  cleared: { plant: Plant }
+  /** A predator arrived in the bed. */
+  predators: { kind: PredatorKind }
 }
 
 type Handler<K extends keyof OrganismEvents> = (payload: OrganismEvents[K]) => void

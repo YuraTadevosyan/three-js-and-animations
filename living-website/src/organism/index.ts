@@ -6,6 +6,7 @@ import { Bus } from './bus'
 import { paletteAt, seasonMix, seasonOf, solarDay, solarPosition } from './circadian'
 import { Heartbeat } from './clock'
 import { Garden, MAX_PLANTS } from './garden'
+import { Ecology } from './ecology'
 import { Fauna } from './pollinators'
 import { forget, load, save } from './persistence'
 import type { OrganismState, WeatherId, WeatherParams } from './state'
@@ -73,6 +74,7 @@ function createState(): OrganismState {
       mood: 'awake', dream: 0, excitement: 0, interactions: 0,
     },
     garden: { plants: [], fertility: 0.5, generations: 0, hybrids: 0, pollinations: 0 },
+    ecology: { predators: [], aphidLoad: 0, pressure: 0, infested: 0, outbreaks: 0, eaten: 0 },
     fauna: { pollinators: [], flowers: 0, capacity: 0, carrying: 0 },
     vitals: { fps: 60, age: 0, visits: 1, ticks: 0, organs: 0 },
   }
@@ -87,6 +89,7 @@ class Organism {
   readonly garden = new Garden(this.state, this.bus)
   readonly fauna = new Fauna(this.state, this.bus)
   readonly voice = new Voice(this.bus)
+  readonly ecology = new Ecology(this.state, this.bus)
   readonly attention = new Attention(this.state, this.bus)
   readonly theme = new ThemeWriter()
 
@@ -153,6 +156,7 @@ class Organism {
 
       const awayMs = Math.max(0, now - saved.lastSeen)
       const grewBy = this.garden.catchUp(awayMs)
+      if (grewBy > 0) this.ecology.catchUp(grewBy)
       // Announce it once the page has had a chance to attach listeners.
       queueMicrotask(() => this.bus.emit('returned', { awayMs, grewBy }))
     } else {
@@ -183,6 +187,9 @@ class Organism {
     // Time the tab spent hidden still counts as growth.
     if (this.heart.awayMs > 0) {
       const grewBy = this.garden.catchUp(this.heart.awayMs)
+      // Colonies grow while you are away too, without their predators —
+      // which is why a long absence tends to be met with an infestation.
+      if (grewBy > 0) this.ecology.catchUp(grewBy)
       if (grewBy > 0) this.bus.emit('returned', { awayMs: this.heart.awayMs, grewBy })
       this.heart.awayMs = 0
     }
@@ -195,6 +202,7 @@ class Organism {
     // Pollinators run after the garden so they see this frame's flowers, and
     // before the components, which publish the flower positions they steer to.
     this.fauna.tick(dt, s)
+    this.ecology.tick(dt, s)
     this.voice.tick(dt, s)
 
     s.vitals.age = (s.time.now - this.#bornAt) / 1000
@@ -318,11 +326,14 @@ class Organism {
     return this.garden.plant() !== null
   }
 
-  /** Water the bed by hand — an instant shot of moisture and vigour. */
+  /** Water the bed by hand — moisture, vigour, and it rinses aphids off. */
   water() {
     const s = this.state
     s.weather.wetness = clamp(s.weather.wetness + 0.32)
-    for (const plant of s.garden.plants) plant.vigor = clamp(plant.vigor + 0.18)
+    for (const plant of s.garden.plants) {
+      plant.vigor = clamp(plant.vigor + 0.18)
+      plant.infestation = clamp(plant.infestation - 0.12)
+    }
   }
 
   /** Wipe the saved garden and start over from seedlings. */
@@ -336,6 +347,11 @@ class Organism {
     this.state.garden.hybrids = 0
     this.state.garden.fertility = 0.5
     this.state.fauna.pollinators.length = 0
+    this.state.ecology.predators.length = 0
+    this.state.ecology.aphidLoad = 0
+    this.state.ecology.pressure = 0
+    this.state.ecology.outbreaks = 0
+    this.state.ecology.eaten = 0
     for (let i = 0; i < 3; i++) {
       const plant = this.garden.plant({ x: 0.2 + i * 0.3 })
       if (plant) plant.age = 0.06 + i * 0.05

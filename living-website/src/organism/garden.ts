@@ -97,6 +97,7 @@ export class Garden {
       gen: opts.gen ?? 0,
       pollen: null,
       parents: opts.parents ?? null,
+      infestation: 0,
     }
     plants.push(plant)
     plants.sort((a, b) => a.x - b.x)
@@ -176,7 +177,10 @@ export class Garden {
     for (const plant of [...garden.plants]) {
       const before = plant.age
       const bias = plant.genome.vigorBias
-      plant.age += (seconds / MATURITY) * bias * (0.45 + plant.vigor * 0.75)
+      // Aphids cost growth directly, on top of the vigour they are draining —
+      // a badly infested plant runs at under half speed.
+      const drain = 1 - plant.infestation * 0.55
+      plant.age += (seconds / MATURITY) * bias * (0.45 + plant.vigor * 0.75) * drain
 
       if (before < 0.75 && plant.age >= 0.75) this.bus.emit('bloomed', { plant })
 

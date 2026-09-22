@@ -73,6 +73,9 @@ export function load(): Saved | null {
           gen: Number.isFinite(p.gen) ? p.gen : 0,
           pollen: p.pollen ? reviveGenome(p.pollen, seed) : null,
           parents: reviveParents(p.parents),
+          infestation: Number.isFinite(p.infestation)
+            ? Math.min(1, Math.max(0, p.infestation))
+            : 0,
         }
       })
 

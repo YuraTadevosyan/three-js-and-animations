@@ -6,7 +6,8 @@ The sky breathes. The interface follows your cursor — buttons lean toward it,
 pupils dilate in the dark, eyelids sag when you go quiet. A garden grows in real
 time, keeps growing while the tab is closed, and cross-breeds itself: bees and
 butterflies by day, moths after dark, carrying pollen between flowering plants
-so their seeds come out as hybrids. Weather drifts on a Markov chain every
+so their seeds come out as hybrids. Aphids infest it, ladybirds and lacewings
+come and eat them, and the two populations cycle against each other. Weather drifts on a Markov chain every
 couple of minutes, and the real calendar turns the canopy gold in autumn and
 lies snow on the soil in winter. The colour of every element on screen is a
 function of the actual hour where you are sitting, interpolated continuously
@@ -62,6 +63,7 @@ setting target values that the heartbeat then springs toward.
 | **Weather** | Ten systems on a Markov chain with a 90s–3.5min dwell. Seasonal re-weighting from the real date; aurora gated to night, snow to cold. |
 | **Garden** | Plants grown from a sixteen-trait genome via an L-system, with a full life cycle: sprout → flower → seed → compost. |
 | **Pollinators** | Bees, butterflies and moths that navigate to open flowers, carry pollen between plants, and ground themselves in rain or wind. |
+| **Food web** | Aphid colonies that grow logistically, spread between plants and cost real vigour; ladybirds and lacewings that arrive on a threshold and leave on a lag. |
 | **Seasons** | Four weights from the real date that cross-fade rather than step, driving growth rate, canopy colour, leaf fall and snow depth. |
 | **Voice** | Opt-in Web Audio: wind, rain, thunder, dawn birds, night crickets and a pulse — all synthesized from noise and oscillators. |
 | **Presence** | A favicon redrawn from the live sky every two seconds, and a title that reports state while the tab is hidden. |
@@ -119,6 +121,39 @@ that genome until it goes to seed; then:
 Ferns never participate. Their wild type has no flowers, so nothing visits
 them — which is roughly the correct botany, and worth knowing before filing it
 as a bug.
+
+### The food web
+
+Aphids colonise plants on warm dry days, mostly in spring and summer. A colony
+grows logistically toward a ceiling that **rises as the plant's vigour falls**,
+which is what makes it a loop rather than a nuisance. It costs the plant vigour,
+up to half its growth rate, and above 45% it withdraws the plant's flowers from
+the pollinator registry entirely — an infestation costs you crosses.
+
+Ladybirds hunt in daylight, lacewings from dusk. The predator response is the
+part that took tuning, and all three failure modes are worth recording because
+each one looked plausible in the code:
+
+| Setting | What it actually did |
+| --- | --- |
+| Consumption too low | Aphids saturated the bed permanently and every plant ended at zero vigour. |
+| No foraging threshold | The first predator ate the first colony before it was visible; no outbreak ever formed. |
+| Response too gentle, lag too short | The system found an equilibrium and the load simply sat there. |
+
+What works is a **steep response with a long lag**: predators only turn up once
+the bed-wide load passes 1.5, then arrive at 2.2 per unit of excess, on a ~70
+second time constant against a prey growth time of a couple of minutes. Prey
+needs a head start to have an outbreak at all, and the lag is what makes the
+predators overshoot, crash the colonies, and have to leave.
+
+Measured over a 40-minute simulation: 4 cycles, ~8 minute period, 1.7× peak to
+trough, worst single plant reaching 60% infested, and at least one plant too
+infested to flower about 45% of the time.
+
+Rain washes colonies off, frost ends them, a gale grounds the predators, and
+`water()` rinses a tenth off every plant. Time spent away counts for the aphids
+too, via `Ecology.catchUp()` — without their predators, which is why a long
+absence usually ends in an outbreak.
 
 ### Seasons
 
@@ -245,6 +280,7 @@ src/
 │   ├── weather.ts     profiles + the Markov transition table
 │   ├── garden.ts      growth, life cycle, seeding, catch-up
 │   ├── pollinators.ts insect agents, flower registry, cross-pollination
+│   ├── ecology.ts     aphid colonies, predators, the predator-prey loop
 │   ├── attention.ts   pointer, arousal, mood, dreaming
 │   ├── voice.ts       the Web Audio graph
 │   ├── presence.ts    dynamic favicon and tab title

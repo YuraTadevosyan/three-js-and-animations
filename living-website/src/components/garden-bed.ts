@@ -18,7 +18,7 @@ import {
   growthSeasonFactor,
   type FlowerSite,
 } from '@/organism'
-import type { Plant, Pollinator, PollinatorKind } from '@/organism/state'
+import type { Plant, Pollinator, PollinatorKind, Predator, PredatorKind } from '@/organism/state'
 import { Organ } from './base'
 import './living-button'
 
@@ -34,6 +34,11 @@ const STAGE_COPY: Record<string, string> = {
 
 const FAUNA_SLOTS = 8
 const LEAF_SLOTS = 18
+const PREDATOR_SLOTS = 5
+/** Dots drawn on a fully infested plant. */
+const APHID_DOTS = 14
+/** Past this, a plant stops offering its flowers to pollinators. */
+const FLOWER_SUPPRESSION = 0.45
 
 /** Bed units of snow at full depth. */
 const SNOW_MAX_DEPTH = 17
@@ -101,6 +106,8 @@ interface PlantRefs {
   /** Live transform, kept so flower positions can be derived each frame. */
   scale: number
   bend: number
+  /** The aphid colony drawn on this plant. */
+  aphids: { group: SVGGElement; dots: SVGCircleElement[]; shown: number; fill: string }
 }
 
 /**
@@ -126,6 +133,8 @@ export class GardenBed extends Organ {
   /** Reused across frames: the pollinator system holds these same objects. */
   #sites: FlowerSite[] = []
   #leaves: Leaf[] = []
+  #predatorSlots: { group: SVGGElement; variants: Record<string, SVGGElement>; wings: Record<string, SVGGElement> }[] = []
+  #lastEcologyFlash = 0
   #leafDebt = 0
   #lastSnow = -1
   #slow = 0
@@ -172,6 +181,7 @@ export class GardenBed extends Organ {
             <path data-snow d="" style="fill: hsl(var(--card))" opacity="0"></path>
             <g data-leaves></g>
             <g data-fauna></g>
+            <g data-predators></g>
           </svg>
 
           <figcaption
@@ -182,6 +192,7 @@ export class GardenBed extends Organ {
 
         <p class="mt-3 text-sm text-muted-foreground" data-fauna-line>&nbsp;</p>
         <p class="mt-1 text-sm text-muted-foreground" data-season-line>&nbsp;</p>
+        <p class="mt-1 text-sm text-muted-foreground" data-ecology-line>&nbsp;</p>
 
         <div class="mt-4 flex flex-wrap items-center gap-3">
           <living-button action="plant">
@@ -199,10 +210,11 @@ export class GardenBed extends Organ {
           </button>
         </div>
 
-        <dl class="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+        <dl class="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-4">
           ${this.#stat('Living', 'count')} ${this.#stat('Generations', 'gens')}
           ${this.#stat('Hybrids in bed', 'hybrids')} ${this.#stat('Pollinations', 'pollen')}
           ${this.#stat('Soil moisture', 'wet')} ${this.#stat('Fertility', 'fert')}
+          ${this.#stat('Aphid load', 'aphids')} ${this.#stat('Aphids eaten', 'eaten')}
         </dl>
       </figure>
     `
@@ -252,14 +264,29 @@ export class GardenBed extends Organ {
       >${body}</g>`
     })
 
+    // Aphid positions are sampled from the plant's own stems and frozen, so a
+    // colony sits where it would sit rather than crawling about at random.
+    const spotRng = makeRng(plant.seed ^ 0xa9f1)
+    const stems = sk.branches.filter((b) => b.kind === 'stem')
+    const dots = Array.from({ length: APHID_DOTS }, () => {
+      const branch = spotRng.pick(stems)
+      const point = branch.pts[spotRng.int(1, branch.pts.length - 1)]!
+      return svg`<circle
+        cx=${(point.x + spotRng.range(-1.4, 1.4)).toFixed(2)}
+        cy=${(-point.y + spotRng.range(-1.4, 1.4)).toFixed(2)}
+        r=${spotRng.range(0.9, 1.7).toFixed(2)}
+      ></circle>`
+    })
+
     return svg`<g data-plant=${plant.id} class="cursor-pointer">
-      <g data-sway>${paths}${ornaments}</g>
+      <g data-sway>${paths}${ornaments}<g data-aphids opacity="0">${dots}</g></g>
     </g>`
   }
 
   firstUpdated() {
     this.#buildFireflies()
     this.#buildFauna()
+    this.#buildPredators()
     this.#buildLeaves()
     // No #collect() here — updated() runs immediately after firstUpdated() on
     // the same cycle and does it, and doing both would bind everything twice.
@@ -297,6 +324,28 @@ export class GardenBed extends Organ {
       this.#lastPollenFlash = now
       this.#flashCaption(`A ${kind} carried pollen across. That seed will be a cross.`)
     })
+    // The ecology fires often enough that it needs its own floor, separate
+    // from the pollination one — otherwise the two together would never let
+    // the caption fall back to the hover readout.
+    const ecologyFlash = (message: string) => {
+      const now = performance.now()
+      if (now - this.#lastEcologyFlash < 11000) return
+      this.#lastEcologyFlash = now
+      this.#flashCaption(message)
+    }
+
+    this.listen('outbreak', () =>
+      ecologyFlash('Aphids have taken hold. Watch the vigour drop — or water them off.'),
+    )
+    this.listen('predators', ({ kind }) =>
+      ecologyFlash(
+        kind === 'ladybird'
+          ? 'A ladybird found the colony. It will work through it.'
+          : 'A lacewing came in on the dusk shift.',
+      ),
+    )
+    this.listen('cleared', () => ecologyFlash('That colony is gone. The plant can recover now.'))
+
     this.listen('crossed', ({ parents }) => {
       this.#flashCaption(
         parents[0] === parents[1]
@@ -308,6 +357,7 @@ export class GardenBed extends Organ {
     this.tick((dt, state) => {
       this.#tickFast(state.time.elapsed, state.weather.wind, state.breath.value)
       this.#tickFauna(state.fauna.pollinators)
+      this.#tickPredators(state.ecology.predators)
 
       const autumn = state.weather.seasonMix.autumn
       const leafHue = lerpAngle(state.circadian.palette.canopy.h, 32, clamp(autumn * 1.1))
@@ -317,6 +367,7 @@ export class GardenBed extends Organ {
       if (this.#slow < 0.1) return
       this.#slow = 0
       this.#tickGrowth()
+      this.#tickAphids(state.circadian.daylight)
       this.#publishFlowers()
       this.#tickFireflies(state.time.elapsed, state.circadian.daylight)
       this.#tickSnow(state.weather.snowpack)
@@ -378,6 +429,9 @@ export class GardenBed extends Organ {
         }
       })
 
+      const aphidGroup = sway.querySelector<SVGGElement>('[data-aphids]')
+      if (!aphidGroup) continue
+
       this.#refs.push({
         plant,
         group,
@@ -395,6 +449,12 @@ export class GardenBed extends Organ {
         canopy: Math.min(targetHeight(plant.genome), skeleton.height * 6),
         scale: 1,
         bend: 0,
+        aphids: {
+          group: aphidGroup,
+          dots: [...aphidGroup.querySelectorAll<SVGCircleElement>('circle')],
+          shown: -1,
+          fill: '',
+        },
       })
 
       group.addEventListener('pointerenter', () => (this.#hovered = plant.id), { signal })
@@ -589,6 +649,103 @@ export class GardenBed extends Organ {
     el.setAttribute('opacity', clamp(depth * 4, 0, 0.94).toFixed(3))
   }
 
+  #buildPredators() {
+    const host = this.$<SVGGElement>('[data-predators]')
+    if (!host) return
+    const ns = 'http://www.w3.org/2000/svg'
+    this.#predatorSlots = []
+
+    for (let i = 0; i < PREDATOR_SLOTS; i++) {
+      const group = document.createElementNS(ns, 'g')
+      group.setAttribute('opacity', '0')
+      group.style.display = 'none'
+
+      const variants: Record<string, SVGGElement> = {}
+      const wings: Record<string, SVGGElement> = {}
+
+      for (const kind of ['ladybird', 'lacewing'] as PredatorKind[]) {
+        const variant = document.createElementNS(ns, 'g')
+        variant.style.display = 'none'
+        const wing = document.createElementNS(ns, 'g')
+        wing.innerHTML = PREDATOR_WINGS[kind]
+        variant.appendChild(wing)
+        const body = document.createElementNS(ns, 'g')
+        body.innerHTML = PREDATOR_BODY[kind]
+        variant.appendChild(body)
+        variants[kind] = variant
+        wings[kind] = wing
+        group.appendChild(variant)
+      }
+
+      host.appendChild(group)
+      this.#predatorSlots.push({ group, variants, wings })
+    }
+  }
+
+  #tickPredators(agents: Predator[]) {
+    for (let i = 0; i < this.#predatorSlots.length; i++) {
+      const slot = this.#predatorSlots[i]!
+      const agent = agents[i]
+
+      if (!agent) {
+        if (slot.group.style.display !== 'none') slot.group.style.display = 'none'
+        continue
+      }
+      if (slot.group.style.display !== '') slot.group.style.display = ''
+
+      for (const kind of Object.keys(slot.variants)) {
+        const wanted = kind === agent.kind ? '' : 'none'
+        if (slot.variants[kind]!.style.display !== wanted) {
+          slot.variants[kind]!.style.display = wanted
+        }
+      }
+
+      const deg = (agent.angle * 180) / Math.PI
+      const flip = Math.abs(deg) > 90 ? -1 : 1
+      const k = 0.75 + agent.presence * 0.25
+      slot.group.setAttribute(
+        'transform',
+        `translate(${agent.x.toFixed(1)} ${agent.y.toFixed(1)}) rotate(${deg.toFixed(1)}) scale(${k.toFixed(3)} ${(k * flip).toFixed(3)})`,
+      )
+      slot.group.setAttribute('opacity', agent.presence.toFixed(3))
+
+      // A feeding ladybird folds its wings away and sits on the colony.
+      const fold = agent.state === 'feeding' ? 0.12 : 0.3 + 0.7 * Math.abs(Math.cos(agent.flap))
+      slot.wings[agent.kind]!.setAttribute('transform', `scale(1 ${fold.toFixed(3)})`)
+    }
+  }
+
+  /** 10Hz: how many aphids each plant is carrying, and what colour they are. */
+  #tickAphids(daylight: number) {
+    // Aphids are a green so dull it reads as damage rather than decoration,
+    // lifted slightly in daylight so they don't vanish at noon.
+    const fill = toCss({ h: 92, s: 26, l: 20 + daylight * 16 })
+
+    for (const ref of this.#refs) {
+      const aphids = ref.aphids
+      const count = Math.round(clamp(ref.plant.infestation) * aphids.dots.length)
+
+      if (fill !== aphids.fill) {
+        aphids.fill = fill
+        aphids.group.style.fill = fill
+      }
+
+      if (count === aphids.shown) continue
+      const previous = aphids.shown
+      aphids.shown = count
+
+      if (previous < 0) {
+        for (const dot of aphids.dots) dot.style.display = 'none'
+      }
+      // Only touch the dots that actually changed state.
+      const from = Math.max(previous, 0)
+      for (let i = Math.min(from, count); i < Math.max(from, count); i++) {
+        aphids.dots[i]!.style.display = i < count ? '' : 'none'
+      }
+      aphids.group.setAttribute('opacity', count ? '0.85' : '0')
+    }
+  }
+
   /** Frame-rate work: transforms only. */
   #tickFast(t: number, wind: number, breath: number) {
     for (let i = 0; i < this.#refs.length; i++) {
@@ -647,7 +804,10 @@ export class GardenBed extends Organ {
     const sites: FlowerSite[] = []
 
     for (const ref of this.#refs) {
-      const open = isInFlower(ref.plant.age)
+      // A plant under real aphid pressure stops putting energy into flowers,
+      // which quietly cuts it out of pollination until something eats them.
+      const open =
+        isInFlower(ref.plant.age) && ref.plant.infestation < FLOWER_SUPPRESSION
       for (let i = 0; i < ref.ornaments.length; i++) {
         const orn = ref.ornaments[i]!
         if (orn.kind !== 'flower') continue
@@ -810,11 +970,16 @@ export class GardenBed extends Organ {
         ? 'self-seeded'
         : 'original stock'
     const carrying = plant.pollen ? ` · carrying ${plant.pollen.species} pollen` : ''
+    const aphids =
+      plant.infestation > 0.02
+        ? ` · ${Math.round(plant.infestation * 100)}% aphids` +
+          (plant.infestation >= FLOWER_SUPPRESSION ? ' (not flowering)' : '')
+        : ''
 
     el.textContent =
       `${plant.genome.species} · gen ${plant.gen} · ${lineage} · ` +
       `${STAGE_COPY[stage] ?? stage} · ${pct}% through its life · ` +
-      `vigour ${Math.round(plant.vigor * 100)}%${carrying}`
+      `vigour ${Math.round(plant.vigor * 100)}%${carrying}${aphids}`
   }
 
   #flashCaption(message: string) {
@@ -841,6 +1006,10 @@ export class GardenBed extends Organ {
     set('pollen', `${garden.pollinations}`)
     set('wet', `${Math.round(organism.state.weather.wetness * 100)}%`)
     set('fert', `${Math.round(garden.fertility * 100)}%`)
+
+    const eco = organism.state.ecology
+    set('aphids', eco.aphidLoad.toFixed(2))
+    set('eaten', eco.eaten.toFixed(2))
 
     const line = this.$('[data-fauna-line]')
     if (line) {
@@ -877,6 +1046,29 @@ export class GardenBed extends Organ {
       const text = parts.join(' · ')
       if (season.textContent !== text) season.textContent = text
     }
+
+    const ecoLine = this.$('[data-ecology-line]')
+    if (ecoLine) {
+      const counts = new Map<string, number>()
+      for (const predator of eco.predators) {
+        counts.set(predator.kind, (counts.get(predator.kind) ?? 0) + 1)
+      }
+      const hunters = [...counts].map(([kind, n]) => `${n} ${kind}${n > 1 ? 's' : ''}`)
+
+      let text: string
+      if (eco.infested === 0 && !hunters.length) {
+        text = 'No aphids anywhere. The bed is clean.'
+      } else {
+        const bits: string[] = []
+        if (eco.infested) {
+          bits.push(`${eco.infested} plant${eco.infested === 1 ? '' : 's'} infested`)
+        }
+        bits.push(hunters.length ? `${hunters.join(', ')} hunting` : 'nothing hunting yet')
+        if (eco.outbreaks) bits.push(`${eco.outbreaks} outbreak${eco.outbreaks === 1 ? '' : 's'}`)
+        text = bits.join(' · ')
+      }
+      if (ecoLine.textContent !== text) ecoLine.textContent = text
+    }
   }
 }
 
@@ -911,6 +1103,31 @@ const WING_MARKUP: Record<PollinatorKind, string> = {
     <ellipse cx="-1.2" cy="4.4" rx="5.4" ry="4" style="fill: hsl(var(--muted-foreground)); opacity: .75"></ellipse>
     <ellipse cx="2.8" cy="-2.8" rx="3.6" ry="2.8" style="fill: hsl(var(--glow)); opacity: .45"></ellipse>
     <ellipse cx="2.8" cy="2.8" rx="3.6" ry="2.8" style="fill: hsl(var(--glow)); opacity: .45"></ellipse>`,
+}
+
+const PREDATOR_WINGS: Record<PredatorKind, string> = {
+  ladybird: `
+    <ellipse cx="-1" cy="-4" rx="5.4" ry="2.6" style="fill: hsl(var(--card)); opacity: .55"></ellipse>
+    <ellipse cx="-1" cy="4" rx="5.4" ry="2.6" style="fill: hsl(var(--card)); opacity: .55"></ellipse>`,
+  lacewing: `
+    <ellipse cx="-1.5" cy="-2.6" rx="9" ry="3.2" style="fill: hsl(var(--card)); opacity: .5"></ellipse>
+    <ellipse cx="-1.5" cy="2.6" rx="9" ry="3.2" style="fill: hsl(var(--card)); opacity: .5"></ellipse>`,
+}
+
+const PREDATOR_BODY: Record<PredatorKind, string> = {
+  ladybird: `
+    <ellipse rx="6" ry="5" style="fill: hsl(2 74% 48%)"></ellipse>
+    <path d="M-6 0 L4 0" stroke-width="0.9" fill="none" style="stroke: hsl(20 40% 14%)"></path>
+    <circle cx="-2.6" cy="-2.4" r="1.25" style="fill: hsl(20 40% 14%)"></circle>
+    <circle cx="-2.6" cy="2.4" r="1.25" style="fill: hsl(20 40% 14%)"></circle>
+    <circle cx="1.4" cy="-2.7" r="1.05" style="fill: hsl(20 40% 14%)"></circle>
+    <circle cx="1.4" cy="2.7" r="1.05" style="fill: hsl(20 40% 14%)"></circle>
+    <circle cx="5.4" cy="0" r="2.5" style="fill: hsl(20 40% 14%)"></circle>`,
+  lacewing: `
+    <ellipse rx="5.2" ry="1.5" style="fill: hsl(88 48% 52%)"></ellipse>
+    <circle cx="5" cy="0" r="1.7" style="fill: hsl(88 40% 40%)"></circle>
+    <circle cx="5.6" cy="-1" r="0.7" style="fill: hsl(42 90% 60%)"></circle>
+    <circle cx="5.6" cy="1" r="0.7" style="fill: hsl(42 90% 60%)"></circle>`,
 }
 
 const BODY_MARKUP: Record<PollinatorKind, string> = {

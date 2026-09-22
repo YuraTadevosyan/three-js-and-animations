@@ -231,11 +231,96 @@ const gazeTraits = [
       </div>
     </section>
 
-    <!-- ───────────────────────────── 04 sky ─────────────────────────── -->
+    <!-- ────────────────────────── 04 the food web ──────────────────── -->
+    <section id="ecology" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
+      <div class="grid gap-12 lg:grid-cols-12">
+        <div class="lg:col-span-6">
+          <p class="eyebrow">04 — The food web</p>
+          <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">
+            It gets infested
+          </h2>
+          <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
+            <p>
+              Aphids arrive on warm dry days, mostly in spring and summer. A
+              colony grows logistically — fastest in the middle, stalling as the
+              plant saturates — and spreads to neighbours at a rate that falls
+              off with distance across the bed. A stressed plant supports a
+              bigger colony than a vigorous one, which is the detail that turns
+              a nuisance into a feedback loop.
+            </p>
+            <p>
+              The damage is real. A colony drains vigour, cuts growth by up to
+              half, and past 45% the plant stops offering flowers at all —
+              which quietly removes it from pollination until something
+              intervenes. An infestation in this bed costs you crosses.
+            </p>
+            <p>
+              Ladybirds work the day shift; lacewings take over at dusk and keep
+              the pressure on overnight. Neither turns up until the aphid load
+              crosses a threshold — prey needs a head start or there is never an
+              outbreak worth seeing — and then they arrive steeply and leave
+              slowly. That combination is the whole trick: high gain with a lag
+              longer than the prey's own growth time makes the population
+              overshoot, crash the colonies and have to leave again. A gentler
+              response just finds an equilibrium, and the load sits there
+              forever looking like a bug.
+            </p>
+            <p>
+              Rain washes them off, frost ends them, a gale grounds the
+              predators, and watering the bed by hand rinses a tenth of every
+              colony away. Leave for a few hours and you will usually come back
+              to an outbreak, because the colonies kept growing while their
+              predators were not being simulated alongside them.
+            </p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6">
+          <organ-card class="organ block p-6 sm:p-8" tilt="3">
+            <p class="eyebrow">The loop</p>
+            <ol class="mt-4 space-y-3 text-sm text-muted-foreground">
+              <li><span class="text-foreground">Aphids colonise</span> a plant and multiply.</li>
+              <li><span class="text-foreground">Vigour falls</span>, which raises the colony's ceiling.</li>
+              <li><span class="text-foreground">Flowers close</span> above 45%; pollinators stop visiting.</li>
+              <li><span class="text-foreground">Predators arrive</span> once the bed-wide load passes 1.5.</li>
+              <li><span class="text-foreground">The colonies crash</span>, and the predators leave.</li>
+              <li><span class="text-foreground">It starts again.</span> Roughly every few minutes.</li>
+            </ol>
+
+            <div class="rule my-6"></div>
+
+            <dl class="grid gap-5 sm:grid-cols-2">
+              <div>
+                <dt class="font-semibold tracking-tight text-foreground">Ladybird</dt>
+                <dd class="mt-1.5 text-sm text-muted-foreground text-pretty">
+                  Daylight above 0.3. Fast and direct, eats a third more than a
+                  lacewing, folds its wings away while feeding.
+                </dd>
+              </div>
+              <div>
+                <dt class="font-semibold tracking-tight text-foreground">Lacewing</dt>
+                <dd class="mt-1.5 text-sm text-muted-foreground text-pretty">
+                  Dusk and after. Slower, daintier, blown further off course by
+                  wind, and the only thing hunting overnight.
+                </dd>
+              </div>
+            </dl>
+
+            <p class="mt-6 text-sm text-muted-foreground text-pretty">
+              The readouts under the bed in the previous section are live: aphid
+              load, plants infested, what is currently hunting, and how much
+              infestation has been eaten across every visit.
+            </p>
+          </organ-card>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────── 05 sky ─────────────────────────── -->
     <section id="sky" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
       <div class="grid gap-12 lg:grid-cols-12">
         <div class="lg:col-span-5">
-          <p class="eyebrow">04 — Weather &amp; sun</p>
+          <p class="eyebrow">05 — Weather &amp; sun</p>
           <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">The sky moves on</h2>
           <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
             <p>
@@ -285,7 +370,7 @@ const gazeTraits = [
     <!-- ──────────────────────────── 05 colour ───────────────────────── -->
     <section id="colour" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
       <div class="max-w-2xl">
-        <p class="eyebrow">05 — Circadian colour</p>
+        <p class="eyebrow">06 — Circadian colour</p>
         <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">It keeps your hours</h2>
         <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
           <p>
@@ -323,7 +408,7 @@ const gazeTraits = [
     <!-- ─────────────────────────── 06 colophon ──────────────────────── -->
     <section id="colophon" data-reveal class="scroll-mt-20 border-t border-border/60 py-24">
       <div class="max-w-2xl">
-        <p class="eyebrow">06 — Anatomy</p>
+        <p class="eyebrow">07 — Anatomy</p>
         <h2 class="mt-3 font-display text-4xl font-semibold tracking-tight">One heartbeat</h2>
         <div class="mt-6 space-y-4 text-muted-foreground text-pretty">
           <p>
