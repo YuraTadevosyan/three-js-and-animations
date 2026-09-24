@@ -25,7 +25,7 @@ the same GitHub Pages site.
 | [`holographic-os`](./holographic-os) | [/holographic-os/](https://yuratadevosyan.github.io/three-js-and-animations/holographic-os/) | Preact, @preact/signals, OGL (WebGL2), interact.js, GLSL ES 3.0, Tailwind |
 | [`dna-visualization`](./dna-visualization) | [/dna-visualization/](https://yuratadevosyan.github.io/three-js-and-animations/dna-visualization/) | Angular 21 (zoneless, signals), TypeScript, raw WebGL2, GLSL ES 3.0, Tailwind |
 | [`chess-world`](./chess-world) | [/chess-world/](https://yuratadevosyan.github.io/three-js-and-animations/chess-world/) | Nuxt 4 (SPA), PlayCanvas 2, TypeScript, hand-written chess engine (Web Worker), Web Audio, Tailwind |
-| [`living-website`](./living-website) | [/living-website/](https://yuratadevosyan.github.io/three-js-and-animations/living-website/) | Astro 5 (static), Lit 3 web components, Motion, PixiJS 8, GLSL ES 3.0, L-systems, Tailwind |
+| [`living-website`](./living-website) | [/living-website/](https://yuratadevosyan.github.io/three-js-and-animations/living-website/) | Astro 5 (static), Lit 3 web components, Motion, PixiJS 8, GLSL ES 3.0, L-systems, Web Audio, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
