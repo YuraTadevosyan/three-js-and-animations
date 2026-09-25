@@ -1,4 +1,4 @@
-import { html } from 'lit'
+import { html, svg } from 'lit'
 import { clamp, damp, remap, Spring2 } from '@/lib/math'
 import { makeRng } from '@/lib/rng'
 import { Organ } from './base'
@@ -48,10 +48,16 @@ export class LivingEyes extends Organ {
   }
 
   render() {
-    const eye = (side: 'l' | 'r', cx: number) => html`
+    // Must be `svg`, not `html`. This fragment is interpolated *inside* the
+    // <svg> below as its own template, and Lit parses each template on its
+    // own: an `html` one has no <svg> context, so <g>/<ellipse>/<circle> come
+    // out as HTMLUnknownElement. They sit in the DOM without error and the
+    // SVG parent simply never draws them — the eyes were invisible exactly
+    // this way. `svg` makes Lit wrap the fragment in <svg> while parsing.
+    const eye = (side: 'l' | 'r', cx: number) => svg`
       <g clip-path="url(#${this.#id}-${side})">
         <ellipse cx=${cx} cy="28" rx="21" ry="17" style="fill: hsl(var(--card))"></ellipse>
-        <g data-iris=${side}>
+        <g data-iris=${side} transform="translate(${cx} 28)">
           <circle r="8.6" style="fill: hsl(var(--primary))"></circle>
           <circle r="8.6" style="fill: hsl(var(--foreground)); opacity: .12"></circle>
           <circle data-pupil=${side} r="4.1" style="fill: hsl(var(--foreground))"></circle>
