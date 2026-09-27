@@ -1,0 +1,644 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * The timeline
+ *
+ * `--t` is the page. It runs 0 → 7 across the track: whole numbers are
+ * eras, fractions are the transitions between them. Registering it as a
+ * <number> is what lets a scroll timeline animate it — an unregistered
+ * custom property would flip discretely at 50% instead of interpolating.
+ *
+ * Every layer derives everything from `var(--t)` with clamp()/calc(), so
+ * there is exactly one moving input and no JS on the scroll path.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+@property --t {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Rounded by the <integer> syntax, which is the whole trick behind the
+   rail's year counter. Its value is set inline from eras.ts#yearCalc(). */
+@property --year {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 1980;
+}
+
+@keyframes eou-t {
+  from {
+    --t: 0;
+  }
+  to {
+    --t: 7;
+  }
+}
+
+:root {
+  --background: 240 12% 3%;
+  --foreground: 40 20% 96%;
+  --muted: 240 6% 12%;
+  --muted-foreground: 240 5% 66%;
+  --primary: 188 95% 70%;
+  --primary-foreground: 240 12% 4%;
+  --accent: 262 90% 74%;
+  --border: 240 6% 22%;
+  --radius: 14px;
+
+  /* Scroll distance per unit of t. */
+  --unit: 120vh;
+}
+
+html {
+  background: hsl(var(--background));
+  color-scheme: dark;
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.track {
+  position: relative;
+  height: calc(7 * var(--unit) + 100vh);
+}
+
+/* Invisible 1px anchors at each era's resting point: scroll-snap targets
+   and the rail's link targets. */
+.snap {
+  position: absolute;
+  left: 0;
+  top: calc(var(--at) * var(--unit));
+  width: 1px;
+  height: 1px;
+  scroll-snap-align: start;
+  pointer-events: none;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000;
+}
+
+@supports (animation-timeline: view()) {
+  .track {
+    view-timeline: --track block;
+  }
+  .stage {
+    animation: eou-t linear both;
+    /* Must follow the shorthand, which resets it. */
+    animation-timeline: --track;
+    animation-range: contain 0% contain 100%;
+  }
+}
+
+/* Each era is a full-bleed layer. `visibility` is switched by the boot
+   script via data-live; nothing inside a layer may set `visibility: visible`
+   or it would leak through while the layer is parked. */
+.layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+.stage[data-live~='intro'] > .layer-intro,
+.stage[data-live~='dos'] > .layer-dos,
+.stage[data-live~='win95'] > .layer-win95,
+.stage[data-live~='web2'] > .layer-web2,
+.stage[data-live~='material'] > .layer-material,
+.stage[data-live~='glass'] > .layer-glass,
+.stage[data-live~='scifi'] > .layer-scifi,
+.stage[data-live~='outro'] > .layer-outro {
+  visibility: visible;
+}
+
+/* A windowed fade: fully visible between --a and --b, ramping over --r. */
+.tw {
+  --r: 0.12;
+  opacity: calc(
+    clamp(0, (var(--t) - var(--a) + var(--r)) / var(--r), 1) * clamp(0, (var(--b) + var(--r) - var(--t)) / var(--r), 1)
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Intro
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.layer-intro {
+  z-index: 40;
+  --out: clamp(0, (var(--t) - 0.2) / 0.22, 1);
+  background: radial-gradient(120% 90% at 50% 0%, hsl(250 40% 10%), hsl(var(--background)) 60%);
+  opacity: calc(1 - var(--out));
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+.intro-inner {
+  width: min(1040px, 100%);
+  text-align: center;
+  transform: scale(calc(1 + 0.08 * var(--out)));
+  filter: blur(calc(6px * var(--out)));
+}
+.intro-eyebrow {
+  font: 500 12px/1.2 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.intro-title {
+  margin: 18px 0 0;
+  font-weight: 300;
+  font-size: clamp(44px, 9vw, 116px);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  background: linear-gradient(92deg, #e9e6ff 10%, #8ef0ff 45%, #b48cff 70%, #ffb3d9 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.intro-lede {
+  margin: 22px auto 0;
+  max-width: 640px;
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+}
+.intro-lede b {
+  color: hsl(var(--foreground));
+  font-weight: 500;
+}
+.intro-tiles {
+  margin: 40px auto 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 860px;
+  list-style: none;
+  padding: 0;
+}
+.intro-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+.intro-tile .shot {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 0 1px hsl(var(--border)), 0 16px 30px -18px #000;
+}
+.intro-tile .yr {
+  font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace;
+  color: hsl(var(--foreground));
+}
+.intro-tile .nm {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-top: -4px;
+}
+/* Six thumbnails, each a few lines of CSS in its era's idiom. */
+.shot-dos {
+  background: #050505;
+}
+.shot-dos::before {
+  content: 'C:\\>DIR_';
+  position: absolute;
+  left: 8%;
+  top: 12%;
+  font: 11px/1 VT323, monospace;
+  color: #c8c8c8;
+  text-shadow: 0 0 4px #c8c8c8aa;
+}
+.shot-dos::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, #0006 0 1px, transparent 1px 3px);
+}
+.shot-win95 {
+  background: #008080;
+}
+.shot-win95::before {
+  content: '';
+  position: absolute;
+  left: 18%;
+  top: 16%;
+  width: 60%;
+  height: 52%;
+  background: linear-gradient(#000080 0 18%, #c0c0c0 18%);
+  box-shadow: inset -1px -1px #000, inset 1px 1px #fff;
+}
+.shot-win95::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 13%;
+  background: #c0c0c0;
+  box-shadow: inset 0 1px #fff;
+}
+.shot-web2 {
+  background: linear-gradient(#eaf4fc, #fff);
+}
+.shot-web2::before {
+  content: 'notr';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 38%;
+  display: flex;
+  align-items: center;
+  padding-left: 12%;
+  font: 800 15px Nunito, 'Arial Rounded MT Bold', sans-serif;
+  color: #fff;
+  background: linear-gradient(#7cc3f5, #2d87d8 50%, #1a6cc0 50%, #3b95e3);
+}
+.shot-web2::after {
+  content: 'beta';
+  position: absolute;
+  left: 58%;
+  top: 11%;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font: 700 8px sans-serif;
+  color: #fff;
+  background: #ff7a1a;
+  transform: rotate(-8deg);
+}
+.shot-material {
+  background: #fafafa;
+}
+.shot-material::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 26%;
+  background: #3f51b5;
+  box-shadow: 0 2px 4px #0004;
+}
+.shot-material::after {
+  content: '';
+  position: absolute;
+  right: 10%;
+  bottom: 12%;
+  width: 22%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ff4081;
+  box-shadow: 0 3px 6px #0005;
+}
+.shot-glass {
+  background: radial-gradient(60% 70% at 20% 20%, #7c5cff, transparent), radial-gradient(60% 70% at 85% 80%, #ff5ca8, transparent),
+    radial-gradient(50% 50% at 80% 10%, #39d0ff, transparent), #1b1140;
+}
+.shot-glass::before {
+  content: '';
+  position: absolute;
+  inset: 20% 18%;
+  border-radius: 10px;
+  background: #ffffff26;
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px #fff8, 0 0 0 1px #ffffff40;
+}
+.shot-scifi {
+  background: radial-gradient(circle at 50% 55%, #0c3b4a, #02060b 70%);
+}
+.shot-scifi::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: 46%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 1px dashed #6ff6ff;
+  box-shadow: 0 0 12px #6ff6ff88, inset 0 0 12px #6ff6ff55;
+}
+.shot-scifi::after {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border: 1px solid #6ff6ff55;
+  clip-path: polygon(0 0, 18% 0, 18% 2px, 2px 2px, 2px 18%, 0 18%, 0 0, 82% 0, 100% 0, 100% 18%, calc(100% - 2px) 18%, calc(100% - 2px) 2px, 82% 2px);
+}
+.intro-cue {
+  margin-top: 44px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.intro-cue svg {
+  animation: cue-bob 1.8s ease-in-out infinite;
+}
+@keyframes cue-bob {
+  50% {
+    transform: translateY(6px);
+  }
+}
+@media (max-width: 720px) {
+  .intro-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-height: 640px) {
+  .intro-tiles {
+    display: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Rail — the year counter and the decade links
+ *
+ * White with `difference` blending reads on a black DOS screen, a teal
+ * desktop and white Material paper alike, without knowing which it's on.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.rail {
+  position: absolute;
+  z-index: 60;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 18px;
+  color: #fff;
+  mix-blend-mode: difference;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  pointer-events: none;
+}
+.rail-counter {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  counter-reset: yr var(--year);
+  opacity: calc(clamp(0, (var(--t) - 0.3) / 0.2, 1));
+}
+.rail-counter::after {
+  content: counter(yr);
+}
+.rail ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+.rail a {
+  --d: max(var(--t) - var(--c), var(--c) - var(--t));
+  --on: clamp(0, 1 - var(--d) / 0.5, 1);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0 3px 12px;
+  font-size: 11px;
+  color: inherit;
+  text-decoration: none;
+  opacity: calc(0.42 + 0.58 * var(--on));
+}
+.rail a .nm {
+  opacity: calc(var(--on) * 0.85);
+  transform: translateX(calc(6px * (1 - var(--on))));
+  white-space: nowrap;
+}
+.rail a .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: scale(calc(1 + 0.7 * var(--on)));
+}
+.rail a:hover,
+.rail a:focus-visible {
+  opacity: 1;
+}
+.rail a:hover .nm,
+.rail a:focus-visible .nm {
+  opacity: 1;
+}
+.rail-notes {
+  pointer-events: auto;
+  font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: inherit;
+  background: none;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 5px 9px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+.rail-notes:hover {
+  opacity: 1;
+}
+@media (max-width: 720px) {
+  .rail {
+    right: 8px;
+    gap: 12px;
+  }
+  .rail-counter {
+    font-size: 18px;
+  }
+  .rail a .nm {
+    display: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Placards — a museum label for each era
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.placard {
+  position: absolute;
+  z-index: 55;
+  left: 18px;
+  bottom: 44px;
+  width: min(340px, calc(100% - 90px));
+  padding: 14px 16px 15px;
+  border-radius: 12px;
+  background: #0b0b10e0;
+  color: #eeeef4;
+  box-shadow: 0 0 0 1px #ffffff1a, 0 20px 40px -20px #000;
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+  line-height: 1.5;
+  pointer-events: none;
+  transform: translateY(calc(10px * (1 - clamp(0, (var(--t) - var(--a) + 0.12) / 0.12, 1))));
+}
+.placard h2 {
+  margin: 0 0 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.placard h2 span {
+  font: 500 11px 'JetBrains Mono', ui-monospace, monospace;
+  color: #8ef0ff;
+}
+.placard p {
+  margin: 0;
+  color: #b9b9c6;
+}
+.placard .try {
+  margin-top: 8px;
+  color: #eeeef4;
+}
+.placard .try::before {
+  content: 'Try ';
+  font: 600 10px 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8ef0ff;
+  margin-right: 4px;
+}
+.stage[data-notes='off'] .placard {
+  display: none;
+}
+@media (max-width: 720px) {
+  .placard {
+    left: 8px;
+    bottom: 40px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  .placard p:not(.try) {
+    display: none;
+  }
+  .placard h2 {
+    margin-bottom: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Outro
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.layer-outro {
+  z-index: 45;
+  --in: clamp(0, (var(--t) - 6.78) / 0.17, 1);
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  opacity: var(--in);
+}
+.outro-inner {
+  width: min(760px, 100%);
+  text-align: center;
+  transform: translateY(calc(18px * (1 - var(--in))));
+}
+.outro-year {
+  font: 500 13px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.24em;
+  color: #8ef0ff;
+}
+.outro-title {
+  margin: 16px 0 0;
+  font-weight: 300;
+  font-size: clamp(34px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.outro-lede {
+  margin: 18px auto 0;
+  max-width: 560px;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+}
+.outro-note {
+  margin: 28px auto 0;
+  max-width: 420px;
+  text-align: left;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #ffffff08;
+  box-shadow: 0 0 0 1px #ffffff1a;
+}
+.outro-note header {
+  display: flex;
+  justify-content: space-between;
+  font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.outro-note pre {
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 14px/1.6 'JetBrains Mono', ui-monospace, monospace;
+  color: hsl(var(--foreground));
+  max-height: 9.6em;
+  overflow: hidden;
+}
+.outro-links {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.outro-links a {
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  box-shadow: 0 0 0 1px hsl(var(--border));
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.outro-links a:hover {
+  background: #ffffff10;
+  box-shadow: 0 0 0 1px #8ef0ff88;
+}
+.outro-links a.primary {
+  background: #8ef0ff;
+  color: #04121a;
+  box-shadow: none;
+}
+.outro-stack {
+  margin-top: 26px;
+  font: 500 11px/1.6 'JetBrains Mono', ui-monospace, monospace;
+  color: hsl(var(--muted-foreground));
+}
+
+:focus-visible {
+  outline: 2px solid #8ef0ff;
+  outline-offset: 2px;
+}
