@@ -1,0 +1,1 @@
+import{_ as o}from"./q-DkB49YG3.js";import{y as a,L as e}from"./q-C7-qR3iZ.js";const r=[["Yes, I ate","Good. Call me on Sunday."],["Not yet","Eat something. Then call me."],["Eating right now","Good. Chew. Call me after."]],n=t=>String(t).padStart(2,"0"),m=a(e(()=>o(()=>import("./q-zqJfCXau.js").then(t=>t.S),[]),"s_f8G6jiFosms"));export{r as A,m as S,n as p};

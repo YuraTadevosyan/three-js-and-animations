@@ -1,0 +1,1 @@
+const n=(o,t)=>{const s=t.closest(".stage");if(!s)return;const e=s.dataset.notes==="off";s.dataset.notes=e?"on":"off",t.setAttribute("aria-pressed",String(e)),t.textContent=e?"Hide notes":"Show notes"};export{n as s_Pv01kkUEGis};
