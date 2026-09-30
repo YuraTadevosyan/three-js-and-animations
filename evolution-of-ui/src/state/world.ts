@@ -27,6 +27,16 @@ export interface World {
   focus: boolean
   /** Mom's call in 2040: 'ringing' → 'open' → 'answered'. */
   call: 'ringing' | 'open' | 'answered'
+  /**
+   * What you painted over the lake in 1995: a PNG data URL of just the
+   * strokes (320×200, transparent elsewhere). Every later era lays it over
+   * the photo, and 2040 rebuilds it as points. Empty until you paint.
+   */
+  art: string
+  /** Sound is off until asked for, and never persisted: browsers need a gesture. */
+  sound: boolean
+  /** Whether the song is playing. Mirrors the audio engine. */
+  playing: boolean
 }
 
 export const DEFAULT_NOTE = [
@@ -76,6 +86,9 @@ export const defaultWorld = (): World => ({
   bluetooth: true,
   focus: false,
   call: 'ringing',
+  art: '',
+  sound: false,
+  playing: false,
 })
 
 export const WorldContext = createContextId<World>('eou.world')
@@ -97,6 +110,7 @@ export function useWorldProvider(): World {
       track(() => world.bluetooth)
       track(() => world.focus)
       track(() => world.messages.map((m) => `${m.read}${m.archived}`).join())
+      track(() => world.art)
 
       // First run restores. Restoring changes tracked fields, which re-runs
       // the task, which saves. Every later run just saves.
@@ -110,6 +124,7 @@ export function useWorldProvider(): World {
             if (typeof saved.wifi === 'boolean') world.wifi = saved.wifi
             if (typeof saved.bluetooth === 'boolean') world.bluetooth = saved.bluetooth
             if (typeof saved.focus === 'boolean') world.focus = saved.focus
+            if (typeof saved.art === 'string' && saved.art.startsWith('data:image/png')) world.art = saved.art
             if (Array.isArray(saved.messages)) {
               for (const m of world.messages) {
                 const s = saved.messages.find((x) => x && x.id === m.id)
@@ -133,6 +148,8 @@ export function useWorldProvider(): World {
             wifi: world.wifi,
             bluetooth: world.bluetooth,
             focus: world.focus,
+            // A very busy painting can outgrow the quota; the note matters more.
+            art: world.art.length < 400_000 ? world.art : '',
             messages: world.messages.map(({ id, read, archived }) => ({ id, read, archived })),
           }),
         )

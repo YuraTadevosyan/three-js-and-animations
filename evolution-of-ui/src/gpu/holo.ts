@@ -28,6 +28,8 @@ export interface HoloFrame {
 export interface HoloRenderer {
   readonly count: number
   setStarts(starts: Float32Array): void
+  /** Re-upload points [first, end) after the scene arrays changed in place. */
+  update(first: number): void
   frame(f: HoloFrame): void
   destroy(): void
 }
@@ -42,6 +44,7 @@ export class GpuHolo implements HoloRenderer {
     private gpu: Gpu,
     private canvas: HTMLCanvasElement,
     private ctx: GPUCanvasContext,
+    private scene: Scene,
     readonly count: number,
     private ubo: GPUBuffer,
     private buffers: GPUBuffer[],
@@ -107,7 +110,7 @@ export class GpuHolo implements HoloRenderer {
         layout: draw.getBindGroupLayout(0),
         entries: [{ binding: 0, resource: { buffer: ubo } }],
       })
-      return new GpuHolo(gpu, canvas, ctx, n, ubo, [baseBuf, colorBuf, startBuf, offsBuf, velBuf], startBuf, sim, simBind, draw, drawBind)
+      return new GpuHolo(gpu, canvas, ctx, scene, n, ubo, [baseBuf, colorBuf, startBuf, offsBuf, velBuf], startBuf, sim, simBind, draw, drawBind)
     } catch (err) {
       console.warn('[evolution-of-ui] Hologram pipeline failed, using the 2D fallback.', err)
       return null
@@ -116,6 +119,12 @@ export class GpuHolo implements HoloRenderer {
 
   setStarts(starts: Float32Array): void {
     this.gpu.device.queue.writeBuffer(this.startBuf, 0, starts)
+  }
+
+  update(first: number): void {
+    const { queue } = this.gpu.device
+    queue.writeBuffer(this.buffers[0], first * 16, this.scene.base, first * 4)
+    queue.writeBuffer(this.buffers[1], first * 16, this.scene.color, first * 4)
   }
 
   frame(f: HoloFrame): void {

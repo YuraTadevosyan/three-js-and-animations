@@ -10,8 +10,8 @@ export const Intro = component$(() => {
           The Evolution of UI
         </h1>
         <p class="intro-lede">
-          One little computer (<b>a note, a photo and three messages</b>) redrawn by every decade it lives through. Write
-          something in 1980. It will still be there in 2040.
+          One little computer (<b>a note, a photo, a song and three messages</b>) redrawn by every decade it lives
+          through. Write something in 1980. It will still be there in 2040.
         </p>
         <ol class="intro-tiles" aria-label="The six eras">
           {ERAS.map((e) => (

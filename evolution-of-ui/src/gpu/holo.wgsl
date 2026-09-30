@@ -62,6 +62,9 @@ fn vs(v: VIn) -> VOut {
     // reflection: dimmer, and it wobbles like water
     p.x += 0.012 * sin(time * 1.6 + p.z * 30.0 + p.y * 24.0);
     alpha = 0.26;
+  } else if (kind > 4.5) {
+    // paint: bright, steady
+    alpha = 1.0;
   } else if (kind > 3.5) {
     // water: shimmer
     alpha = 0.22 + 0.4 * (0.5 + 0.5 * sin(time * 2.0 + p.x * 14.0 + p.z * 9.0 + seed * 6.0));
@@ -90,7 +93,10 @@ fn vs(v: VIn) -> VOut {
   // with a bright plane sweeping across it.
   let c = v.color.rgb;
   let lum = dot(c, vec3f(0.3, 0.55, 0.15));
-  var col = mix(c, vec3f(0.35, 0.95, 1.0) * (0.35 + lum * 1.4), 0.42);
+  // Paint (kind 5) keeps the colour it was painted in: it's the one thing in
+  // the hologram a person made.
+  let tint = select(0.42, 0.06, kind > 4.5);
+  var col = mix(c, vec3f(0.35, 0.95, 1.0) * (0.35 + lum * 1.4), tint);
   let band = 0.82 + 0.18 * sin(p.y * 90.0 - time * 5.0);
   let dx = (p.x - F.misc.z) * 9.0;
   col = col * band + vec3f(0.4, 1.0, 1.0) * exp(-dx * dx) * 0.8;

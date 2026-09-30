@@ -122,6 +122,20 @@
 .sf-sys .warn {
   color: var(--warn);
 }
+.sf-audio {
+  padding: 2px 8px;
+  border: 1px solid var(--cy-dim);
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.sf-audio.on {
+  border-color: var(--cy);
+  color: var(--cy);
+  box-shadow: 0 0 14px rgb(111 246 255 / 0.35);
+}
 
 /* Panels: thin lines, bright corners, nothing opaque. */
 .sf-panel {

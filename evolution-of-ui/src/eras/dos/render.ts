@@ -68,6 +68,26 @@ const BLOCKS: Record<number, (ctx: CanvasRenderingContext2D, x: number, y: numbe
   0x258c: (c, x, y, w, h) => c.fillRect(x, y, w / 2, h), // ▌
   0x2590: (c, x, y, w, h) => c.fillRect(x + w / 2, y, w / 2, h), // ▐
 }
+/** Single-line box drawing, as strokes through the cell centre. */
+const T = 2
+const BOX: Record<number, [left: boolean, right: boolean, up: boolean, down: boolean]> = {
+  0x2500: [true, true, false, false], // ─
+  0x2502: [false, false, true, true], // │
+  0x250c: [false, true, false, true], // ┌
+  0x2510: [true, false, false, true], // ┐
+  0x2514: [false, true, true, false], // └
+  0x2518: [true, false, true, false], // ┘
+}
+for (const [code, [l, r, u, d]] of Object.entries(BOX)) {
+  BLOCKS[Number(code)] = (c, x, y, w, h) => {
+    const cx = x + w / 2 - T / 2
+    const cy = y + h / 2 - T / 2
+    if (l) c.fillRect(x, cy, w / 2 + T / 2, T)
+    if (r) c.fillRect(cx, cy, w / 2 + T / 2, T)
+    if (u) c.fillRect(cx, y, T, h / 2 + T / 2)
+    if (d) c.fillRect(cx, cy, T, h / 2 + T / 2)
+  }
+}
 const SHADES: Record<number, number> = { 0x2591: 0.25, 0x2592: 0.5, 0x2593: 0.75 } // ░ ▒ ▓
 
 export class TextCanvas {

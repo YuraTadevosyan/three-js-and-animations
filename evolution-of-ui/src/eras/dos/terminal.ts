@@ -8,108 +8,12 @@
 
 import { PALETTE_16, ditherToPalette } from '@/lib/landscape'
 import { dosDate, dosFileDate, dosTime } from '@/lib/clock'
+import { SONG_ARTIST, SONG_TITLE, toMML } from '@/lib/song'
 
-export const COLS = 80
-export const ROWS = 25
-
-/** Attribute byte: low nibble foreground, high nibble background. */
-export const GRAY = 0x07
-export const WHITE = 0x0f
-export const DIM = 0x08
-export const CYAN = 0x0b
-export const YELLOW = 0x0e
-export const RED = 0x0c
-
-export const HALF_BLOCK = 0x2580 // ▀ — foreground on top, background below
-
-export class Screen {
-  readonly ch = new Uint16Array(COLS * ROWS)
-  readonly at = new Uint8Array(COLS * ROWS)
-  cx = 0
-  cy = 0
-  /** While non-null, everything written is also appended here as text. */
-  record: string | null = null
-
-  constructor() {
-    this.clear()
-  }
-
-  clear(): void {
-    this.ch.fill(32)
-    this.at.fill(GRAY)
-    this.cx = 0
-    this.cy = 0
-  }
-
-  private scroll(): void {
-    this.ch.copyWithin(0, COLS)
-    this.at.copyWithin(0, COLS)
-    this.ch.fill(32, (ROWS - 1) * COLS)
-    this.at.fill(GRAY, (ROWS - 1) * COLS)
-  }
-
-  newline(): void {
-    if (this.record !== null) this.record += '\n'
-    this.cx = 0
-    if (++this.cy >= ROWS) {
-      this.scroll()
-      this.cy = ROWS - 1
-    }
-  }
-
-  putCode(code: number, attr: number): void {
-    if (this.cx >= COLS) this.newline()
-    const i = this.cy * COLS + this.cx
-    this.ch[i] = code
-    this.at[i] = attr
-    this.cx++
-  }
-
-  write(text: string, attr = GRAY): void {
-    if (this.record !== null) this.record += text.replace(/\n/g, '')
-    for (const c of text) {
-      if (c === '\n') this.newline()
-      else this.putCode(c.codePointAt(0) ?? 32, attr)
-    }
-  }
-
-  writeln(text = '', attr = GRAY): void {
-    this.write(text, attr)
-    this.newline()
-  }
-
-  /** Erase from (x, y) to the end of the screen, leaving the cursor there. */
-  eraseFrom(x: number, y: number): void {
-    const i = y * COLS + x
-    this.ch.fill(32, i)
-    this.at.fill(GRAY, i)
-    this.cx = x
-    this.cy = y
-  }
-
-  clone(): Screen {
-    const s = new Screen()
-    s.ch.set(this.ch)
-    s.at.set(this.at)
-    s.cx = this.cx
-    s.cy = this.cy
-    return s
-  }
-
-  /** Plain text of the screen, for screen readers. */
-  text(fromRow = 0): string {
-    const rows: string[] = []
-    for (let y = fromRow; y < ROWS; y++) {
-      let row = ''
-      for (let x = 0; x < COLS; x++) {
-        const c = this.ch[y * COLS + x]
-        row += c === HALF_BLOCK ? ' ' : String.fromCharCode(c)
-      }
-      rows.push(row.trimEnd())
-    }
-    return rows.join('\n').trim()
-  }
-}
+export * from './screen'
+import { COLS, DIM, GRAY, HALF_BLOCK, Screen, WHITE, YELLOW } from './screen'
+import { Editor } from './editor'
+import { Snake } from './snake'
 
 export interface DosMessage {
   id: string
@@ -130,7 +34,15 @@ export interface DosHost {
   /** The lake photo as 80×44 pixels (two per text cell, stacked). */
   photo(): Promise<ImageData | null>
   beep(): void
+  /** Small game sounds, if sound is on. */
+  blip(kind: 'eat' | 'die'): void
+  /** Start or stop SONG.MUS. */
+  song(on: boolean): void
+  songPlaying(): boolean
 }
+
+/** 'prompt' is C:\>; the others are full-screen programs that own the keyboard. */
+export type Mode = 'prompt' | 'edit' | 'snake'
 
 const MAX_LINE = COLS - 5
 
@@ -178,6 +90,7 @@ export const README = [
   '  NOTES.TXT   your to-do list           TYPE NOTES.TXT',
   '  LAKE.PCX    a photo of the lake       VIEW LAKE.PCX',
   '  MAIL        three new messages        MAIL',
+  '  SONG.MUS    one tune, six decades     PLAY SONG.MUS',
   '',
   'Type HELP for everything else.  Click the screen to start typing.',
 ]
@@ -191,6 +104,14 @@ export class Terminal {
   /** Plain text of the last command's output, for the aria-live region. */
   lastOutput = ''
   busy = false
+  mode: Mode = 'prompt'
+  /** Called whenever a command has finished and the prompt is back. */
+  onOutput: (() => void) | null = null
+
+  private saved: Screen | null = null
+  private editor: Editor | null = null
+  private snake: Snake | null = null
+  private best = 0
 
   private history: string[] = []
   private hi = 0
@@ -243,8 +164,51 @@ export class Terminal {
 
   // ── input ────────────────────────────────────────────────────────────
 
+  /**
+   * Non-printing keys. Returns true if the key was consumed, so the caller
+   * knows whether to let the browser have it.
+   */
+  key(name: string, ctrl = false): boolean {
+    if (this.mode === 'edit') return this.editKey(name)
+    if (this.mode === 'snake') return this.snakeKey(name)
+    switch (name) {
+      case 'Enter':
+        void this.enter()
+        return true
+      case 'Backspace':
+        this.backspace()
+        return true
+      case 'Escape':
+        this.clearLine()
+        return true
+      case 'ArrowUp':
+        this.historyStep(-1)
+        return true
+      case 'ArrowDown':
+        this.historyStep(1)
+        return true
+      case 'c':
+      case 'C':
+        if (!ctrl) return false
+        this.interrupt()
+        return true
+    }
+    return false
+  }
+
   type(text: string): void {
     if (this.busy) return
+    if (this.mode === 'edit' && this.editor) {
+      for (const c of text) if (c >= ' ' && !this.editor.insert(c)) this.host?.beep()
+      this.syncEditor()
+      return
+    }
+    if (this.mode === 'snake') {
+      // WASD steers too, for keyboards without arrows.
+      const turn = { w: 'ArrowUp', a: 'ArrowLeft', s: 'ArrowDown', d: 'ArrowRight' }[text.slice(-1).toLowerCase()]
+      if (turn) this.snakeKey(turn)
+      return
+    }
     for (const c of text) {
       if (c < ' ') continue
       if (this.line.length >= MAX_LINE) {
@@ -309,9 +273,130 @@ export class Terminal {
       this.lastOutput = this.screen.record.trim()
       this.screen.record = null
     }
+    // A full-screen program is running now; the prompt returns when it exits.
+    if (this.mode !== 'prompt') {
+      this.version++
+      return
+    }
+    this.finish()
+  }
+
+  private finish(): void {
     if (this.screen.cx !== 0) this.screen.newline()
     this.screen.newline()
     this.prompt()
+    this.version++
+    this.onOutput?.()
+  }
+
+  // ── full-screen programs ─────────────────────────────────────────────
+
+  private enterMode(mode: Exclude<Mode, 'prompt'>): void {
+    this.saved = this.screen.clone()
+    this.mode = mode
+  }
+
+  /** Leave EDIT or SNAKE: put the screen back exactly as it was, then prompt. */
+  exitMode(): void {
+    if (this.mode === 'prompt') return
+    if (this.editor && this.host) this.host.setNote(this.editor.text())
+    if (this.snake) this.best = this.snake.best
+    if (this.saved) this.screen.copyFrom(this.saved)
+    this.saved = null
+    this.editor = null
+    this.snake = null
+    this.mode = 'prompt'
+    this.finish()
+  }
+
+  private syncEditor(): void {
+    if (!this.editor) return
+    // Saved on every keystroke, so the note is already in 2025 as you type.
+    this.host?.setNote(this.editor.text())
+    this.editor.draw(this.screen)
+    this.version++
+  }
+
+  private editKey(name: string): boolean {
+    const e = this.editor
+    if (!e) return false
+    switch (name) {
+      case 'Escape':
+        this.exitMode()
+        return true
+      case 'Enter':
+        if (!e.newline()) this.host?.beep()
+        break
+      case 'Backspace':
+        e.backspace()
+        break
+      case 'Delete':
+        e.del()
+        break
+      case 'ArrowLeft':
+        e.move(-1, 0)
+        break
+      case 'ArrowRight':
+        e.move(1, 0)
+        break
+      case 'ArrowUp':
+        e.move(0, -1)
+        break
+      case 'ArrowDown':
+        e.move(0, 1)
+        break
+      case 'Home':
+        e.home()
+        break
+      case 'End':
+        e.end()
+        break
+      default:
+        return false
+    }
+    this.syncEditor()
+    return true
+  }
+
+  private snakeKey(name: string): boolean {
+    const g = this.snake
+    if (!g) return false
+    switch (name) {
+      case 'Escape':
+        this.exitMode()
+        return true
+      case 'Enter':
+        if (g.dead) g.reset()
+        break
+      case 'ArrowLeft':
+        g.turn(-1, 0)
+        break
+      case 'ArrowRight':
+        g.turn(1, 0)
+        break
+      case 'ArrowUp':
+        g.turn(0, -1)
+        break
+      case 'ArrowDown':
+        g.turn(0, 1)
+        break
+      default:
+        return false
+    }
+    g.draw(this.screen)
+    this.version++
+    return true
+  }
+
+  /** Advance SNAKE by one step. The host calls this on a timer. */
+  tick(): void {
+    const g = this.snake
+    if (this.mode !== 'snake' || !g) return
+    const ev = g.tick()
+    if (ev === 'idle') return
+    if (ev === 'ate') this.host?.blip('eat')
+    if (ev === 'died') this.host?.blip('die')
+    g.draw(this.screen)
     this.version++
   }
 
@@ -382,8 +467,38 @@ export class Terminal {
         s.writeln("There's nowhere to exit to. It's 1980. Scroll down instead.")
         return
       case 'EDIT':
+        if (argU && !/^NOTES(\.TXT)?$/.test(argU)) {
+          s.writeln('Access denied - only NOTES.TXT is yours to edit.')
+          return
+        }
+        if (!this.host) return
+        this.enterMode('edit')
+        this.editor = new Editor(this.host.note())
+        this.editor.draw(s)
+        return
       case 'EDLIN':
-        s.writeln(`${cmd} is not installed. Try:  ECHO buy milk >> NOTES.TXT`)
+        s.writeln('EDLIN is not installed. Nobody misses it. Try EDIT.')
+        return
+      case 'SNAKE':
+      case 'NIBBLES':
+      case 'QBASIC':
+        this.enterMode('snake')
+        this.snake = new Snake(Math.random, this.best)
+        this.snake.draw(s)
+        return
+      case 'PLAY':
+        if (argU && !/^SONG(\.MUS)?$/.test(argU)) {
+          s.writeln('File not found')
+          return
+        }
+        this.host?.song(true)
+        s.write('Playing SONG.MUS on the PC speaker: ')
+        s.writeln(`"${SONG_TITLE}" by ${SONG_ARTIST}`, WHITE)
+        s.writeln('Type STOP to stop it, or scroll on and hear every decade re-record it.', DIM)
+        return
+      case 'STOP':
+        if (this.host?.songPlaying()) this.host.song(false)
+        else s.writeln('Nothing is playing.')
         return
       case 'FORMAT':
         s.writeln('Nice try.')
@@ -410,8 +525,11 @@ export class Terminal {
       ['DATE', 'Displays the date.'],
       ['DIR', 'Lists the files in the current directory.'],
       ['ECHO', 'Prints a message, or writes one:  ECHO buy milk >> NOTES.TXT'],
+      ['EDIT', 'Opens the full-screen editor on NOTES.TXT.'],
       ['MAIL', 'Lists your mail.  MAIL 1 reads the first message.'],
       ['MEM', 'Displays the amount of used and free memory.'],
+      ['PLAY', 'Plays a tune on the PC speaker:  PLAY SONG.MUS  (STOP stops it)'],
+      ['SNAKE', 'A game. Arrow keys. You know the one.'],
       ['TIME', 'Displays the time.'],
       ['TYPE', 'Displays a text file:  TYPE NOTES.TXT'],
       ['VER', 'Displays the MS-DOS version.'],
@@ -437,9 +555,11 @@ export class Terminal {
       ['COMMAND', 'COM', '25307', '03-17-87', '12:00p'],
       ['AUTOEXEC', 'BAT', '79', '09-27-86', ' 6:02p'],
       ['CONFIG', 'SYS', '52', '09-27-86', ' 6:02p'],
-      ['README', 'TXT', '288', '09-27-86', ' 6:04p'],
+      ['README', 'TXT', '344', '09-27-86', ' 6:04p'],
       ['NOTES', 'TXT', String(this.noteBytes()), today, ' 9:04p'],
       ['LAKE', 'PCX', '38912', '07-14-86', ' 8:47p'],
+      ['SONG', 'MUS', String(toMML().length + 8), '05-02-86', ' 7:00p'],
+      ['SNAKE', 'BAS', '4187', '11-30-86', ' 2:13a'],
       ['MAIL', '', '<DIR>', '09-27-86', ' 6:05p'],
       ['WIN', 'COM', '22016', '06-01-87', '12:00a'],
     ]
@@ -470,6 +590,15 @@ export class Terminal {
       case 'README.TXT':
       case 'README':
         this.readme()
+        return
+      case 'SONG.MUS':
+      case 'SONG':
+        // What the file would really have held: a GW-BASIC PLAY string.
+        for (const row of wrap(`PLAY "${toMML()}"`, COLS - 1)) s.writeln(row)
+        return
+      case 'SNAKE.BAS':
+        s.writeln('10 REM You are not going to read 4187 bytes of BASIC.')
+        s.writeln('20 REM Type SNAKE.')
         return
       case 'AUTOEXEC.BAT':
         s.writeln('@ECHO OFF')

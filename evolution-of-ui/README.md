@@ -2,24 +2,30 @@
 
 **The Evolution of UI:** sixty years of interfaces on one scroll.
 
-The same little computer (a note, a photo of a lake, and three messages from
-people who worry about you) is redrawn by every decade it lives through. Each
-era is usable, not a screenshot. Type into the DOS prompt, drag Windows 95
+The same little computer (a note, a photo of a lake, a song, and three messages
+from people who worry about you) is redrawn by every decade it lives through.
+Each era is usable, not a screenshot. Type into the DOS prompt, drag Windows 95
 windows, rate the photo on a Web 2.0 site, archive a message in Material and
 undo it, tilt the glass, talk to the 2040 hologram. Whatever you change travels
-with you: a line added with `ECHO … >> NOTES.TXT` in 1980 is on the glass widget
-in 2025 and in the hologram's memory panel in 2040.
+with you:
+
+- a line added with `ECHO … >> NOTES.TXT` in 1980 is on the glass widget in
+  2025 and in the hologram's memory panel in 2040;
+- what you paint over the lake in Windows 95 Paint stays painted in every later
+  decade, and 2040 rebuilds your brush strokes as points in the hologram;
+- press play in any era, keep scrolling, and the same song is re-recorded by
+  each decade as you pass through it.
 
 **Live:** <https://yuratadevosyan.github.io/three-js-and-animations/evolution-of-ui/>
 
 | t | Year | Era | What's real |
 | --- | --- | --- | --- |
-| 0.6 – 1.4 | 1980 | DOS | An 80×25 text-mode machine with `DIR`, `TYPE`, `ECHO >`/`>>`, `MAIL`, `VIEW LAKE.PCX` (ANSI half-block art, dithered to CGA), history, PC-speaker beep, all drawn through a WebGPU CRT shader. |
-| 2.0 – 2.6 | 1995 | Windows 95 | A window manager (drag, focus, minimise, maximise, taskbar), Start menu, Notepad, Paint with working tools on a 16-colour Bayer-dithered photo, an Exchange inbox, a real Minesweeper, message boxes and "It's now safe to turn off your computer." |
-| 3.0 – 3.6 | 2005 | Web 2.0 | A glossy social site named *notr*, with a beta badge, reflected logo, NEW! starburst, polaroid, tag cloud, star rating, digg counter, an AJAX spinner and the Yellow Fade Technique. |
+| 0.6 – 1.4 | 1980 | DOS | An 80×25 text-mode machine with `DIR`, `TYPE`, `ECHO >`/`>>`, `MAIL`, `VIEW LAKE.PCX` (ANSI half-block art, dithered to CGA), a full-screen `EDIT`, `PLAY SONG.MUS` on the PC speaker, `SNAKE`, history, all drawn through a WebGPU CRT shader. |
+| 2.0 – 2.6 | 1995 | Windows 95 | A window manager (drag, focus, minimise, maximise, taskbar), Start menu, Notepad, Paint with working tools on a 16-colour Bayer-dithered photo, Media Player, an Exchange inbox, a real Minesweeper, message boxes and "It's now safe to turn off your computer." |
+| 3.0 – 3.6 | 2005 | Web 2.0 | A glossy social site named *notr*, with a beta badge, reflected logo, NEW! starburst, polaroid, tag cloud, star rating, digg counter, an embedded radio player, an AJAX spinner and the Yellow Fade Technique. |
 | 4.0 – 4.6 | 2015 | Material Design | App bar with tabs and an ink bar, cards on real elevation, a floating-label text field, switches, ink ripples, a FAB, a snackbar with UNDO, and a navigation drawer. |
 | 5.0 – 5.6 | 2025 | Glassmorphism | Frosted panels over drifting colour with a pointer-tracked specular highlight and tilt, a notification stack that fans out, now-playing, and a control centre. |
-| 6.05 – 6.6 | 2040 | Sci-fi UI | The lake photo rebuilt as a ~49 000-point WebGPU hologram with compute-shader physics, a HUD, a voice call from Mom you can finally answer, and NEXUS, an assistant you can type or talk to. |
+| 6.05 – 6.6 | 2040 | Sci-fi UI | The lake photo (and anything you painted on it) rebuilt as a ~49 000-point WebGPU hologram with compute-shader physics, a HUD, a voice call from Mom you can finally answer, and NEXUS, an assistant you can type or talk to. |
 
 ## Stack
 
@@ -29,6 +35,7 @@ in 2025 and in the hologram's memory panel in 2040.
 | Scroll | Native **CSS scroll-driven animations** (a view timeline drives one registered `@property`) |
 | 3D / effects | **WebGPU** + hand-written **WGSL**: a render pipeline for the CRT, a compute pipeline and an instanced render pipeline for the hologram |
 | Fallbacks | DOM text mode, Canvas 2D hologram, JS scroll mirror |
+| Audio | Web Audio API, fully synthesised: one song in six arrangements, interface sounds, no files |
 | Speech | Web Speech API (recognition and synthesis), optional |
 | Styling | Tailwind v3 for the chrome; each era's own stylesheet via `useStyles$` |
 | Build | Vite 7, TypeScript 5.8, eslint-plugin-qwik |
@@ -96,8 +103,9 @@ Two tricks worth knowing:
 ## The same little computer
 
 `src/state/world.ts` is one Qwik store: the note, three messages (read and
-archived flags), Wi-Fi, Bluetooth, Focus, and Mom's call. Every era renders it
-in its own idiom, and it persists in `localStorage`.
+archived flags), what you painted on the photo, Wi-Fi, Bluetooth, Focus, Mom's
+call, and whether the song is playing. Every era renders it in its own idiom,
+and the lasting parts persist in `localStorage`.
 
 | Thing | 1980 | 1995 | 2005 | 2015 | 2025 | 2040 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -105,11 +113,54 @@ in its own idiom, and it persists in `localStorage`.
 | Messages | `MAIL`, `MAIL 1` | Exchange inbox | Your wall | Two-line list, archive + UNDO | Notification stack | Comms, and a call from Mom |
 | Wi-Fi | `MAIL` says `NO CARRIER` | Tray icon | IE-style offline bar | Switch | Control centre | `LINK OFFLINE` |
 | The photo | `VIEW LAKE.PCX` (CGA, half-blocks) | Paint (16 colours, Bayer) | Polaroid | Card media | Ambient glow | Point cloud |
+| Your paint | In `VIEW`, resampled | Where you paint it | Over the polaroid | Over the card | Over the widget | Bright points in the hologram |
+| The song | `PLAY SONG.MUS` | Media Player | notr radio | Now-playing card | Now-playing widget | "play the song" |
 
 Clocks everywhere show the real time of day, but in the era's year, with the
 weekday that date actually had then. 27 September was a Saturday in 1980 and
 a Wednesday in 1995. One imperative interval updates every `[data-clock]`,
 so ticking time never wakes a Qwik component.
+
+### Paint that travels
+
+Paint keeps two surfaces: the canvas you see, and a transparent layer holding
+only your strokes. After each stroke that layer is saved to the world as a PNG
+data URL (`world.art`). Later eras lay it over their own rendering of the photo
+with the same box and `object-fit`, DOS composites it before dithering, and
+2040 turns it into geometry.
+
+`photoToWorld()` in `src/eras/scifi/scene.ts` maps a photo pixel to the surface
+it shows: paint on the sky hangs behind the far range, paint on a mountain lies
+on that mountain's near slope (it inverts the ridge's Gaussian falloff to find
+the depth where the slope is exactly that high), and paint on the lake floats
+on the water. 6 000 point slots are reserved at the end of every buffer for
+this, empty until there's paint, and rewritten in place when it changes.
+
+### One song, six arrangements
+
+`src/lib/song.ts` is sixteen bars of melody and chords as data. `src/lib/audio.ts`
+performs it with a look-ahead scheduler, and **each note picks its instrument
+at the moment it is scheduled, from the current scroll position**. So you can
+start it on the PC speaker and scroll:
+
+| Era | How it plays the same sixteen bars |
+| --- | --- |
+| 1980 | One square wave. Where the melody rests, it arpeggiates the chord, the PC-speaker trick for faking harmony. |
+| 1995 | Two-operator FM lead and bass, triangle pad, noise drums: a General MIDI file on a sound card. |
+| 2005 | Detuned saws through a closing low-pass, strummed chords, driving eighth-note bass, a full kit. |
+| 2015 | A sine marimba with a 4× partial, soft kick, rim tick. Exactly on the grid. |
+| 2025 | Bells into a reverb over a slow detuned pad. |
+| 2040 | FM glass through a dotted-eighth echo, a pad whose filter opens, a sub bass. No drums. |
+
+Everything is synthesised: no samples, no files. `TYPE SONG.MUS` prints the
+melody as a real GW-BASIC `PLAY` string, generated from the same data.
+
+Sound is **off by default**. The rail has the toggle, and pressing play anywhere
+turns it on. With sound on, each era also has its own interface sounds and a
+short sting when you stop in it, and 2040 hums. Stings wait 320 ms, so scrolling
+straight through six eras does not set off six fanfares. The engine is only
+ever reached through a dynamic import (`src/state/sound.ts`), so none of it
+runs for a visitor who leaves sound off.
 
 ## WebGPU
 
@@ -161,6 +212,8 @@ until something needs it:
 | `prefers-reduced-motion` | No CRT flicker, no auto-orbit or physics, no drifting blobs or tilt, no ripples; scroll-scrubbed transitions remain, since the visitor drives them. |
 | `localStorage` blocked | The world lives for the visit. |
 | No Web Speech | The mic button doesn't render; typing still works. |
+| No Web Audio, or sound left off | Silent. Nothing else changes, and the audio engine never runs. |
+| A painting too big for `localStorage` | It lasts for the visit; the note and the rest still save. |
 
 ## Verifying without a browser
 
@@ -177,6 +230,14 @@ npm run check:wgsl   # compile + run the shaders in Dawn (see below)
 - the year curve and live/dwell windows;
 - era weekdays;
 - NEXUS intents;
+- the editor (joins, splits, overlong lines, live save, exact screen restore)
+  and SNAKE (steering, eating, dying, quitting);
+- the song data (every bar sums to eight eighths, the melody is monophonic);
+- **the audio engine**, run against a strict fake `AudioContext` that throws on
+  anything a real one would reject or turn into silence. All six arrangements,
+  every sound effect and every sting go through it;
+- the paint-to-hologram mapping (each pixel lands on the surface it was painted
+  on, the sky stays in view, too much paint is sampled down to the slots);
 - the lake's geometry;
 - the inline boot script, run against a fake DOM with and without native
   timelines;
@@ -210,6 +271,14 @@ npm i --no-save webgpu@0.6.1 && npm run check:wgsl
   `mines.ts`.
 - **Links in the eras must never be `href="#"`.** A hash jump scrolls the page,
   which here means time-travelling to 1980. Decorative links are spans.
+- **Full-screen DOS programs draw with `putAt`/`set`, never `write`.** `write`
+  moves the cursor and wraps; the editor and SNAKE own the whole grid and
+  restore the saved screen on exit.
+- **`screen.ts` exists to break an import cycle.** `editor.ts` and `snake.ts`
+  need the grid constants at module load, and `terminal.ts` imports both.
+- **Audio params are ramped or retargeted, never assigned mid-sound**, and
+  exponential ramps must end above zero. The fake `AudioContext` in the tests
+  enforces the second part.
 - `LIVE` windows in `eras.ts` must enclose each era's dwell *and* its
   transitions. `npm test` checks the dwell part.
 
@@ -218,11 +287,11 @@ npm i --no-save webgpu@0.6.1 && npm run check:wgsl
 ```
 src/
 ├── timeline/        eras.ts (the t table), boot.ts (inline script), progress.ts
-├── state/world.ts   the one little computer, persisted
-├── lib/             landscape (the photo), clock (era dates), mat4
+├── state/           world.ts (the one little computer, persisted), sound.ts
+├── lib/             landscape (the photo), song + audio (the song), clock, mat4
 ├── gpu/             device, CRT + hologram renderers, WGSL
 ├── eras/
-│   ├── dos/         terminal engine, renderers, lazy mount
+│   ├── dos/         screen, terminal, editor, snake, renderers, lazy mount
 │   ├── win95/       window manager, apps, Paint, Minesweeper, icons
 │   ├── web2/        notr
 │   ├── material/    Notes

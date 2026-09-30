@@ -17,8 +17,8 @@ export const Outro = component$(() => {
           The note didn't.
         </h2>
         <p class="outro-lede">
-          Every decade redrew the same few things: somewhere to write, a picture you like, and a message from someone
-          who worries about you.
+          Every decade redrew the same few things: somewhere to write, a picture you like, a song, and a message from
+          someone who worries about you.
         </p>
         <div class="outro-note">
           <header>

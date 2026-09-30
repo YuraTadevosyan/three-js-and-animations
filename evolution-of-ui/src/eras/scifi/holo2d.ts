@@ -7,13 +7,14 @@
 import { fitCanvas } from '@/gpu/device'
 import type { HoloFrame, HoloRenderer } from '@/gpu/holo'
 import { transform } from '@/lib/mat4'
-import { COLLAPSE_POINT, KIND, TARGET, type Scene } from './scene'
+import { ART_SLOTS, COLLAPSE_POINT, KIND, TARGET, type Scene } from './scene'
 
 const STYLE: Record<number, string> = {
   [KIND.solid]: '#7fe9ff',
   [KIND.ring]: '#5ff7ff',
   [KIND.star]: '#e8f4ff',
   [KIND.water]: '#4fb8ff',
+  [KIND.paint]: '#ffd6f2',
 }
 
 const smooth = (a: number, b: number, x: number) => {
@@ -36,7 +37,10 @@ export class Holo2D implements HoloRenderer {
     this.ctx = canvas.getContext('2d')!
     this.starts = new Float32Array(scene.count * 4)
     const picked: number[] = []
-    for (let i = 0; i < scene.count; i += stride) if (scene.color[i * 4 + 3] !== KIND.reflection) picked.push(i)
+    const first = scene.count - ART_SLOTS
+    for (let i = 0; i < first; i += stride) if (scene.color[i * 4 + 3] !== KIND.reflection) picked.push(i)
+    // Every paint slot, not a sample: empty ones have size 0 and are skipped.
+    for (let i = first; i < scene.count; i++) picked.push(i)
     picked.sort((a, b) => scene.color[a * 4 + 3] - scene.color[b * 4 + 3])
     this.order = Int32Array.from(picked)
   }
@@ -48,6 +52,9 @@ export class Holo2D implements HoloRenderer {
   setStarts(starts: Float32Array): void {
     this.starts = starts
   }
+
+  /** Nothing to upload: this renderer reads the scene arrays directly. */
+  update(): void {}
 
   frame(f: HoloFrame): void {
     fitCanvas(this.canvas, 1.5)
@@ -64,6 +71,7 @@ export class Holo2D implements HoloRenderer {
     const sr = Math.sin(rot)
     for (const i of this.order) {
       const kind = scene.color[i * 4 + 3]
+      if (scene.base[i * 4 + 3] === 0) continue
       if (kind !== style) {
         ctx.fillStyle = STYLE[kind] ?? '#7fe9ff'
         style = kind

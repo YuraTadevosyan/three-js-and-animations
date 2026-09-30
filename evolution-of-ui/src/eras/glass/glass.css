@@ -223,6 +223,16 @@
   border-radius: 18px;
   box-shadow: 0 20px 40px -20px rgb(0 0 0 / 0.6);
 }
+/* Your 1995 brush strokes, over the photo (same box as .gl-photo-img). */
+.gl-photo-art {
+  position: absolute;
+  inset: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  object-fit: cover;
+  border-radius: 18px;
+  pointer-events: none;
+}
 .gl-chip {
   position: absolute;
   left: 26px;

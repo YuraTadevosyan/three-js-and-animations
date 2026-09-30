@@ -192,35 +192,49 @@ export const LAKE_URL = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(L
 
 const rasters = new Map<string, Promise<ImageData | null>>()
 
+async function decode(src: string): Promise<HTMLImageElement> {
+  const img = new Image()
+  img.src = src
+  await img.decode()
+  return img
+}
+
+async function raster(w: number, h: number, layers: string[]): Promise<ImageData | null> {
+  try {
+    const c = document.createElement('canvas')
+    c.width = w
+    c.height = h
+    const ctx = c.getContext('2d', { willReadFrequently: true })
+    if (!ctx) return null
+    ctx.imageSmoothingQuality = 'high'
+    for (const src of layers) ctx.drawImage(await decode(src), 0, 0, w, h)
+    return ctx.getImageData(0, 0, w, h)
+  } catch {
+    return null
+  }
+}
+
 /**
  * The photo as pixels, at any size. Client only. Resolves to null if the
  * browser refuses to decode or read back the SVG.
+ *
+ * Pass `art` (the painted layer from world.art) to get the photo as its
+ * owner left it, brush strokes included.
  */
-export function rasterLake(w: number, h: number): Promise<ImageData | null> {
+export function rasterLake(w: number, h: number, art = ''): Promise<ImageData | null> {
+  // Painted versions aren't cached: the painting keeps changing.
+  if (art) return raster(w, h, [LAKE_URL, art])
   const key = `${w}x${h}`
   let p = rasters.get(key)
   if (!p) {
-    p = (async () => {
-      try {
-        const img = new Image()
-        img.src = LAKE_URL
-        await img.decode()
-        const c = document.createElement('canvas')
-        c.width = w
-        c.height = h
-        const ctx = c.getContext('2d', { willReadFrequently: true })
-        if (!ctx) return null
-        ctx.imageSmoothingQuality = 'high'
-        ctx.drawImage(img, 0, 0, w, h)
-        return ctx.getImageData(0, 0, w, h)
-      } catch {
-        return null
-      }
-    })()
+    p = raster(w, h, [LAKE_URL])
     rasters.set(key, p)
   }
   return p
 }
+
+/** Only the painted strokes, as pixels: transparent wherever nothing was painted. */
+export const rasterArt = (art: string, w: number, h: number): Promise<ImageData | null> => (art ? raster(w, h, [art]) : Promise.resolve(null))
 
 type RGB = readonly [number, number, number]
 

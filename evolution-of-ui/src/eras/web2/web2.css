@@ -316,6 +316,71 @@
   font-family: 'Trebuchet MS', sans-serif;
 }
 
+/* The embedded player every 2005 profile had. */
+.w2-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.w2-playbtn {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: calc(18px * var(--gloss) + 2px * var(--flat));
+}
+.w2-player-b {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+}
+.w2-scrub {
+  height: 6px;
+  margin-top: 5px;
+  border: 1px solid #a9c6e6;
+  border-radius: calc(3px * var(--gloss));
+  background: linear-gradient(#e8f1fb, #fff);
+  overflow: hidden;
+}
+.w2-scrub i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(#8fd0fb, #2d87d8);
+}
+.w2-eq {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 22px;
+}
+.w2-eq i {
+  width: 3px;
+  height: 20%;
+  background: linear-gradient(#ff7a1a, #ffc400);
+}
+.w2-eq.on i {
+  animation: w2-eq 0.5s ease-in-out infinite alternate;
+}
+.w2-eq.on i:nth-child(2) {
+  animation-duration: 0.37s;
+}
+.w2-eq.on i:nth-child(3) {
+  animation-duration: 0.61s;
+}
+.w2-eq.on i:nth-child(4) {
+  animation-duration: 0.43s;
+}
+@keyframes w2-eq {
+  to {
+    height: 100%;
+  }
+}
+
 /* ── feed ────────────────────────────────────────────────────────────── */
 
 .w2-feed {
@@ -454,6 +519,9 @@
   width: 204px;
   height: 128px;
   object-fit: cover;
+}
+.w2-photo {
+  position: relative;
 }
 .w2-polaroid figcaption {
   margin-top: 7px;

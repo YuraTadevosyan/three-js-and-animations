@@ -33,6 +33,7 @@ export type IconName =
   | 'help'
   | 'run'
   | 'shutdown'
+  | 'media'
 
 const K = '#000'
 const G = '#c0c0c0'
@@ -258,6 +259,19 @@ const ART: Record<IconName, () => JSXOutput> = {
       <rect x="4" y="7" width="24" height="3" fill="#000080" />
       <rect x="7" y="15" width="18" height="4" fill={W} />
     </g>
+  ),
+  media: () => (
+    <>
+      <g shape-rendering="crispEdges">
+        <rect x="3" y="4" width="26" height="24" fill={K} />
+        <rect x="4" y="5" width="24" height="22" fill={G} />
+        <rect x="4" y="5" width="24" height="4" fill="#000080" />
+        <rect x="6" y="11" width="20" height="14" fill={W} />
+      </g>
+      <path d="M14 22V14l8-2v8" fill="none" stroke={K} stroke-width="1.8" />
+      <ellipse cx="12" cy="22" rx="2.6" ry="1.9" fill={K} />
+      <ellipse cx="20" cy="20" rx="2.6" ry="1.9" fill={K} />
+    </>
   ),
   shutdown: () => (
     <g shape-rendering="crispEdges">

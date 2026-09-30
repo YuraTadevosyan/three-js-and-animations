@@ -5,7 +5,7 @@ import { createContextId } from '@builder.io/qwik'
  * Qwik handlers can import them into any lazily-loaded chunk.
  */
 
-export type WinId = 'notepad' | 'paint' | 'inbox' | 'mines' | 'computer' | 'bin' | 'welcome'
+export type WinId = 'notepad' | 'paint' | 'inbox' | 'mines' | 'computer' | 'bin' | 'welcome' | 'media'
 
 export interface WinState {
   open: boolean
@@ -44,6 +44,7 @@ export const initialDesk = (): Desk => ({
     mines: win(false, 0.62, 0.4, 0),
     computer: win(false, 0.24, 0.14, 0),
     bin: win(false, 0.32, 0.24, 0),
+    media: win(false, 0.55, 0.52, 0),
   },
   focus: 'notepad',
   zTop: 3,
@@ -111,6 +112,7 @@ export const TITLES: Record<WinId, string> = {
   computer: 'My Computer',
   bin: 'Recycle Bin',
   welcome: 'Welcome',
+  media: 'song.mid - Media Player',
 }
 
 export const TASK_LABELS: Record<WinId, string> = {
@@ -121,4 +123,5 @@ export const TASK_LABELS: Record<WinId, string> = {
   computer: 'My Computer',
   bin: 'Recycle Bin',
   welcome: 'Welcome',
+  media: 'song.mid - Media Pl...',
 }

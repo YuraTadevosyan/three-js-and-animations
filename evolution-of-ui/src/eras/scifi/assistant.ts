@@ -6,15 +6,19 @@
  */
 
 import { eraDate } from '@/lib/clock'
+import { SONG_ARTIST, SONG_TITLE } from '@/lib/song'
 
 export interface NexusContext {
   note: string
   messages: readonly { from: string; subject: string; read: boolean }[]
   wifi: boolean
   now: Date
+  /** Whether the song is playing, and whether the photo has been painted on. */
+  playing?: boolean
+  painted?: boolean
 }
 
-export type NexusAction = 'append-note' | 'open-call' | 'pulse' | 'go-1980' | 'toggle-wifi'
+export type NexusAction = 'append-note' | 'open-call' | 'pulse' | 'go-1980' | 'toggle-wifi' | 'play-song' | 'stop-song'
 
 export interface NexusReply {
   text: string
@@ -40,7 +44,13 @@ export function respond(raw: string, ctx: NexusContext): NexusReply {
   }
 
   if (/^(help|\?|what can you do|commands)$/.test(q))
-    return { text: 'Try: “read my note”, “remember buy milk”, “messages”, “call mom”, “time”, “weather”, “show me the lake”, “go back to 1980”.' }
+    return { text: 'Try: “read my note”, “remember buy milk”, “messages”, “call mom”, “play the song”, “show me the lake”, “time”, “go back to 1980”.' }
+
+  if (/\b(stop|pause|quiet|silence|mute)\b/.test(q))
+    return ctx.playing ? { text: 'Silence.', action: 'stop-song' } : { text: 'Nothing is playing. Say “play the song”.' }
+
+  if (/\b(play|music|song|sing|tune)\b/.test(q))
+    return { text: `“${SONG_TITLE}”, ${SONG_ARTIST}. First played on a PC speaker in 1980; this is how it sounds now.`, action: 'play-song' }
 
   if (/\b(forget|clear|delete|erase)\b/.test(q)) return { text: 'I would rather not. Grandpa asked us to keep everything.' }
 
@@ -80,7 +90,12 @@ export function respond(raw: string, ctx: NexusContext): NexusReply {
   if (/\b(weather|temperature|outside|sunset)\b/.test(q)) return { text: '18° at the lake, clear. The sun sets into the same valley it did in 1986.' }
 
   if (/\b(show|lake|photo|picture|image|hologram)\b/.test(q))
-    return { text: 'LAKE.PCX, 1986: 320×200 pixels, rebuilt as a point cloud. Drag to walk around it.', action: 'pulse' }
+    return {
+      text: ctx.painted
+        ? 'LAKE.PCX, 1986, rebuilt as a point cloud. The bright points are what you painted on it in 1995.'
+        : 'LAKE.PCX, 1986: 320×200 pixels, rebuilt as a point cloud. Drag to walk around it.',
+      action: 'pulse',
+    }
 
   if (/\b(1980|dos|back|rewind|past|history|beginning|start over)\b/.test(q)) return { text: 'Rewinding sixty years.', action: 'go-1980' }
 

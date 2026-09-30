@@ -1,5 +1,7 @@
 import { component$, useContext, useSignal } from '@builder.io/qwik'
 import { inbox, unreadCount, useWorld } from '@/state/world'
+import { clockTime, setSong, useSongPosition } from '@/state/sound'
+import { SONG_ARTIST, SONG_SECONDS, SONG_TITLE } from '@/lib/song'
 import { DeskContext, openWin, type Alert } from './desk'
 import { Icon, type IconName } from './icons'
 
@@ -238,6 +240,54 @@ export const Welcome = component$(() => {
           </button>
         </div>
       </div>
+    </div>
+  )
+})
+
+/** song.mid, the way a 1995 sound card played it: General MIDI through an FM chip. */
+export const MediaPlayer = component$(() => {
+  const world = useWorld()
+  const pos = useSongPosition(world)
+  return (
+    <div class="mp">
+      <div class="w95-menubar">
+        <span>File</span>
+        <span>Edit</span>
+        <span>Device</span>
+        <span>Scale</span>
+        <span>Help</span>
+      </div>
+      <div
+        class="mp-track"
+        role="progressbar"
+        aria-label="Position"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(SONG_SECONDS)}
+        aria-valuenow={Math.round(pos.value)}
+      >
+        <i style={{ left: `${(pos.value / SONG_SECONDS) * 100}%` }} />
+      </div>
+      <div class="mp-scale" aria-hidden="true">
+        <span>0:00</span>
+        <span>{clockTime(SONG_SECONDS / 2)}</span>
+        <span>{clockTime(SONG_SECONDS)}</span>
+      </div>
+      <div class="mp-bar">
+        <button type="button" class="w95-btn mp-btn" aria-label="Play" disabled={world.playing} onClick$={() => setSong(world, true)}>
+          <svg width="9" height="10" viewBox="0 0 9 10" aria-hidden="true">
+            <path d="M0 0l9 5-9 5z" />
+          </svg>
+        </button>
+        <button type="button" class="w95-btn mp-btn" aria-label="Stop" disabled={!world.playing} onClick$={() => setSong(world, false)}>
+          <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
+            <path d="M0 0h8v8H0z" />
+          </svg>
+        </button>
+        <span class="w95-field grow">{world.playing ? `Playing   ${clockTime(pos.value)}` : 'Stopped'}</span>
+      </div>
+      <p class="mp-note">
+        “{SONG_TITLE}” by {SONG_ARTIST}. Leave it playing and scroll: every decade re-records it.
+      </p>
     </div>
   )
 })

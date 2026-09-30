@@ -510,13 +510,69 @@
     inset -2px -2px #dfdfdf,
     inset 2px 2px #808080;
 }
-.pt-opts {
+.pt-clear {
   grid-column: span 2;
-  height: 62px;
-  margin-top: 4px;
+  min-width: 0;
+  height: 21px;
+  margin-top: 6px;
+  padding: 0;
+  font-size: 10px;
+}
+
+/* Media Player */
+.mp {
+  padding: 0 6px 8px;
+}
+.mp-track {
+  position: relative;
+  height: 6px;
+  margin: 12px 8px 0;
+  background: #fff;
   box-shadow:
     inset -1px -1px #fff,
-    inset 1px 1px #808080;
+    inset 1px 1px #808080,
+    inset 2px 2px #0a0a0a;
+}
+/* The slider thumb: a raised tab that rides the track. */
+.mp-track i {
+  position: absolute;
+  top: -7px;
+  width: 11px;
+  height: 20px;
+  margin-left: -5px;
+  background: #c0c0c0;
+  box-shadow:
+    inset -1px -1px #0a0a0a,
+    inset 1px 1px #fff,
+    inset -2px -2px #808080;
+}
+.mp-scale {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 4px 8px;
+  font-size: 10px;
+}
+.mp-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+}
+.mp-btn {
+  min-width: 0;
+  width: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.mp-btn:disabled svg {
+  fill: #808080;
+  filter: drop-shadow(1px 1px #fff);
+}
+.mp-note {
+  margin: 8px 2px 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #404040;
 }
 .pt-canvas-wrap {
   flex: 1;

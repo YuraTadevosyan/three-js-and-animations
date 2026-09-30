@@ -2,12 +2,10 @@ import { component$, useSignal, useStyles$, useVisibleTask$ } from '@builder.io/
 import styles from './glass.css?inline'
 import { agoLabel, inbox, useWorld } from '@/state/world'
 import { LAKE_SRC } from '@/lib/lake-src'
+import { clockTime, play, setSong, toggleSong, useSongPosition } from '@/state/sound'
+import { SONG_ARTIST, SONG_SECONDS, SONG_TITLE } from '@/lib/song'
 import { LIVE } from '@/timeline/eras'
 import { prefersReducedMotion, whenNear } from '@/timeline/progress'
-
-const TRACK_LEN = 214 // "Call Me Back", 3:34
-
-const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
 const WifiIcon = (props: { on: boolean }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
@@ -24,8 +22,7 @@ export const Glass = component$(() => {
   useStyles$(styles)
   const world = useWorld()
   const root = useSignal<HTMLElement>()
-  const playing = useSignal(false)
-  const pos = useSignal(71)
+  const pos = useSongPosition(world)
   const bright = useSignal(80)
 
   // Light and depth: each panel catches a highlight where the pointer is and
@@ -89,16 +86,6 @@ export const Glass = component$(() => {
     })
   }, { strategy: 'document-ready' })
 
-  // The song only moves while it's playing.
-  useVisibleTask$(({ track, cleanup }) => {
-    track(() => playing.value)
-    if (!playing.value) return
-    const id = window.setInterval(() => {
-      pos.value = (pos.value + 1) % TRACK_LEN
-    }, 1000)
-    cleanup(() => window.clearInterval(id))
-  })
-
   const msgs = inbox(world)
 
   return (
@@ -145,6 +132,7 @@ export const Glass = component$(() => {
         <figure class="gl-panel gl-photo" style={{ '--i': '2' }}>
           <img class="gl-photo-glow" src={LAKE_SRC} alt="" aria-hidden="true" width={320} height={200} />
           <img class="gl-photo-img" src={LAKE_SRC} alt="A lake at sunset, mountains reflected in the water" width={320} height={200} />
+          {world.art && <img class="gl-photo-art" src={world.art} alt="" aria-hidden="true" width={320} height={200} />}
           <figcaption class="gl-chip">Lake at sunset · shared with 3 people</figcaption>
         </figure>
 
@@ -159,7 +147,14 @@ export const Glass = component$(() => {
             {msgs.length === 0 && <p class="gl-quiet">No notifications. Suspiciously quiet.</p>}
             {msgs.map((m, n) => (
               <div key={m.id} class={['gl-notif', !m.read && 'unread']} style={{ '--n': String(n), zIndex: String(10 - n) }}>
-                <button type="button" class="gl-notif-main" onClick$={() => (m.read = true)}>
+                <button
+                  type="button"
+                  class="gl-notif-main"
+                  onClick$={() => {
+                    m.read = true
+                    play(world, 'gl-tick')
+                  }}
+                >
                   <span class="gl-app" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24">
                       <path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.6 3.4 6.1L4.5 21l4.2-2.3c1 .2 2.1.3 3.3.3 5.5 0 10-3.6 10-8s-4.5-8-10-8z" fill="#fff" />
@@ -185,28 +180,35 @@ export const Glass = component$(() => {
         <div class="gl-panel gl-music" style={{ '--i': '5' }}>
           <div class="gl-art" aria-hidden="true" />
           <div class="gl-track">
-            <b>Call Me Back</b>
-            <span>The Good Cables</span>
-            <div class="gl-progress" role="progressbar" aria-valuemin={0} aria-valuemax={TRACK_LEN} aria-valuenow={pos.value} aria-label="Playback position">
-              <i style={{ width: `${(pos.value / TRACK_LEN) * 100}%` }} />
+            <b>{SONG_TITLE}</b>
+            <span>{SONG_ARTIST}</span>
+            <div
+              class="gl-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={Math.round(SONG_SECONDS)}
+              aria-valuenow={Math.round(pos.value)}
+              aria-label="Playback position"
+            >
+              <i style={{ width: `${(pos.value / SONG_SECONDS) * 100}%` }} />
             </div>
             <div class="gl-times">
-              <span>{fmt(pos.value)}</span>
-              <span>-{fmt(TRACK_LEN - pos.value)}</span>
+              <span>{clockTime(pos.value)}</span>
+              <span>-{clockTime(SONG_SECONDS - pos.value)}</span>
             </div>
           </div>
           <div class="gl-controls">
-            <button type="button" aria-label="Previous" onClick$={() => (pos.value = 0)}>
+            <button type="button" aria-label="Restart" onClick$={() => setSong(world, false).then(() => setSong(world, true))}>
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor" />
               </svg>
             </button>
-            <button type="button" class="gl-play" aria-label={playing.value ? 'Pause' : 'Play'} onClick$={() => (playing.value = !playing.value)}>
+            <button type="button" class="gl-play" aria-label={world.playing ? 'Pause' : 'Play'} onClick$={() => toggleSong(world)}>
               <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                <path d={playing.value ? 'M6 5h4v14H6zm8 0h4v14h-4z' : 'M7 4.5v15l12-7.5z'} fill="currentColor" />
+                <path d={world.playing ? 'M6 5h4v14H6zm8 0h4v14h-4z' : 'M7 4.5v15l12-7.5z'} fill="currentColor" />
               </svg>
             </button>
-            <button type="button" aria-label="Next" onClick$={() => (pos.value = 0)}>
+            <button type="button" aria-label="Stop" onClick$={() => setSong(world, false)}>
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor" />
               </svg>
@@ -228,7 +230,10 @@ export const Glass = component$(() => {
                 type="button"
                 class={['gl-toggle', world[key] && 'on']}
                 aria-pressed={world[key]}
-                onClick$={() => (world[key] = !world[key])}
+                onClick$={() => {
+                  world[key] = !world[key]
+                  play(world, 'gl-tick')
+                }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                   <path d={d} fill="currentColor" />

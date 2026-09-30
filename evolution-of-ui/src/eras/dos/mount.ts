@@ -11,6 +11,7 @@ import { LIVE, eraById } from '@/timeline/eras'
 import { currentT, goTo, onProgress, prefersReducedMotion, ramp, within } from '@/timeline/progress'
 import { rasterLake } from '@/lib/landscape'
 import { inbox, type World } from '@/state/world'
+import { play, setSong } from '@/state/sound'
 
 export interface DosMount {
   root: HTMLElement
@@ -32,24 +33,10 @@ const POWER = [0.3, 0.62] as const
 /** The input keeps one space in it, so a mobile backspace always has something to delete. */
 const SENTINEL = ' '
 
-export async function mountDos(m: DosMount): Promise<() => void> {
-  let audio: AudioContext | null = null
-  const beep = () => {
-    try {
-      audio ??= new AudioContext()
-      const osc = audio.createOscillator()
-      const gain = audio.createGain()
-      osc.type = 'square'
-      osc.frequency.value = 880
-      gain.gain.value = 0.035
-      osc.connect(gain).connect(audio.destination)
-      osc.start()
-      osc.stop(audio.currentTime + 0.11)
-    } catch {
-      /* no audio: the PC speaker is broken, which is also authentic */
-    }
-  }
+/** One SNAKE step. */
+const SNAKE_MS = 95
 
+export async function mountDos(m: DosMount): Promise<() => void> {
   const host: DosHost = {
     note: () => m.world.note,
     setNote: (text) => {
@@ -62,8 +49,12 @@ export async function mountDos(m: DosMount): Promise<() => void> {
     },
     online: () => m.world.wifi,
     startWindows: () => goTo(eraById('win95').snap),
-    photo: () => rasterLake(80, 44),
-    beep,
+    // With whatever was painted over it in 1995: it's one photo.
+    photo: () => rasterLake(80, 44, m.world.art),
+    beep: () => play(m.world, 'dos-beep'),
+    blip: (kind) => play(m.world, kind === 'eat' ? 'dos-eat' : 'dos-die'),
+    song: (on) => void setSong(m.world, on),
+    songPlaying: () => m.world.playing,
   }
 
   const term = new Terminal(host).boot()
@@ -87,6 +78,8 @@ export async function mountDos(m: DosMount): Promise<() => void> {
 
     const now = performance.now()
     const k = t >= SCRIPT[0] ? Math.round(ramp(SCRIPT[0], SCRIPT[1], t) * 100) / 100 : -1
+    // Scrolling on to Windows quits whatever full-screen program was open.
+    if (k >= 0 && term.mode !== 'prompt') term.exitMode()
     const view = k >= 0 ? term.scripted(k) : term.screen
 
     // The <pre> blinks its cursor with CSS; only redraw it when content changes.
@@ -136,37 +129,16 @@ export async function mountDos(m: DosMount): Promise<() => void> {
     wake()
   }
 
+  term.onOutput = () => {
+    announce()
+    touched()
+  }
   const onKey = (e: KeyboardEvent) => {
     if (e.isComposing) return
-    switch (e.key) {
-      case 'Enter':
-        e.preventDefault()
-        void term.enter().then(() => {
-          announce()
-          touched()
-        })
-        break
-      case 'Backspace':
-        e.preventDefault()
-        term.backspace()
-        break
-      case 'Escape':
-        e.preventDefault()
-        term.clearLine()
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        term.historyStep(-1)
-        break
-      case 'ArrowDown':
-        e.preventDefault()
-        term.historyStep(1)
-        break
-      default:
-        if (e.ctrlKey && e.key.toLowerCase() === 'c') {
-          e.preventDefault()
-          term.interrupt()
-        }
+    // The terminal decides: the prompt, EDIT and SNAKE each want different keys.
+    if (term.key(e.key, e.ctrlKey)) {
+      e.preventDefault()
+      play(m.world, 'dos-key')
     }
     touched()
   }
@@ -174,17 +146,23 @@ export async function mountDos(m: DosMount): Promise<() => void> {
     const v = m.input.value
     // Sentinel gone means a backspace the keydown handler never saw
     // (Android reports those as "Unidentified").
-    if (!v.startsWith(SENTINEL)) term.backspace()
+    if (!v.startsWith(SENTINEL)) term.key('Backspace')
     else if (v.length > 1) term.type(v.slice(1).replace(/\n/g, ''))
+    play(m.world, 'dos-key')
     resetInput()
     touched()
   }
+  const ticker = window.setInterval(() => {
+    if (term.mode !== 'snake') return
+    term.tick()
+    wake()
+  }, SNAKE_MS)
   // Let people just start typing while 1980 is on screen.
   const onDocKey = (e: KeyboardEvent) => {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return
     const active = document.activeElement
     if (active && active !== document.body && active !== document.documentElement) return
-    if (!within(DWELL, currentT()) || e.key.length !== 1 || e.key === ' ') return
+    if (!within(DWELL, currentT()) || term.mode !== 'prompt' || e.key.length !== 1 || e.key === ' ') return
     e.preventDefault()
     focus()
     term.type(e.key)
@@ -204,7 +182,7 @@ export async function mountDos(m: DosMount): Promise<() => void> {
     m.input.removeEventListener('keydown', onKey)
     m.input.removeEventListener('input', onInput)
     document.removeEventListener('keydown', onDocKey)
+    window.clearInterval(ticker)
     crt?.destroy()
-    void audio?.close()
   }
 }

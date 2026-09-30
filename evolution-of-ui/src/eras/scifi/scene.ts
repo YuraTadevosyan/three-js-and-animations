@@ -8,13 +8,19 @@
  *
  * Per point, four floats in each of three arrays:
  *   base  = x, y, z, sprite size (px)
- *   color = r, g, b, kind   (0 solid · 1 ring · 2 star · 3 reflection · 4 water)
+ *   color = r, g, b, kind   (0 solid · 1 ring · 2 star · 3 reflection · 4 water · 5 paint)
  *   seed  = four uniform randoms (the renderer uses two)
  */
 
-import { HORIZON, RIDGES, SUN, TREES, W, ridgeHeight, rng } from '@/lib/landscape'
+import { H, HORIZON, RIDGES, SUN, TREES, W, ridgeHeight, rng } from '@/lib/landscape'
 
-export const KIND = { solid: 0, ring: 1, star: 2, reflection: 3, water: 4 } as const
+export const KIND = { solid: 0, ring: 1, star: 2, reflection: 3, water: 4, paint: 5 } as const
+
+/**
+ * Points held back for whatever was painted over the photo in 1995. They sit
+ * at the end of every buffer with size 0 until writeArt() fills them in.
+ */
+export const ART_SLOTS = 6000
 
 /** Where the camera looks, and where everything collapses to at the end. */
 export const TARGET: readonly [number, number, number] = [0, 0.22, -0.95]
@@ -169,6 +175,59 @@ export function buildScene(): Scene {
     push(Math.cos(a) * 1.55, 0.42 + Math.sin(a * 3) * 0.015, TARGET[2] + Math.sin(a) * 1.55, 1.2, ringC, KIND.ring)
   }
 
+  for (let k = 0; k < ART_SLOTS; k++) push(0, 0, 0, 0, [0, 0, 0], KIND.paint)
+
   const count = base.length / 4
   return { count, base: new Float32Array(base), color: new Float32Array(color), seed: new Float32Array(seed) }
+}
+
+/**
+ * Where a pixel of the photo lives in the reconstruction. Paint on the sky
+ * and it hangs behind the far range; paint on a mountain and it lies on that
+ * mountain's near slope; paint on the lake and it floats on the water.
+ */
+export function photoToWorld(px: number, py: number): [number, number, number] {
+  if (py >= HORIZON) {
+    const u = (py - HORIZON) / (H - HORIZON)
+    return [worldX(px, RIDGE_WIDTH[0] - 0.45 * u), 0.006, -2.2 + u * 2.9]
+  }
+  // Nearest range first: it hides the ones behind it, as in the photo.
+  for (let i = RIDGES.length - 1; i >= 0; i--) {
+    const h = ridgeHeight(i, px)
+    if (py < HORIZON - h) continue
+    const y = (HORIZON - py) * RIDGE_SCALE[i]
+    // The heightfield falls off as a Gaussian from the ridgeline; solve it
+    // for the depth at which the near slope is exactly this high.
+    const dz = RIDGE_DEPTH[i] * 0.55 * Math.sqrt(Math.log(Math.max(1.0001, (h * RIDGE_SCALE[i]) / Math.max(y, 1e-4))))
+    return [worldX(px, RIDGE_WIDTH[i]), y, RIDGE_Z[i] + Math.min(dz, RIDGE_DEPTH[i]) + 0.015]
+  }
+  // Sky. Compressed by half above the far ridgeline so the top of the photo
+  // stays inside the camera's view, and continuous with the ridge below it.
+  const top = ridgeHeight(0, px)
+  return [worldX(px, RIDGE_WIDTH[0]), (top + (HORIZON - top - py) * 0.5) * RIDGE_SCALE[0], -2.5]
+}
+
+/**
+ * Turn the painted layer (any size; transparent where unpainted) into points
+ * in the reserved slots. Returns how many were used. Pass null to clear.
+ */
+export function writeArt(scene: Scene, img: { width: number; height: number; data: ArrayLike<number> } | null): number {
+  const first = scene.count - ART_SLOTS
+  scene.base.fill(0, first * 4)
+  if (!img) return 0
+  const painted: number[] = []
+  for (let i = 0; i < img.width * img.height; i++) if (img.data[i * 4 + 3] > 60) painted.push(i)
+  // More paint than slots: keep an even sample of it.
+  const stride = Math.max(1, Math.ceil(painted.length / ART_SLOTS))
+  let used = 0
+  for (let k = 0; k < painted.length && used < ART_SLOTS; k += stride) {
+    const i = painted[k]
+    const px = (((i % img.width) + 0.5) / img.width) * W
+    const py = ((Math.floor(i / img.width) + 0.5) / img.height) * H
+    const o = (first + used) * 4
+    scene.base.set([...photoToWorld(px, py), 2.4], o)
+    scene.color.set([img.data[i * 4] / 255, img.data[i * 4 + 1] / 255, img.data[i * 4 + 2] / 255, KIND.paint], o)
+    used++
+  }
+  return used
 }

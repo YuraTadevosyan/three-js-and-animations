@@ -2,6 +2,7 @@ import { component$, useSignal, useStore, useVisibleTask$ } from '@builder.io/qw
 import { WIN_PALETTE_16, ditherToPalette, rasterLake } from '@/lib/landscape'
 import { LIVE } from '@/timeline/eras'
 import { whenNear } from '@/timeline/progress'
+import { useWorld } from '@/state/world'
 
 type Tool = 'select' | 'eraser' | 'fill' | 'picker' | 'zoom' | 'pencil' | 'brush' | 'spray'
 
@@ -22,154 +23,201 @@ const TOOLS: { id: Tool; label: string; path: string }[] = [
   { id: 'spray', label: 'Airbrush', path: 'M5 6h5v9H5zM6 3h3v3H6zM11 3h1M13 2h1M12 5h1M14 4h1' },
 ]
 
+const rgb = (hex: string): [number, number, number] => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)]
+
 export const Paint = component$(() => {
-  const ui = useStore({ tool: 'pencil' as Tool, color: 0 })
+  const world = useWorld()
+  const ui = useStore({ tool: 'brush' as Tool, color: 16 })
   const canvas = useSignal<HTMLCanvasElement>()
 
-  useVisibleTask$(({ cleanup }) => {
-    let detach = () => {}
-    const stop = whenNear(LIVE.win95, 0.5, () => {
-      void setup().then((d) => (detach = d))
-    })
-    cleanup(() => {
-      stop()
-      detach()
-    })
+  useVisibleTask$(
+    ({ cleanup }) => {
+      let detach = () => {}
+      const stop = whenNear(LIVE.win95, 0.5, () => {
+        void setup().then((d) => (detach = d))
+      })
+      cleanup(() => {
+        stop()
+        detach()
+      })
 
-    async function setup(): Promise<() => void> {
-      const cv = canvas.value
-      const ctx = cv?.getContext('2d', { willReadFrequently: true })
-      if (!cv || !ctx) return () => {}
+      async function setup(): Promise<() => void> {
+        const cv = canvas.value
+        const ctx = cv?.getContext('2d', { willReadFrequently: true })
+        if (!cv || !ctx) return () => {}
+        const W = cv.width
+        const H = cv.height
 
-      // The lake, dithered down to the 16 colours a 1995 VGA card gave you.
-      ctx.fillStyle = '#fff'
-      ctx.fillRect(0, 0, cv.width, cv.height)
-      const img = await rasterLake(cv.width, cv.height)
-      if (img) {
-        const idx = ditherToPalette(img, WIN_PALETTE_16, 44)
-        const out = ctx.createImageData(cv.width, cv.height)
-        for (let i = 0; i < idx.length; i++) {
-          const c = WIN_PALETTE_16[idx[i]]
-          out.data[i * 4] = c[0]
-          out.data[i * 4 + 1] = c[1]
-          out.data[i * 4 + 2] = c[2]
-          out.data[i * 4 + 3] = 255
+        // Two surfaces. `ctx` is what you see: the photo plus your strokes.
+        // `layer` holds only the strokes, transparent elsewhere. It is what
+        // gets saved to the world, so every later era can lay it over its
+        // own rendering of the photo.
+        const layerCanvas = document.createElement('canvas')
+        layerCanvas.width = W
+        layerCanvas.height = H
+        const layer = layerCanvas.getContext('2d', { willReadFrequently: true })!
+        const both = (draw: (c: CanvasRenderingContext2D) => void) => {
+          draw(ctx)
+          draw(layer)
         }
-        ctx.putImageData(out, 0, 0)
-      }
 
-      let down = false
-      let lx = 0
-      let ly = 0
-      let spray = 0
-
-      const at = (e: PointerEvent): [number, number] => {
-        const r = cv.getBoundingClientRect()
-        return [Math.floor(((e.clientX - r.left) / r.width) * cv.width), Math.floor(((e.clientY - r.top) / r.height) * cv.height)]
-      }
-      const stamp = (x: number, y: number) => {
-        switch (ui.tool) {
-          case 'pencil':
-            ctx.fillRect(x, y, 1, 1)
-            break
-          case 'brush':
-            ctx.fillRect(x - 1, y - 1, 3, 3)
-            break
-          case 'eraser':
-            ctx.fillStyle = '#ffffff'
-            ctx.fillRect(x - 4, y - 4, 8, 8)
-            ctx.fillStyle = COLORS[ui.color]
-            break
-        }
-      }
-      const line = (x0: number, y0: number, x1: number, y1: number) => {
-        const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1)
-        for (let k = 0; k <= n; k++) stamp(Math.round(x0 + ((x1 - x0) * k) / n), Math.round(y0 + ((y1 - y0) * k) / n))
-      }
-      const sprayAt = () => {
-        for (let k = 0; k < 10; k++) {
-          const a = Math.random() * Math.PI * 2
-          const r = Math.sqrt(Math.random()) * 7
-          ctx.fillRect(Math.round(lx + Math.cos(a) * r), Math.round(ly + Math.sin(a) * r), 1, 1)
-        }
-      }
-      const flood = (x: number, y: number) => {
-        const data = ctx.getImageData(0, 0, cv.width, cv.height)
-        const px = new Uint32Array(data.data.buffer)
-        const target = px[y * cv.width + x]
-        const hex = COLORS[ui.color]
-        const rgb = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)]
-        const fill = (255 << 24) | (rgb[2] << 16) | (rgb[1] << 8) | rgb[0] // little-endian RGBA
-        if (target === fill) return
-        const stack = [y * cv.width + x]
-        while (stack.length) {
-          const i = stack.pop()!
-          if (px[i] !== target) continue
-          px[i] = fill
-          const cx = i % cv.width
-          if (cx > 0) stack.push(i - 1)
-          if (cx < cv.width - 1) stack.push(i + 1)
-          if (i >= cv.width) stack.push(i - cv.width)
-          if (i < px.length - cv.width) stack.push(i + cv.width)
-        }
-        ctx.putImageData(data, 0, 0)
-      }
-      const pick = (x: number, y: number) => {
-        const [r, g, b] = ctx.getImageData(x, y, 1, 1).data
-        let best = 0
-        let bestD = Infinity
-        COLORS.forEach((hex, k) => {
-          const d = (r - parseInt(hex.slice(1, 3), 16)) ** 2 + (g - parseInt(hex.slice(3, 5), 16)) ** 2 + (b - parseInt(hex.slice(5, 7), 16)) ** 2
-          if (d < bestD) {
-            bestD = d
-            best = k
+        // The lake, dithered down to the 16 colours a 1995 VGA card gave you.
+        const base = ctx.createImageData(W, H)
+        const img = await rasterLake(W, H)
+        if (img) {
+          const idx = ditherToPalette(img, WIN_PALETTE_16, 44)
+          for (let i = 0; i < idx.length; i++) {
+            const c = WIN_PALETTE_16[idx[i]]
+            base.data[i * 4] = c[0]
+            base.data[i * 4 + 1] = c[1]
+            base.data[i * 4 + 2] = c[2]
+            base.data[i * 4 + 3] = 255
           }
-        })
-        ui.color = best
-        ui.tool = 'pencil'
-      }
+        } else base.data.fill(255)
+        ctx.putImageData(base, 0, 0)
 
-      const onDown = (e: PointerEvent) => {
-        if (e.button !== 0) return
-        e.preventDefault()
-        const [x, y] = at(e)
-        ctx.fillStyle = COLORS[ui.color]
-        if (ui.tool === 'fill') return flood(x, y)
-        if (ui.tool === 'picker') return pick(x, y)
-        if (ui.tool === 'select' || ui.tool === 'zoom') return
-        cv.setPointerCapture(e.pointerId)
-        down = true
-        lx = x
-        ly = y
-        if (ui.tool === 'spray') {
-          sprayAt()
-          spray = window.setInterval(sprayAt, 40)
-        } else stamp(x, y)
+        // Whatever was painted on a previous visit.
+        if (world.art) {
+          try {
+            const saved = new Image()
+            saved.src = world.art
+            await saved.decode()
+            both((c) => c.drawImage(saved, 0, 0, W, H))
+          } catch {
+            /* a corrupt save just means a clean photo */
+          }
+        }
+
+        const commit = () => {
+          world.art = layerCanvas.toDataURL('image/png')
+        }
+
+        let down = false
+        let lx = 0
+        let ly = 0
+        let spray = 0
+
+        const at = (e: PointerEvent): [number, number] => {
+          const r = cv.getBoundingClientRect()
+          return [Math.floor(((e.clientX - r.left) / r.width) * W), Math.floor(((e.clientY - r.top) / r.height) * H)]
+        }
+        const ink = () => (ui.tool === 'eraser' ? '#ffffff' : COLORS[ui.color])
+        const stamp = (x: number, y: number) => {
+          const size = ui.tool === 'pencil' ? 1 : ui.tool === 'brush' ? 3 : 8
+          const o = Math.floor(size / 2)
+          both((c) => {
+            c.fillStyle = ink()
+            c.fillRect(x - o, y - o, size, size)
+          })
+        }
+        const line = (x0: number, y0: number, x1: number, y1: number) => {
+          const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1)
+          for (let k = 0; k <= n; k++) stamp(Math.round(x0 + ((x1 - x0) * k) / n), Math.round(y0 + ((y1 - y0) * k) / n))
+        }
+        const sprayAt = () => {
+          both((c) => (c.fillStyle = COLORS[ui.color]))
+          for (let k = 0; k < 10; k++) {
+            const a = Math.random() * Math.PI * 2
+            const r = Math.sqrt(Math.random()) * 7
+            const x = Math.round(lx + Math.cos(a) * r)
+            const y = Math.round(ly + Math.sin(a) * r)
+            both((c) => c.fillRect(x, y, 1, 1))
+          }
+        }
+        const flood = (x: number, y: number) => {
+          const seen = ctx.getImageData(0, 0, W, H)
+          const strokes = layer.getImageData(0, 0, W, H)
+          const px = new Uint32Array(seen.data.buffer)
+          const lp = new Uint32Array(strokes.data.buffer)
+          const target = px[y * W + x]
+          const [r, g, b] = rgb(COLORS[ui.color])
+          const fill = ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0 // little-endian RGBA
+          if (target === fill) return
+          const stack = [y * W + x]
+          while (stack.length) {
+            const i = stack.pop()!
+            if (px[i] !== target) continue
+            px[i] = fill
+            lp[i] = fill
+            const cx = i % W
+            if (cx > 0) stack.push(i - 1)
+            if (cx < W - 1) stack.push(i + 1)
+            if (i >= W) stack.push(i - W)
+            if (i < px.length - W) stack.push(i + W)
+          }
+          ctx.putImageData(seen, 0, 0)
+          layer.putImageData(strokes, 0, 0)
+          commit()
+        }
+        const pick = (x: number, y: number) => {
+          const [r, g, b] = ctx.getImageData(x, y, 1, 1).data
+          let best = 0
+          let bestD = Infinity
+          COLORS.forEach((hex, k) => {
+            const [cr, cg, cb] = rgb(hex)
+            const d = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2
+            if (d < bestD) {
+              bestD = d
+              best = k
+            }
+          })
+          ui.color = best
+          ui.tool = 'brush'
+        }
+
+        const onDown = (e: PointerEvent) => {
+          if (e.button !== 0) return
+          e.preventDefault()
+          const [x, y] = at(e)
+          if (x < 0 || y < 0 || x >= W || y >= H) return
+          if (ui.tool === 'fill') return flood(x, y)
+          if (ui.tool === 'picker') return pick(x, y)
+          if (ui.tool === 'select' || ui.tool === 'zoom') return
+          cv.setPointerCapture(e.pointerId)
+          down = true
+          lx = x
+          ly = y
+          if (ui.tool === 'spray') {
+            sprayAt()
+            spray = window.setInterval(sprayAt, 40)
+          } else stamp(x, y)
+        }
+        const onMove = (e: PointerEvent) => {
+          if (!down) return
+          const [x, y] = at(e)
+          if (ui.tool !== 'spray') line(lx, ly, x, y)
+          lx = x
+          ly = y
+        }
+        const onUp = () => {
+          if (!down) return
+          down = false
+          window.clearInterval(spray)
+          commit()
+        }
+        // The Clear button (a Qwik handler) reaches in with an event.
+        const onClear = () => {
+          ctx.putImageData(base, 0, 0)
+          layer.clearRect(0, 0, W, H)
+          world.art = ''
+        }
+        cv.addEventListener('pointerdown', onDown)
+        cv.addEventListener('pointermove', onMove)
+        cv.addEventListener('pointerup', onUp)
+        cv.addEventListener('pointercancel', onUp)
+        cv.addEventListener('paint-clear', onClear)
+        return () => {
+          cv.removeEventListener('pointerdown', onDown)
+          cv.removeEventListener('pointermove', onMove)
+          cv.removeEventListener('pointerup', onUp)
+          cv.removeEventListener('pointercancel', onUp)
+          cv.removeEventListener('paint-clear', onClear)
+          window.clearInterval(spray)
+        }
       }
-      const onMove = (e: PointerEvent) => {
-        if (!down) return
-        const [x, y] = at(e)
-        if (ui.tool !== 'spray') line(lx, ly, x, y)
-        lx = x
-        ly = y
-      }
-      const onUp = () => {
-        down = false
-        window.clearInterval(spray)
-      }
-      cv.addEventListener('pointerdown', onDown)
-      cv.addEventListener('pointermove', onMove)
-      cv.addEventListener('pointerup', onUp)
-      cv.addEventListener('pointercancel', onUp)
-      return () => {
-        cv.removeEventListener('pointerdown', onDown)
-        cv.removeEventListener('pointermove', onMove)
-        cv.removeEventListener('pointerup', onUp)
-        cv.removeEventListener('pointercancel', onUp)
-        window.clearInterval(spray)
-      }
-    }
-  }, { strategy: 'document-ready' })
+    },
+    { strategy: 'document-ready' },
+  )
 
   return (
     <div class="pt">
@@ -198,7 +246,15 @@ export const Paint = component$(() => {
               </svg>
             </button>
           ))}
-          <div class="pt-opts" />
+          <button
+            type="button"
+            class="w95-btn pt-clear"
+            disabled={!world.art}
+            title="Clear Image"
+            onClick$={() => canvas.value?.dispatchEvent(new CustomEvent('paint-clear'))}
+          >
+            Clear
+          </button>
         </div>
         <div class="pt-canvas-wrap">
           <canvas ref={canvas} class="pt-canvas" width={320} height={200} aria-label="lake.bmp. Draw on it." />
@@ -225,7 +281,7 @@ export const Paint = component$(() => {
         </div>
       </div>
       <div class="w95-status">
-        <span class="w95-field grow">For Help, click Help Topics on the Help Menu.</span>
+        <span class="w95-field grow">{world.art ? 'Painted. It stays painted in every decade after this one.' : 'Paint on the lake. Every later decade will show it.'}</span>
       </div>
     </div>
   )

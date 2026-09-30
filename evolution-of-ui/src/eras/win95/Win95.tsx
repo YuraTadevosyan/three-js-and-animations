@@ -1,14 +1,15 @@
-import { $, component$, useContext, useContextProvider, useStore, useStyles$ } from '@builder.io/qwik'
+import { $, component$, useContext, useContextProvider, useStore, useStyles$, useVisibleTask$ } from '@builder.io/qwik'
 import styles from './win95.css?inline'
 import { DeskContext, TASK_LABELS, initialDesk, openWin, taskClick, type Desk, type WinId } from './desk'
 import { Icon, type IconName } from './icons'
 import { Window } from './Window'
-import { Computer, Inbox, Notepad, RecycleBin, Welcome } from './apps'
+import { Computer, Inbox, MediaPlayer, Notepad, RecycleBin, Welcome } from './apps'
 import { Paint } from './Paint'
 import { Minesweeper } from './Minesweeper'
 import { unreadCount, useWorld } from '@/state/world'
 import { eraById } from '@/timeline/eras'
 import { goTo } from '@/timeline/progress'
+import { play } from '@/state/sound'
 
 type Launch = WinId | 'ie' | 'dos'
 
@@ -22,6 +23,7 @@ const DESKTOP: { id: string; label: string; icon: IconName; launch: Launch }[] =
   { id: 'notes', label: 'notes.txt', icon: 'notepad', launch: 'notepad' },
   { id: 'lake', label: 'lake.bmp', icon: 'paint', launch: 'paint' },
   { id: 'mines', label: 'Minesweeper', icon: 'mines', launch: 'mines' },
+  { id: 'song', label: 'song.mid', icon: 'media', launch: 'media' },
 ]
 
 const WIN_ICON: Record<WinId, IconName> = {
@@ -32,8 +34,9 @@ const WIN_ICON: Record<WinId, IconName> = {
   computer: 'computer',
   bin: 'bin',
   welcome: 'windows',
+  media: 'media',
 }
-const TASK_ORDER: WinId[] = ['welcome', 'notepad', 'paint', 'inbox', 'mines', 'computer', 'bin']
+const TASK_ORDER: WinId[] = ['welcome', 'notepad', 'paint', 'inbox', 'media', 'mines', 'computer', 'bin']
 
 const launch = (desk: Desk, what: Launch) => {
   desk.start = false
@@ -44,8 +47,21 @@ const launch = (desk: Desk, what: Launch) => {
 
 export const Win95 = component$(() => {
   useStyles$(styles)
+  const world = useWorld()
   const desk = useStore<Desk>(initialDesk(), { deep: true })
   useContextProvider(DeskContext, desk)
+
+  // The sounds Windows made whether you wanted them or not (you do have to
+  // have turned sound on, here).
+  useVisibleTask$(
+    ({ track }) => {
+      const alert = track(() => desk.alert)
+      const off = track(() => desk.shutdown)
+      if (alert) play(world, alert.kind === 'info' ? 'w95-ding' : 'w95-chord')
+      if (off) play(world, 'w95-shutdown')
+    },
+    { strategy: 'document-ready' },
+  )
 
   const activate = $((what: Launch) => launch(desk, what))
 
@@ -103,6 +119,9 @@ export const Win95 = component$(() => {
         <Window id="bin" icon="bin" w={360} h={210}>
           <RecycleBin />
         </Window>
+        <Window id="media" icon="media" w={330} h={0} fixed>
+          <MediaPlayer />
+        </Window>
         <Window id="welcome" icon="windows" w={440} h={0} fixed>
           <Welcome />
         </Window>
@@ -139,7 +158,10 @@ const Taskbar = component$(() => {
         class={['w95-btn', 'w95-startbtn', desk.start && 'pressed']}
         aria-haspopup="menu"
         aria-expanded={desk.start}
-        onClick$={() => (desk.start = !desk.start)}
+        onClick$={() => {
+          desk.start = !desk.start
+          play(world, 'w95-click')
+        }}
       >
         <Icon name="windows" size={18} />
         Start
@@ -221,12 +243,13 @@ const StartMenu = component$(() => {
         {Sub('programs', 'Programs', [
           item('ie', 'Internet Explorer', 'ie'),
           item('inbox', 'Inbox', 'inbox'),
+          item('media', 'Media Player', 'media'),
           item('mines', 'Minesweeper', 'mines'),
           item('notepad', 'Notepad', 'notepad'),
           item('paint', 'Paint', 'paint'),
           item('run', 'MS-DOS Prompt', 'dos'),
         ])}
-        {Sub('documents', 'Documents', [item('notepad', 'notes.txt', 'notepad'), item('paint', 'lake.bmp', 'paint')])}
+        {Sub('documents', 'Documents', [item('notepad', 'notes.txt', 'notepad'), item('paint', 'lake.bmp', 'paint'), item('media', 'song.mid', 'media')])}
         {Sub('control', 'Settings', [item('control', 'Control Panel', 'computer'), item('printer', 'Printers', 'computer')])}
         <li>
           <button

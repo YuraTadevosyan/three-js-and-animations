@@ -54,7 +54,7 @@ export const ERAS: readonly Era[] = [
     snap: 1,
     blurb:
       'The command line. Eighty columns, twenty-five rows, and a cursor that waits for you to already know the right words.',
-    tryIt: 'Click the screen and type HELP, DIR, VIEW LAKE.PCX or MAIL.',
+    tryIt: 'Click the screen and type HELP, EDIT, VIEW LAKE.PCX, PLAY SONG.MUS or SNAKE.',
   },
   {
     id: 'win95',
@@ -64,7 +64,7 @@ export const ERAS: readonly Era[] = [
     snap: 2.3,
     blurb:
       'The desktop metaphor goes mainstream. Windows, icons, a Start button, and the idea that you could find things by looking instead of remembering.',
-    tryIt: 'Drag the windows, edit notes.txt, paint on the lake. Minesweeper is under Start → Programs.',
+    tryIt: 'Paint on the lake: it stays painted in every decade after this. Play song.mid, then scroll on and keep listening.',
   },
   {
     id: 'web2',
@@ -74,7 +74,7 @@ export const ERAS: readonly Era[] = [
     snap: 3.3,
     blurb:
       'The browser becomes the app. Glossy gradients, rounded corners, reflections, beta badges and AJAX spinners. Everything wants to be clicked.',
-    tryIt: 'Update your status (it rewrites the note), digg something, rate the photo.',
+    tryIt: 'Update your status (it rewrites the note), press play on notr radio, rate the photo.',
   },
   {
     id: 'material',
@@ -104,7 +104,7 @@ export const ERAS: readonly Era[] = [
     snap: 6.3,
     blurb:
       'Speculative. The screen dissolves into space: data as light, an interface you talk to, and a photo you can walk around.',
-    tryIt: 'Drag the hologram. Ask NEXUS for “help”. Answer Mom.',
+    tryIt: 'Drag the hologram. Ask NEXUS to “play the song”. Answer Mom.',
   },
 ]
 

@@ -2,6 +2,8 @@ import { $, component$, useSignal, useStore, useStyles$, useVisibleTask$ } from 
 import styles from './material.css?inline'
 import { inbox, unreadCount, useWorld } from '@/state/world'
 import { LAKE_SRC } from '@/lib/lake-src'
+import { play, toggleSong, useSongPosition } from '@/state/sound'
+import { SONG_ARTIST, SONG_SECONDS, SONG_TITLE } from '@/lib/song'
 import { LIVE } from '@/timeline/eras'
 import { prefersReducedMotion, whenNear } from '@/timeline/progress'
 
@@ -41,6 +43,7 @@ export const Material = component$(() => {
   const noteRef = useSignal<HTMLTextAreaElement>()
   const tab = useSignal<Tab>('all')
   const drawer = useSignal(false)
+  const songPos = useSongPosition(world)
   const snack = useStore({ show: false, text: '', undo: '' as '' | 'archive' | 'clear', id: '', note: '', seq: 0 })
 
   // Ink ripples, delegated: any [data-ripple] inside the layer gets one.
@@ -60,6 +63,7 @@ export const Material = component$(() => {
         ink.style.left = `${e.clientX - r.left - size / 2}px`
         ink.style.top = `${e.clientY - r.top - size / 2}px`
         host.appendChild(ink)
+        play(world, 'md-tap')
         const done = () => ink.remove()
         ink.addEventListener('animationend', done, { once: true })
         window.setTimeout(done, 1200)
@@ -79,6 +83,7 @@ export const Material = component$(() => {
     snack.id = id
     snack.note = note
     snack.show = true
+    play(world, 'md-snack')
     const seq = ++snack.seq
     setTimeout(() => {
       if (snack.seq === seq) snack.show = false
@@ -160,6 +165,7 @@ export const Material = component$(() => {
             <article class="md-card md-photo" data-kind="photo" style={{ '--i': '1' }}>
               <div class="md-media">
                 <img src={LAKE_SRC} alt="A lake at sunset, mountains reflected in the water" width={320} height={200} />
+                {world.art && <img class="art-layer" src={world.art} alt="" aria-hidden="true" width={320} height={200} />}
               </div>
               <div class="md-card-text">
                 <h3 class="md-headline">Lake at sunset</h3>
@@ -235,6 +241,22 @@ export const Material = component$(() => {
                   />
                 </label>
               ))}
+            </article>
+
+            <article class="md-card md-music" data-kind="music" style={{ '--i': '4' }}>
+              <div class="md-music-row">
+                <div class="md-music-art" aria-hidden="true" />
+                <div class="md-li-text">
+                  <span class="md-li-primary">{SONG_TITLE}</span>
+                  <span class="md-li-secondary">{SONG_ARTIST}</span>
+                </div>
+                <button type="button" class="md-play" data-ripple aria-label={world.playing ? 'Pause' : 'Play'} onClick$={() => toggleSong(world)}>
+                  <Svg d={world.playing ? 'M6 5h4v14H6zm8 0h4v14h-4z' : 'M7 4.5v15l12-7.5z'} />
+                </button>
+              </div>
+              <div class="md-progress" aria-hidden="true">
+                <i style={{ transform: `scaleX(${songPos.value / SONG_SECONDS})` }} />
+              </div>
             </article>
           </div>
         </main>

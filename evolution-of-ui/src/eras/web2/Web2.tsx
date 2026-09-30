@@ -2,6 +2,8 @@ import { $, component$, useSignal, useStyles$, useTask$ } from '@builder.io/qwik
 import styles from './web2.css?inline'
 import { inbox, noteLines, unreadCount, useWorld } from '@/state/world'
 import { LAKE_SRC } from '@/lib/lake-src'
+import { play, toggleSong, useSongPosition } from '@/state/sound'
+import { SONG_ARTIST, SONG_SECONDS, SONG_TITLE } from '@/lib/song'
 
 const TAGS: [string, number][] = [
   ['ajax', 22],
@@ -39,6 +41,7 @@ export const Web2 = component$(() => {
   const dugg = useSignal(false)
   const rating = useSignal(0)
   const tab = useSignal('home')
+  const songPos = useSongPosition(world)
 
   // The note can change in any era; keep the box in step with it.
   useTask$(({ track }) => {
@@ -53,6 +56,7 @@ export const Web2 = component$(() => {
       world.note = draft.value
       saving.value = false
       flash.value++
+      play(world, 'w2-pop')
     }, 750)
   })
 
@@ -143,6 +147,32 @@ export const Web2 = component$(() => {
               </div>
             </div>
 
+            <div class="w2-box">
+              <h2 class="w2-box-h">
+                notr radio <span class="w2-new">flash</span>
+              </h2>
+              <div class="w2-box-b w2-player">
+                <button type="button" class="w2-gloss w2-gloss-blue w2-playbtn" aria-label={world.playing ? 'Pause' : 'Play'} onClick$={() => toggleSong(world)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d={world.playing ? 'M6 5h4v14H6zm8 0h4v14h-4z' : 'M7 4.5v15l12-7.5z'} fill="currentColor" />
+                  </svg>
+                </button>
+                <div class="w2-player-b">
+                  <b>{SONG_TITLE}</b>
+                  <span class="w2-muted">{SONG_ARTIST} · 128 kbps</span>
+                  <div class="w2-scrub" aria-hidden="true">
+                    <i style={{ width: `${(songPos.value / SONG_SECONDS) * 100}%` }} />
+                  </div>
+                </div>
+                <div class={['w2-eq', world.playing && 'on']} aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </div>
+              </div>
+            </div>
+
             <div class="w2-box w2-cloud-box">
               <h2 class="w2-box-h">Popular tags</h2>
               <p class="w2-box-b w2-cloud">
@@ -170,6 +200,7 @@ export const Web2 = component$(() => {
                   onClick$={() => {
                     diggs.value++
                     dugg.value = true
+                    play(world, 'w2-pop')
                   }}
                 >
                   {dugg.value ? 'dugg!' : 'digg it'}
@@ -191,8 +222,11 @@ export const Web2 = component$(() => {
 
             <article class="w2-post w2-photo-post">
               <figure class="w2-polaroid">
-                <img src={LAKE_SRC} alt="A lake at sunset, mountains reflected in the water" width={320} height={200} />
-                <figcaption>lake at sunset ☀</figcaption>
+                <div class="w2-photo">
+                  <img src={LAKE_SRC} alt="A lake at sunset, mountains reflected in the water" width={320} height={200} />
+                  {world.art && <img class="art-layer" src={world.art} alt="" aria-hidden="true" width={320} height={200} />}
+                </div>
+                <figcaption>{world.art ? 'lake at sunset (i drew on it)' : 'lake at sunset ☀'}</figcaption>
               </figure>
               <div class="w2-post-b">
                 <h3>

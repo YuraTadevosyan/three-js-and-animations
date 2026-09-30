@@ -3,10 +3,11 @@
  * the end of the page.
  */
 
-import { CAMERA, TARGET, buildScene, eyeFor } from './scene'
+import { ART_SLOTS, CAMERA, TARGET, buildScene, eyeFor, writeArt } from './scene'
 import { Holo2D } from './holo2d'
 import { GpuHolo, type HoloRenderer } from '@/gpu/holo'
 import { getGpu } from '@/gpu/device'
+import { rasterArt } from '@/lib/landscape'
 import { lookAt, multiply, perspective } from '@/lib/mat4'
 import { LIVE } from '@/timeline/eras'
 import { currentT, onProgress, prefersReducedMotion, ramp, within } from '@/timeline/progress'
@@ -32,12 +33,37 @@ export function pulse(): void {
   pulseAt = clock
 }
 
+let wantedArt = ''
+let applyArt: ((art: string) => void) | null = null
+
+/**
+ * What was painted over the photo in 1995 changed. The hologram rebuilds
+ * those strokes as points. Safe to call before the hologram exists.
+ */
+export function setArt(art: string): void {
+  wantedArt = art
+  applyArt?.(art)
+}
+
 export async function mountSciFi(m: SciFiMount): Promise<() => void> {
   const scene = buildScene()
   const gpu = await getGpu()
   const holo: HoloRenderer = (gpu && (await GpuHolo.create(gpu, m.canvas, scene))) || new Holo2D(m.canvas, scene)
   m.root.dataset.gpu = holo instanceof GpuHolo ? 'on' : 'off'
-  m.count.textContent = `${holo.count.toLocaleString('en-US')} points`
+  // The paint slots only count once there's paint in them.
+  const lakePoints = holo.count - ART_SLOTS
+  let artSeq = 0
+  applyArt = (art) => {
+    const seq = ++artSeq
+    void rasterArt(art, 160, 100).then((img) => {
+      if (seq !== artSeq) return
+      const used = writeArt(scene, img)
+      holo.update(scene.count - ART_SLOTS)
+      m.count.textContent = `${(lakePoints + used).toLocaleString('en-US')} points`
+      wake()
+    })
+  }
+  applyArt(wantedArt)
 
   // ── where each point is born: somewhere inside a 2025 glass panel ──────
   const starts = new Float32Array(scene.count * 4)
@@ -194,6 +220,7 @@ export async function mountSciFi(m: SciFiMount): Promise<() => void> {
     m.root.removeEventListener('pointerup', onUp)
     m.root.removeEventListener('pointercancel', onUp)
     m.root.removeEventListener('pointerleave', onLeave)
+    applyArt = null
     holo.destroy()
   }
 }

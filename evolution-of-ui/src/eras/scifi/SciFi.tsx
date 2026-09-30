@@ -4,6 +4,7 @@ import { respond } from './assistant'
 import { inbox, noteLines, unreadCount, useWorld } from '@/state/world'
 import { LIVE, eraById } from '@/timeline/eras'
 import { goTo, whenNear } from '@/timeline/progress'
+import { play, setSong, toggleSong } from '@/state/sound'
 
 interface LogLine {
   id: number
@@ -35,6 +36,7 @@ export const SciFi = component$(() => {
   const editing = useSignal(false)
   const answer = useSignal(-1)
   const callSecs = useSignal(0)
+  const mounted = useSignal(false)
 
   useVisibleTask$(({ cleanup }) => {
     canListen.value = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window
@@ -44,7 +46,10 @@ export const SciFi = component$(() => {
       void import('./mount').then(async ({ mountSciFi }) => {
         const d = await mountSciFi({ root: root.value!, canvas: canvas.value!, count: count.value! })
         if (gone) d()
-        else dispose = d
+        else {
+          dispose = d
+          mounted.value = true
+        }
       })
     })
     cleanup(() => {
@@ -53,6 +58,13 @@ export const SciFi = component$(() => {
       dispose?.()
     })
   }, { strategy: 'document-ready' })
+
+  // Hand the hologram whatever has been painted over the photo, now and
+  // whenever it changes. Waits for the hologram rather than loading it.
+  useVisibleTask$(({ track }) => {
+    const art = track(() => world.art)
+    if (track(() => mounted.value)) void import('./mount').then((mod) => mod.setArt(art))
+  })
 
   // The call clock runs while the link is open.
   useVisibleTask$(({ track, cleanup }) => {
@@ -71,7 +83,15 @@ export const SciFi = component$(() => {
   const ask = $(async (text: string, spoken = false) => {
     const q = text.trim()
     if (!q) return
-    const reply = respond(q, { note: world.note, messages: inbox(world), wifi: world.wifi, now: new Date() })
+    const reply = respond(q, {
+      note: world.note,
+      messages: inbox(world),
+      wifi: world.wifi,
+      now: new Date(),
+      playing: world.playing,
+      painted: !!world.art,
+    })
+    play(world, 'sf-reply')
     const id = log.seq
     log.seq += 2
     log.items = [...log.items, { id, who: 'you' as const, text: q }, { id: id + 1, who: 'nexus' as const, text: reply.text }].slice(-4)
@@ -90,6 +110,12 @@ export const SciFi = component$(() => {
         break
       case 'toggle-wifi':
         world.wifi = true
+        break
+      case 'play-song':
+        void setSong(world, true)
+        break
+      case 'stop-song':
+        void setSong(world, false)
         break
     }
     if (spoken && 'speechSynthesis' in window) {
@@ -149,6 +175,9 @@ export const SciFi = component$(() => {
             <span class={!world.wifi && 'warn'}>LINK {world.wifi ? '▲ 12.4 Tb/s' : 'OFFLINE'}</span>
             <span>BT {world.bluetooth ? 'ON' : 'OFF'}</span>
             <span>FOCUS {world.focus ? 'ON' : 'OFF'}</span>
+            <button type="button" class={['sf-audio', world.playing && 'on']} aria-pressed={world.playing} onClick$={() => toggleSong(world)}>
+              {world.playing ? '■ AUDIO' : '▶ AUDIO'}
+            </button>
           </span>
         </header>
 
@@ -198,7 +227,14 @@ export const SciFi = component$(() => {
                     ))}
                   </div>
                   <div class="sf-row">
-                    <button type="button" class="sf-btn" onClick$={() => (world.call = 'open')}>
+                    <button
+                      type="button"
+                      class="sf-btn"
+                      onClick$={() => {
+                        world.call = 'open'
+                        play(world, 'sf-blip')
+                      }}
+                    >
                       Accept
                     </button>
                     <button type="button" class="sf-btn ghost" onClick$={() => say('Deferred. Mom will call back. She always does.')}>
@@ -272,7 +308,8 @@ export const SciFi = component$(() => {
         </aside>
 
         <p class="sf-subject sf-in" style={{ '--i': '4' }}>
-          <span>Subject</span> lake.pcx · 1986 · rebuilt · <span ref={count}>reconstructing</span> · drag to orbit
+          <span>Subject</span> lake.pcx · 1986 · rebuilt · <span ref={count}>reconstructing</span>
+          {world.art ? ' · with your 1995 paint' : ''} · drag to orbit
         </p>
 
         <form

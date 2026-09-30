@@ -15,6 +15,8 @@ import {
   toggleFlag,
   type GameState,
 } from './mines'
+import { useWorld } from '@/state/world'
+import { play } from '@/state/sound'
 
 /** Seven-segment paths in a 13×23 box. */
 const SEG: Record<string, string> = {
@@ -85,9 +87,13 @@ export const Minesweeper = component$(() => {
     downAt: 0,
   })
 
+  const world = useWorld()
+
   // The clock runs only while a game is in progress.
   useVisibleTask$(({ track, cleanup }) => {
     track(() => game.state)
+    if (game.state === 'lost') play(world, 'w95-boom')
+    if (game.state === 'won') play(world, 'w95-tada')
     if (game.state !== 'playing') return
     const id = window.setInterval(() => {
       game.time = Math.min(999, game.time + 1)

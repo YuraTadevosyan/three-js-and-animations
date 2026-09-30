@@ -167,6 +167,9 @@
 .md-card-text p {
   margin: 0;
 }
+.md-media {
+  position: relative;
+}
 .md-media img {
   display: block;
   width: 100%;
@@ -216,6 +219,54 @@
 }
 .md-btn.accent {
   color: #ff4081;
+}
+
+.md-music-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+.md-music-art {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 2px;
+  background:
+    linear-gradient(135deg, transparent 50%, rgb(0 0 0 / 0.12) 50%),
+    #ff4081;
+}
+.md-music .md-li-text {
+  flex: 1;
+}
+.md-play {
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #3f51b5;
+  color: #fff;
+  cursor: pointer;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.2),
+    0 2px 2px rgb(0 0 0 / 0.14);
+}
+.md-progress {
+  height: 4px;
+  background: rgb(63 81 181 / 0.24);
+}
+.md-progress i {
+  display: block;
+  height: 100%;
+  background: #3f51b5;
+  transform-origin: left;
+  transition: transform 0.5s linear;
 }
 
 /* The 2015 text field: floating label, animated underline. */
