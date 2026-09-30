@@ -1,1 +1,0 @@
-import{v as n}from"./q-C7-qR3iZ.js";import{x as u}from"./q-C7-qR3iZ.js";import{T as s}from"./q-BU1Kqpq6.js";const i=({track:e,cleanup:r})=>{const[o,a]=n();if(e(()=>o.value),!o.value)return;const t=window.setInterval(()=>{a.value=(a.value+1)%s},1e3);r(()=>window.clearInterval(t))};export{u as _hW,i as s_q1IyaR9oAhI};

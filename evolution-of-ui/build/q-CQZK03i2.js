@@ -1,1 +1,0 @@
-import{v as n}from"./q-C7-qR3iZ.js";import{x as c}from"./q-C7-qR3iZ.js";const i=({track:e,cleanup:o})=>{const[t]=n();if(e(()=>t.state),t.state!=="playing")return;const a=window.setInterval(()=>{t.time=Math.min(999,t.time+1)},1e3);o(()=>window.clearInterval(a))};export{c as _hW,i as s_CuAOzoO1W4I};

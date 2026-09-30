@@ -1,1 +1,0 @@
-import{v as t}from"./q-C7-qR3iZ.js";import{x as i}from"./q-C7-qR3iZ.js";const c=({track:o,cleanup:r})=>{const[e,l]=t();if(o(()=>l.call),l.call!=="open")return;e.value=0;const a=window.setInterval(()=>e.value++,1e3);r(()=>window.clearInterval(a))};export{i as _hW,c as s_qKjjWmE7UKQ};
