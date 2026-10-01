@@ -5,6 +5,7 @@ import { Intro } from '@/components/Intro'
 import { Outro } from '@/components/Outro'
 import { Rail } from '@/components/Rail'
 import { Placards } from '@/components/Placards'
+import { About } from '@/components/About'
 import { Dos } from '@/eras/dos/Dos'
 import { Win95 } from '@/eras/win95/Win95'
 import { Web2 } from '@/eras/web2/Web2'
@@ -36,6 +37,7 @@ export default component$(() => {
         <Outro />
         <Placards />
         <Rail />
+        <About />
       </div>
     </main>
   )

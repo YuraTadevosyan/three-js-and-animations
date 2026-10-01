@@ -202,6 +202,18 @@ until something needs it:
   their component's task but also wait for `whenNear()` before doing any work;
 - a click handler's code downloads on its first click.
 
+## About panel
+
+"About" in the rail (and links in the intro and outro) opens a native
+`<dialog>` listing every technology with what it does *on this page*, what each
+decade is made of underneath, and a live **Running in this browser** check:
+whether WebGPU is actually drawing, whether scroll timelines are native or
+mirrored by the boot script, plus `@property`, `color-mix()`,
+`backdrop-filter`, Web Audio, Web Speech, storage and reduced motion. It
+re-checks on every open, since WebGPU only starts once 1980 or 2040 is near.
+Versions are read from `package.json` at build time
+(`src/components/about-data.ts`), so they can't go stale.
+
 ## Degradation
 
 | If | Then |

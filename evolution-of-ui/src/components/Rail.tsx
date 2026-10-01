@@ -3,6 +3,7 @@ import { ERAS } from '@/timeline/eras'
 import { goTo } from '@/timeline/progress'
 import { useWorld } from '@/state/world'
 import { toggleSound } from '@/state/sound'
+import { openAbout } from './about-open'
 
 /**
  * The year counter and the decade links. Both are driven by --t in CSS:
@@ -56,6 +57,9 @@ export const Rail = component$(() => {
           }}
         >
           {notes.value ? 'Hide notes' : 'Show notes'}
+        </button>
+        <button type="button" class="rail-notes" aria-haspopup="dialog" onClick$={() => openAbout()}>
+          About
         </button>
       </div>
     </nav>

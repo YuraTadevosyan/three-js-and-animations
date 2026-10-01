@@ -20,6 +20,7 @@ import { eraDate, dosDate, formatClock } from '@/lib/clock'
 import { lookAt, perspective, multiply, transform } from '@/lib/mat4'
 import { LAKE_SVG, ridgeHeight, RIDGES, W, HORIZON, SUN } from '@/lib/landscape'
 import { BOOT_SCRIPT } from '@/timeline/boot'
+import { ERA_TECH, TECH } from '@/components/about-data'
 
 let pass = 0
 const ok = (name: string, fn: () => void | Promise<void>) => Promise.resolve().then(fn).then(() => { pass++; }, (e) => { console.log('FAIL', name, '\n ', e.message); process.exitCode = 1 })
@@ -471,6 +472,23 @@ await ok('audio engine: all six arrangements, every sfx and sting run on a stric
   } finally {
     delete (globalThis as any).window
   }
+})
+
+await ok('About: every technology has a link, a role, and a version wherever it is an npm package', () => {
+  const names = new Set<string>()
+  for (const g of TECH) {
+    assert.ok(g.items.length > 0, g.title)
+    for (const t of g.items) {
+      assert.match(t.href, /^https:\/\//, t.name)
+      assert.ok(t.role.length > 20, t.name)
+      assert.ok(!names.has(t.name), `duplicate ${t.name}`)
+      names.add(t.name)
+      if (t.version !== undefined) assert.match(t.version, /^\d+\.\d+$/, `${t.name}: ${t.version}`)
+    }
+  }
+  const qwik = TECH.flatMap((g) => g.items).find((t) => t.name === 'Qwik')
+  assert.equal(qwik?.version, '1.20')
+  assert.deepEqual(ERA_TECH.map((e) => e.year), ERAS.map((e) => e.year))
 })
 
 await ok('boot script: data-live, --t fallback and go(), with and without native timelines', () => {

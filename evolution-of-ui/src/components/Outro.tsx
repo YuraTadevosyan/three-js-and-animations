@@ -2,6 +2,7 @@ import { component$ } from '@builder.io/qwik'
 import { useWorld } from '@/state/world'
 import { eraById } from '@/timeline/eras'
 import { goTo } from '@/timeline/progress'
+import { openAbout } from './about-open'
 
 export const Outro = component$(() => {
   const world = useWorld()
@@ -31,6 +32,9 @@ export const Outro = component$(() => {
           <a class="primary" href="#y1980" preventdefault:click onClick$={() => goTo(start)}>
             ↑ Back to 1980
           </a>
+          <button type="button" aria-haspopup="dialog" onClick$={() => openAbout()}>
+            About &amp; technologies
+          </button>
           <a href="/three-js-and-animations/">All showcases</a>
           <a href="https://github.com/YuraTadevosyan/three-js-and-animations/tree/main/evolution-of-ui" target="_blank" rel="noreferrer">
             Source

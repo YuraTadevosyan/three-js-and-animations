@@ -1,5 +1,6 @@
 import { component$ } from '@builder.io/qwik'
 import { ERAS } from '@/timeline/eras'
+import { openAbout } from './about-open'
 
 export const Intro = component$(() => {
   return (
@@ -27,6 +28,11 @@ export const Intro = component$(() => {
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <path d="M12 4v15M6 13l6 6 6-6" />
           </svg>
+        </p>
+        <p class="intro-about">
+          <button type="button" aria-haspopup="dialog" onClick$={() => openAbout()}>
+            What is this built with?
+          </button>
         </p>
       </div>
     </section>

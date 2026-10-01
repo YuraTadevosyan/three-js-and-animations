@@ -55,6 +55,8 @@
 html {
   background: hsl(var(--background));
   color-scheme: dark;
+  /* Locking scroll while About is open must not shift the page sideways. */
+  scrollbar-gutter: stable;
   scroll-snap-type: y proximity;
   scroll-behavior: smooth;
 }
@@ -356,6 +358,22 @@ body {
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
 }
+.intro-about {
+  margin: 14px 0 0;
+}
+.intro-about button {
+  padding: 4px 2px;
+  border: 0;
+  border-bottom: 1px dashed hsl(var(--muted-foreground) / 0.6);
+  background: none;
+  font: 400 13px/1.4 Inter, ui-sans-serif, system-ui, sans-serif;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.intro-about button:hover {
+  color: hsl(var(--foreground));
+  border-bottom-color: hsl(var(--primary));
+}
 .intro-cue svg {
   animation: cue-bob 1.8s ease-in-out infinite;
 }
@@ -637,7 +655,8 @@ body {
   justify-content: center;
   gap: 10px;
 }
-.outro-links a {
+.outro-links a,
+.outro-links button {
   padding: 9px 16px;
   border-radius: 999px;
   font-size: 13px;
@@ -646,7 +665,14 @@ body {
   box-shadow: 0 0 0 1px hsl(var(--border));
   transition: background 0.2s, box-shadow 0.2s;
 }
-.outro-links a:hover {
+.outro-links button {
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.outro-links a:hover,
+.outro-links button:hover {
   background: #ffffff10;
   box-shadow: 0 0 0 1px #8ef0ff88;
 }
@@ -664,4 +690,270 @@ body {
 :focus-visible {
   outline: 2px solid #8ef0ff;
   outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * About — a native <dialog>: focus, Esc and the backdrop come with it.
+ * It lives in the stage but renders in the top layer, so the stage's
+ * overflow and stacking don't apply to it.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.about {
+  width: min(940px, calc(100% - 24px));
+  max-height: min(90vh, 920px);
+  max-height: min(90dvh, 920px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: 18px;
+  background: #0b0b10;
+  color: #eeeef4;
+  box-shadow:
+    0 0 0 1px #ffffff1f,
+    0 40px 120px -20px #000;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.about::backdrop {
+  background: rgb(4 4 8 / 0.72);
+  backdrop-filter: blur(6px);
+}
+.about[open] {
+  animation: about-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes about-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about[open] {
+    animation: none;
+  }
+}
+/* The page behind shouldn't scroll (and time-travel) while this is open. */
+html:has(.about[open]) {
+  overflow: hidden;
+}
+
+.about-in {
+  padding: 30px 32px 22px;
+}
+.about-head {
+  position: relative;
+  padding-right: 40px;
+}
+.about-eyebrow {
+  margin: 0;
+  font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8ef0ff;
+}
+.about-head h2 {
+  margin: 10px 0 0;
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+.about-lede {
+  margin: 10px 0 0;
+  max-width: 620px;
+  line-height: 1.6;
+  color: #a9a9b8;
+}
+.about-close {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff0d;
+  color: #eeeef4;
+  cursor: pointer;
+}
+.about-close:hover {
+  background: #ffffff1f;
+}
+
+.about-sec {
+  margin-top: 28px;
+}
+.about-sec h3 {
+  margin: 0 0 12px;
+  font: 600 11px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7d7d8c;
+}
+
+.about-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.about-checks li {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  column-gap: 10px;
+  align-items: baseline;
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: #ffffff08;
+  box-shadow: inset 0 0 0 1px #ffffff12;
+  font-size: 13px;
+}
+.about-checks i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7d7d8c;
+  transform: translateY(-1px);
+}
+.about-checks .yes i {
+  background: #6fffa4;
+  box-shadow: 0 0 10px #6fffa480;
+}
+.about-checks .part i {
+  background: #ffc857;
+}
+.about-checks .no i {
+  background: #ff6b6b;
+}
+.about-checks span {
+  grid-column: 2;
+  margin-top: 3px;
+  color: #9a9aab;
+  line-height: 1.45;
+}
+
+.about-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 22px 26px;
+}
+.about-group h4 {
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ffffff14;
+  font-size: 13px;
+  font-weight: 600;
+  color: #eeeef4;
+}
+.about-group ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.about-group li {
+  padding: 7px 0;
+}
+.about-group a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  color: #eeeef4;
+  text-decoration: none;
+}
+.about-group a b {
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+}
+.about-group a:hover b {
+  border-bottom-color: #8ef0ff;
+}
+.about-group .v {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #8ef0ff1a;
+  font: 500 10px/1.5 'JetBrains Mono', ui-monospace, monospace;
+  color: #8ef0ff;
+}
+.about-group p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #9a9aab;
+}
+
+.about-eras {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+.about-eras div {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid #ffffff10;
+}
+.about-eras dt {
+  font-weight: 500;
+}
+.about-eras dt span {
+  margin-right: 8px;
+  font: 500 12px 'JetBrains Mono', ui-monospace, monospace;
+  color: #8ef0ff;
+}
+.about-eras dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #9a9aab;
+}
+
+.about-without {
+  margin: 26px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #8ef0ff0d;
+  font-size: 13px;
+  color: #b9b9c6;
+}
+.about-without b {
+  margin-right: 6px;
+  font-weight: 600;
+  color: #8ef0ff;
+}
+.about-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #ffffff12;
+  font-size: 12px;
+  color: #7d7d8c;
+}
+.about-foot nav {
+  display: flex;
+  gap: 16px;
+}
+.about-foot a {
+  color: #b9b9c6;
+  text-decoration: none;
+}
+.about-foot a:hover {
+  color: #8ef0ff;
+}
+
+@media (max-width: 640px) {
+  .about-in {
+    padding: 22px 18px 18px;
+  }
+  .about-eras div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
 }
