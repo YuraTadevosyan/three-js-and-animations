@@ -26,7 +26,7 @@ the same GitHub Pages site.
 | [`dna-visualization`](./dna-visualization) | [/dna-visualization/](https://yuratadevosyan.github.io/three-js-and-animations/dna-visualization/) | Angular 21 (zoneless, signals), TypeScript, raw WebGL2, GLSL ES 3.0, Tailwind |
 | [`chess-world`](./chess-world) | [/chess-world/](https://yuratadevosyan.github.io/three-js-and-animations/chess-world/) | Nuxt 4 (SPA), PlayCanvas 2, TypeScript, hand-written chess engine (Web Worker), Web Audio, Tailwind |
 | [`living-website`](./living-website) | [/living-website/](https://yuratadevosyan.github.io/three-js-and-animations/living-website/) | Astro 5 (static), Lit 3 web components, Motion, PixiJS 8, GLSL ES 3.0, L-systems, Web Audio, Tailwind |
-| [`evolution-of-ui`](./evolution-of-ui) | [/evolution-of-ui/](https://yuratadevosyan.github.io/three-js-and-animations/evolution-of-ui/) | Qwik 1 (SSG), WebGPU, WGSL (render + compute), CSS scroll-driven animations, @property, Web Speech, Tailwind |
+| [`evolution-of-ui`](./evolution-of-ui) | [/evolution-of-ui/](https://yuratadevosyan.github.io/three-js-and-animations/evolution-of-ui/) | Qwik 1 (SSG), WebGPU, WGSL (render + compute), CSS scroll-driven animations, @property, Web Audio (synthesis), Web Speech, Tailwind |
 | [`landing`](./landing) | [/](https://yuratadevosyan.github.io/three-js-and-animations/) | Static HTML / CSS / JS |
 
 ## Repo layout
@@ -50,7 +50,7 @@ the same GitHub Pages site.
 ├── dna-visualization/          Scale — a scrolled descent through nine biological scales, tissue to hydrogen bonds and back out to the p53 interaction network (Angular 21 + hand-written WebGL2, no 3D engine)
 ├── chess-world/                Interactive Chess World — animated chess: knights somersault, queens dissolve and rematerialise, captures explode, the camera follows every move; play the built-in engine or replay six famous games (Nuxt 4 + PlayCanvas 2, chess engine written from scratch)
 ├── living-website/             A page that behaves like an organism — one heartbeat drives a breathing WebGL sky, UI that watches the cursor, a garden that keeps growing and cross-breeding between visits (pollinating insects carry pollen between flowers), Markov-chain weather, and a circadian palette that rewrites every Tailwind token from real sunrise to real dusk (Astro 5 + Lit + Motion + PixiJS 8)
-└── evolution-of-ui/            The Evolution of UI — scroll through sixty years of interfaces: one little computer (a note, a photo, three messages) redrawn as DOS behind a WebGPU CRT, Windows 95, Web 2.0, Material, Glassmorphism and a 2040 compute-shader hologram, every transition a pure CSS function of one scroll-driven number (Qwik 1 + WebGPU + CSS scroll timelines)
+└── evolution-of-ui/            The Evolution of UI — scroll through sixty years of interfaces: one little computer (a note, a photo, a song, three messages) redrawn as DOS behind a WebGPU CRT, Windows 95, Web 2.0, Material, Glassmorphism and a 2040 compute-shader hologram, every transition a pure CSS function of one scroll-driven number (Qwik 1 + WebGPU + CSS scroll timelines)
 ```
 
 ## Hosting model
