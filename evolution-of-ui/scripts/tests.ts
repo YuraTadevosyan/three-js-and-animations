@@ -21,6 +21,9 @@ import { lookAt, perspective, multiply, transform } from '@/lib/mat4'
 import { LAKE_SVG, ridgeHeight, RIDGES, W, HORIZON, SUN } from '@/lib/landscape'
 import { BOOT_SCRIPT } from '@/timeline/boot'
 import { ERA_TECH, TECH } from '@/components/about-data'
+import { STOPS, TOUR_EVENT, duration, pauseTour, plan, resumeTour, sample, startTour, stepStop, stopTour } from '@/timeline/tour'
+import { installKeys } from '@/timeline/keys'
+import type { World } from '@/state/world'
 
 let pass = 0
 const ok = (name: string, fn: () => void | Promise<void>) => Promise.resolve().then(fn).then(() => { pass++; }, (e) => { console.log('FAIL', name, '\n ', e.message); process.exitCode = 1 })
@@ -489,6 +492,153 @@ await ok('About: every technology has a link, a role, and a version wherever it 
   const qwik = TECH.flatMap((g) => g.items).find((t) => t.name === 'Qwik')
   assert.equal(qwik?.version, '1.20')
   assert.deepEqual(ERA_TECH.map((e) => e.year), ERAS.map((e) => e.year))
+})
+
+await ok('tour plan: every stop in order, monotonic glide, about a minute, replays from the end', () => {
+  const legs = plan(0)
+  const dwelt = legs.filter((l) => l.kind === 'dwell').map((l) => STOPS[l.stop].era)
+  assert.deepEqual(dwelt, [null, 'dos', 'win95', 'web2', 'material', 'glass', 'scifi'])
+  const total = duration(legs)
+  assert.ok(total > 45 && total < 90, `${total}s`)
+  let prev = -1
+  for (let e = 0; e <= total + 1; e += 0.05) {
+    const s = sample(legs, e)
+    assert.ok(s.t >= prev - 1e-9, `t went backwards at ${e}s`)
+    prev = s.t
+  }
+  assert.deepEqual(sample(legs, total + 5), { t: 7, leg: legs.length - 1, done: true })
+  // from the middle of a transition: glide on to the next stop, no going back
+  const mid = plan(3.5)
+  assert.equal(mid[0].kind, 'travel'); assert.equal(mid[0].to, 4.3)
+  // sitting on a stop: dwell there first
+  assert.equal(plan(3.3)[0].kind, 'dwell')
+  // at the very end: jump to the top and start again
+  const again = plan(7)
+  assert.deepEqual([again[0].to, again[0].dur], [0, 0])
+  // reduced motion: every glide is a jump
+  assert.ok(plan(0, Infinity).filter((l) => l.kind === 'travel').every((l) => l.dur === 0))
+  // keyboard stepping
+  assert.equal(stepStop(1, 1), 2.3); assert.equal(stepStop(1, -1), 0); assert.equal(stepStop(0, -1), 0)
+  assert.equal(stepStop(6.3, 1), 7); assert.equal(stepStop(7, 1), 7); assert.equal(stepStop(3.6, -1), 3.3)
+})
+
+/** Fake just enough of a browser for the tour controller and the key handler. */
+function fakeBrowser() {
+  const rafs: ((now: number) => void)[] = []
+  const win: Record<string, any> = {}
+  const doc: Record<string, any> = {}
+  const listeners: Record<string, ((e: any) => void)[]> = {}
+  const docListeners: Record<string, ((e: any) => void)[]> = {}
+  const arrivals: (string | null)[] = []
+  const subs: ((t: number) => void)[] = []
+  const stage = { style: { setProperty() {} }, attrs: {} as Record<string, string>, setAttribute(k: string, v: string) { this.attrs[k] = v }, removeAttribute(k: string) { delete this.attrs[k] } }
+  const eou = { t: 0, native: true, go(t: number) { eou.t = t; subs.forEach((f) => f(t)) }, on(fn: (t: number) => void) { subs.push(fn); fn(eou.t); return () => {} } }
+  Object.assign(win, {
+    __eou: eou,
+    addEventListener: (k: string, f: (e: any) => void) => (listeners[k] ??= []).push(f),
+    removeEventListener: (k: string, f: (e: any) => void) => (listeners[k] = (listeners[k] ?? []).filter((x) => x !== f)),
+    dispatchEvent: (e: CustomEvent) => { if (e.type === TOUR_EVENT) arrivals.push(e.detail.era) },
+  })
+  Object.assign(doc, {
+    documentElement: { style: { scrollSnapType: '' } },
+    getElementById: (id: string) => (id === 'stage' ? stage : null),
+    querySelector: () => null,
+    addEventListener: (k: string, f: (e: any) => void) => (docListeners[k] ??= []).push(f),
+    removeEventListener: (k: string, f: (e: any) => void) => (docListeners[k] = (docListeners[k] ?? []).filter((x) => x !== f)),
+  })
+  const g = globalThis as any
+  const saved = { window: g.window, document: g.document, raf: g.requestAnimationFrame, caf: g.cancelAnimationFrame }
+  g.window = win
+  g.document = doc
+  g.requestAnimationFrame = (f: (now: number) => void) => rafs.push(f)
+  g.cancelAnimationFrame = () => { rafs.length = 0 }
+  let now = performance.now()
+  return {
+    eou, stage, doc, arrivals, listeners, docListeners,
+    /** Run queued frames, `ms` apart, until none are queued (or the cap). */
+    run(ms = 50, cap = 100000) { let n = 0; while (rafs.length && n++ < cap) { now += ms; rafs.shift()!(now) } return n },
+    pending: () => rafs.length,
+    restore() { Object.assign(g, { window: saved.window, document: saved.document, requestAnimationFrame: saved.raf, cancelAnimationFrame: saved.caf }) },
+  }
+}
+
+await ok('tour controller: plays every era with an arrival event, pauses, resumes, hands back on wheel', () => {
+  const b = fakeBrowser()
+  try {
+    const w = { tour: 'off', tourAt: '' } as World
+    startTour(w)
+    assert.equal(w.tour, 'playing')
+    assert.equal(b.doc.documentElement.style.scrollSnapType, 'none')
+    assert.equal(b.stage.attrs['data-tour'], 'on')
+    b.run(50, 200) // ten seconds in
+    pauseTour()
+    assert.equal(w.tour, 'paused'); assert.equal(b.pending(), 0)
+    const heldAt = b.eou.t
+    b.run(); assert.equal(b.eou.t, heldAt)
+    resumeTour()
+    assert.equal(w.tour, 'playing')
+    b.run(50)
+    assert.deepEqual(b.arrivals, [null, 'dos', 'win95', 'web2', 'material', 'glass', 'scifi'])
+    assert.ok(Math.abs(b.eou.t - 7) < 1e-9, String(b.eou.t))
+    assert.equal(w.tour, 'off'); assert.equal(w.tourAt, '')
+    assert.equal(b.doc.documentElement.style.scrollSnapType, '')
+    assert.equal(b.stage.attrs['data-tour'], undefined)
+    // A wheel turn means the visitor wants the scrollbar back.
+    startTour(w)
+    b.run(50, 20)
+    b.listeners.wheel.forEach((f) => f({}))
+    assert.equal(w.tour, 'off'); assert.equal(b.pending(), 0)
+    assert.equal((b.listeners.wheel ?? []).length, 0, 'listeners removed')
+    // Clicking into an era pauses rather than stops.
+    startTour(w)
+    b.listeners.pointerdown.forEach((f) => f({ target: { closest: () => ({ matches: () => false }) } }))
+    assert.equal(w.tour, 'paused')
+    stopTour()
+  } finally {
+    b.restore()
+  }
+})
+
+await ok('keyboard: arrows and digits travel, quick presses accumulate, typing and Space are left alone', () => {
+  const b = fakeBrowser()
+  try {
+    const w = { tour: 'off', tourAt: '' } as World
+    const remove = installKeys(w)
+    const press = (key: string, target: unknown = { closest: () => null }) => {
+      let prevented = false
+      b.docListeners.keydown.forEach((f) => f({ key, target, defaultPrevented: false, altKey: false, ctrlKey: false, metaKey: false, preventDefault: () => (prevented = true) }))
+      return prevented
+    }
+    b.eou.t = 1
+    // go() lands instantly in the fake, so make the second press arrive mid-flight
+    const realGo = b.eou.go
+    b.eou.go = () => {}
+    assert.equal(press('ArrowRight'), true)
+    assert.equal(press('PageDown'), true)
+    b.eou.go = realGo
+    press('ArrowRight')
+    assert.equal(b.eou.t, 4.3, 'three presses, three decades')
+    assert.equal(press('ArrowLeft'), true); assert.equal(b.eou.t, 3.3)
+    press('6'); assert.equal(b.eou.t, 6.3)
+    press('0'); assert.equal(b.eou.t, 0)
+    press('1'); assert.equal(b.eou.t, 1)
+    assert.equal(press('9'), false)
+    assert.equal(press('ArrowRight', { closest: () => ({}) }), false, 'ignored while typing')
+    assert.equal(b.eou.t, 1)
+    assert.equal(press(' '), false, 'Space scrolls the page when there is no tour')
+    assert.equal(press('Escape'), false, 'Esc is not ours without a tour')
+    startTour(w)
+    assert.equal(press(' '), true); assert.equal(w.tour, 'paused')
+    assert.equal(press(' '), true); assert.equal(w.tour, 'playing')
+    assert.equal(press('Escape'), true); assert.equal(w.tour, 'off')
+    startTour(w)
+    press('3') // jumping by hand ends the tour
+    assert.equal(w.tour, 'off'); assert.equal(b.eou.t, 3.3)
+    remove()
+    assert.equal(b.docListeners.keydown.length, 0)
+  } finally {
+    b.restore()
+  }
 })
 
 await ok('boot script: data-live, --t fallback and go(), with and without native timelines', () => {

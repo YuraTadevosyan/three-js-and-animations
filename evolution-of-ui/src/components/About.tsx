@@ -1,6 +1,7 @@
 import { component$, useStore, useVisibleTask$ } from '@builder.io/qwik'
 import { ERA_TECH, TECH, WITHOUT } from './about-data'
 import { ABOUT_EVENT } from './about-open'
+import { SHORTCUTS } from '@/timeline/keys'
 
 type Status = 'yes' | 'part' | 'no' | 'info'
 
@@ -174,6 +175,20 @@ export const About = component$(() => {
                   {e.name}
                 </dt>
                 <dd>{e.tech}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section class="about-sec" aria-labelledby="about-keys">
+          <h3 id="about-keys">Keyboard</h3>
+          <dl class="about-keys">
+            {SHORTCUTS.map((k) => (
+              <div key={k.keys}>
+                <dt>
+                  <kbd>{k.keys}</kbd>
+                </dt>
+                <dd>{k.does}</dd>
               </div>
             ))}
           </dl>

@@ -3,6 +3,7 @@ import { useWorld } from '@/state/world'
 import { eraById } from '@/timeline/eras'
 import { goTo } from '@/timeline/progress'
 import { openAbout } from './about-open'
+import { startTour } from '@/timeline/tour'
 
 export const Outro = component$(() => {
   const world = useWorld()
@@ -32,6 +33,9 @@ export const Outro = component$(() => {
           <a class="primary" href="#y1980" preventdefault:click onClick$={() => goTo(start)}>
             ↑ Back to 1980
           </a>
+          <button type="button" onClick$={() => startTour(world)}>
+            ▶ Replay the tour
+          </button>
           <button type="button" aria-haspopup="dialog" onClick$={() => openAbout()}>
             About &amp; technologies
           </button>

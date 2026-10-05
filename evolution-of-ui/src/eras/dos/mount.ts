@@ -12,6 +12,7 @@ import { currentT, goTo, onProgress, prefersReducedMotion, ramp, within } from '
 import { rasterLake } from '@/lib/landscape'
 import { inbox, type World } from '@/state/world'
 import { play, setSong } from '@/state/sound'
+import { TOUR_EVENT, type TourArrival } from '@/timeline/tour'
 
 export interface DosMount {
   root: HTMLElement
@@ -162,13 +163,38 @@ export async function mountDos(m: DosMount): Promise<() => void> {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return
     const active = document.activeElement
     if (active && active !== document.body && active !== document.documentElement) return
-    if (!within(DWELL, currentT()) || term.mode !== 'prompt' || e.key.length !== 1 || e.key === ' ') return
+    // Letters only: digits belong to keyboard travel (1–6 jump between decades).
+    if (!within(DWELL, currentT()) || term.mode !== 'prompt' || !/^[a-z]$/i.test(e.key)) return
     e.preventDefault()
     focus()
     term.type(e.key)
     touched()
   }
 
+  // When the guided tour stops here, it types a command for you, the way a
+  // shop's demo disk would. It backs off the moment you type anything yourself.
+  const DEMO = 'VIEW LAKE.PCX'
+  let demo: number[] = []
+  const onTour = (e: Event) => {
+    if ((e as CustomEvent<TourArrival>).detail.era !== 'dos') return
+    if (term.mode !== 'prompt' || term.line || term.busy) return
+    demo.forEach((id) => window.clearTimeout(id))
+    demo = [...DEMO].map((ch, i) =>
+      window.setTimeout(() => {
+        if (term.mode !== 'prompt' || term.line !== DEMO.slice(0, i)) return
+        term.type(ch)
+        play(m.world, 'dos-key')
+        touched()
+      }, 900 + i * 110),
+    )
+    demo.push(
+      window.setTimeout(() => {
+        if (term.mode === 'prompt' && term.line === DEMO) term.key('Enter')
+      }, 900 + DEMO.length * 110 + 450),
+    )
+  }
+
+  window.addEventListener(TOUR_EVENT, onTour)
   m.root.addEventListener('click', focus)
   m.input.addEventListener('keydown', onKey)
   m.input.addEventListener('input', onInput)
@@ -183,6 +209,8 @@ export async function mountDos(m: DosMount): Promise<() => void> {
     m.input.removeEventListener('input', onInput)
     document.removeEventListener('keydown', onDocKey)
     window.clearInterval(ticker)
+    window.removeEventListener(TOUR_EVENT, onTour)
+    demo.forEach((id) => window.clearTimeout(id))
     crt?.destroy()
   }
 }

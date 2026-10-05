@@ -202,6 +202,37 @@ until something needs it:
   their component's task but also wait for `whenNear()` before doing any work;
 - a click handler's code downloads on its first click.
 
+## Guided tour and keyboard
+
+**Take the tour** (on the intro, in the rail, or "Replay" at the end) drives
+the scrollbar through all sixty years in about a minute: it glides through
+each transition at a watchable 0.42 units of `t` per second, then sits in each
+era for seven seconds while the placard says what to try. A few eras do
+something when it arrives: DOS types `VIEW LAKE.PCX` for you, Windows opens
+the Start menu, Material says hello with a snackbar, and the hologram pulses.
+None of it touches anything saved.
+
+- The plan is pure data (`plan()` / `sample()` in `src/timeline/tour.ts`), so
+  it's tested in Node; the controller just samples it every frame.
+- Scroll-snap is switched off while it runs. Otherwise the browser would pull
+  every programmatic step toward the nearest era.
+- A wheel or touch scroll ends the tour, since that means you want the wheel
+  back. Clicking into an era pauses it so you can try things. Space pauses and
+  resumes, Esc ends it, and a thin bar across the top shows how far along it is.
+- With `prefers-reduced-motion` the glides become jumps; the pauses stay.
+
+| Keys | |
+| --- | --- |
+| `←` `→`, `PgUp` `PgDn` | Previous / next decade |
+| `1` – `6`, `0` | A decade, or back to the start |
+| `↑` `↓` | Native scrolling: scrub slowly through a transition |
+| `Space` / `Esc` | Pause or resume / end the tour |
+
+Keys are ignored while you're typing anywhere or a dialog is open. Two quick
+presses of `→` move two decades: the second steps on from where the first was
+heading, not from wherever the smooth scroll had got to. DOS's "just start
+typing" only picks up letters, so digits stay free for travel.
+
 ## About panel
 
 "About" in the rail (and links in the intro and outro) opens a native
@@ -251,6 +282,9 @@ npm run check:wgsl   # compile + run the shaders in Dawn (see below)
 - the paint-to-hologram mapping (each pixel lands on the surface it was painted
   on, the sky stays in view, too much paint is sampled down to the slots);
 - the lake's geometry;
+- the tour (stop order, glide never reverses, about a minute, replays from the
+  end) and its controller and key handler on a fake browser: arrival events in
+  order, pause and resume, a wheel turn handing back control, snap restored;
 - the inline boot script, run against a fake DOM with and without native
   timelines;
 - **the hologram's framing**: it projects every point through the real camera

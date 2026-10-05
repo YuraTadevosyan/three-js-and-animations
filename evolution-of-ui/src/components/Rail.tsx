@@ -4,6 +4,7 @@ import { goTo } from '@/timeline/progress'
 import { useWorld } from '@/state/world'
 import { toggleSound } from '@/state/sound'
 import { openAbout } from './about-open'
+import { stopTour, toggleTour } from '@/timeline/tour'
 
 /**
  * The year counter and the decade links. Both are driven by --t in CSS:
@@ -33,6 +34,16 @@ export const Rail = component$(() => {
         })}
       </ol>
       <div class="rail-toggles">
+        <div class="rail-tour">
+          <button type="button" class={['rail-notes', world.tour !== 'off' && 'on']} aria-pressed={world.tour === 'playing'} onClick$={() => toggleTour(world)}>
+            {world.tour === 'playing' ? '❚❚ Pause' : world.tour === 'paused' ? '▶ Resume' : '▶ Tour'}
+          </button>
+          {world.tour !== 'off' && (
+            <button type="button" class="rail-notes" aria-label="End the tour" onClick$={() => stopTour()}>
+              ■
+            </button>
+          )}
+        </div>
         {/* Off until asked for. Turning it on is also what lets each era
             greet you, and the song play. */}
         <button type="button" class={['rail-notes', world.sound && 'on']} aria-pressed={world.sound} onClick$={() => toggleSound(world)}>
@@ -62,6 +73,9 @@ export const Rail = component$(() => {
           About
         </button>
       </div>
+      <p class="sr-only" aria-live="polite">
+        {world.tourAt}
+      </p>
     </nav>
   )
 })

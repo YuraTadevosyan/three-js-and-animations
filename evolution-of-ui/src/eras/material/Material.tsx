@@ -6,6 +6,7 @@ import { play, toggleSong, useSongPosition } from '@/state/sound'
 import { SONG_ARTIST, SONG_SECONDS, SONG_TITLE } from '@/lib/song'
 import { LIVE } from '@/timeline/eras'
 import { prefersReducedMotion, whenNear } from '@/timeline/progress'
+import { TOUR_EVENT, type TourArrival } from '@/timeline/tour'
 
 /** Material icon paths (Apache 2.0), 24×24. */
 const I = {
@@ -89,6 +90,23 @@ export const Material = component$(() => {
       if (snack.seq === seq) snack.show = false
     }, 4000)
   })
+
+  // The guided tour stops here: a snackbar, the most 2015 way to say hello.
+  useVisibleTask$(
+    ({ cleanup }) => {
+      let timer = 0
+      const onTour = (e: Event) => {
+        if ((e as CustomEvent<TourArrival>).detail.era !== 'material') return
+        timer = window.setTimeout(() => toast('You’re on the tour. Tap anything for an ink ripple.'), 1200)
+      }
+      window.addEventListener(TOUR_EVENT, onTour)
+      cleanup(() => {
+        window.removeEventListener(TOUR_EVENT, onTour)
+        window.clearTimeout(timer)
+      })
+    },
+    { strategy: 'document-ready' },
+  )
 
   const msgs = inbox(world)
   const unread = unreadCount(world)

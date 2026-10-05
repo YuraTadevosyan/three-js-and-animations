@@ -22,9 +22,13 @@ declare global {
 
 const state = (): EouState | undefined => (typeof window === 'undefined' ? undefined : window.__eou)
 
+export const prefersReducedMotion = (): boolean =>
+  typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export const currentT = (): number => state()?.t ?? 0
 
-export const goTo = (t: number, instant = false): void => state()?.go(t, instant)
+/** Scroll so the timeline reads t. Smooth, unless the visitor prefers reduced motion. */
+export const goTo = (t: number, instant = prefersReducedMotion()): void => state()?.go(t, instant)
 
 export const onProgress = (fn: (t: number) => void): (() => void) => state()?.on(fn) ?? (() => {})
 
@@ -61,5 +65,3 @@ export function whenNear(range: readonly [number, number], margin: number, fn: (
 /** True while t is inside the window. */
 export const within = (range: readonly [number, number], t: number): boolean => t >= range[0] && t <= range[1]
 
-export const prefersReducedMotion = (): boolean =>
-  typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches

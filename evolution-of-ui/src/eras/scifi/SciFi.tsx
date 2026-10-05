@@ -5,6 +5,7 @@ import { inbox, noteLines, unreadCount, useWorld } from '@/state/world'
 import { LIVE, eraById } from '@/timeline/eras'
 import { goTo, whenNear } from '@/timeline/progress'
 import { play, setSong, toggleSong } from '@/state/sound'
+import { TOUR_EVENT, type TourArrival } from '@/timeline/tour'
 
 interface LogLine {
   id: number
@@ -79,6 +80,27 @@ export const SciFi = component$(() => {
     const id = log.seq++
     log.items = [...log.items, { id, who: 'nexus' as const, text }].slice(-4)
   })
+
+  // The guided tour stops here: NEXUS says hello and lights up the lake.
+  useVisibleTask$(
+    ({ cleanup }) => {
+      let timer = 0
+      const onTour = (e: Event) => {
+        if ((e as CustomEvent<TourArrival>).detail.era !== 'scifi') return
+        timer = window.setTimeout(() => {
+          void say('Tour mode. That is your lake, from 1986. When the tour ends, drag it around.')
+          play(world, 'sf-reply')
+          if (mounted.value) void import('./mount').then((mod) => mod.pulse())
+        }, 1400)
+      }
+      window.addEventListener(TOUR_EVENT, onTour)
+      cleanup(() => {
+        window.removeEventListener(TOUR_EVENT, onTour)
+        window.clearTimeout(timer)
+      })
+    },
+    { strategy: 'document-ready' },
+  )
 
   const ask = $(async (text: string, spoken = false) => {
     const q = text.trim()

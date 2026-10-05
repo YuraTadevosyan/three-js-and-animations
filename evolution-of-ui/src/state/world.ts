@@ -37,6 +37,9 @@ export interface World {
   sound: boolean
   /** Whether the song is playing. Mirrors the audio engine. */
   playing: boolean
+  /** The guided tour (src/timeline/tour.ts), and the stop it's sitting at. */
+  tour: 'off' | 'playing' | 'paused'
+  tourAt: string
 }
 
 export const DEFAULT_NOTE = [
@@ -89,6 +92,8 @@ export const defaultWorld = (): World => ({
   art: '',
   sound: false,
   playing: false,
+  tour: 'off',
+  tourAt: '',
 })
 
 export const WorldContext = createContextId<World>('eou.world')

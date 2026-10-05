@@ -38,6 +38,7 @@ export default component$(() => {
         <Placards />
         <Rail />
         <About />
+        <div class="tour-progress" aria-hidden="true" />
       </div>
     </main>
   )

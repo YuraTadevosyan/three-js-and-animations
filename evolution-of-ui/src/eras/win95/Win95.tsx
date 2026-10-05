@@ -10,6 +10,7 @@ import { unreadCount, useWorld } from '@/state/world'
 import { eraById } from '@/timeline/eras'
 import { goTo } from '@/timeline/progress'
 import { play } from '@/state/sound'
+import { TOUR_EVENT, type TourArrival } from '@/timeline/tour'
 
 type Launch = WinId | 'ie' | 'dos'
 
@@ -59,6 +60,30 @@ export const Win95 = component$(() => {
       const off = track(() => desk.shutdown)
       if (alert) play(world, alert.kind === 'info' ? 'w95-ding' : 'w95-chord')
       if (off) play(world, 'w95-shutdown')
+    },
+    { strategy: 'document-ready' },
+  )
+
+  // The guided tour stops here: it opens the Start menu for a moment, since
+  // that button is the most 1995 thing on the screen.
+  useVisibleTask$(
+    ({ cleanup }) => {
+      let timers: number[] = []
+      const onTour = (e: Event) => {
+        if ((e as CustomEvent<TourArrival>).detail.era !== 'win95') return
+        timers = [
+          window.setTimeout(() => {
+            desk.start = true
+            play(world, 'w95-click')
+          }, 1100),
+          window.setTimeout(() => (desk.start = false), 4200),
+        ]
+      }
+      window.addEventListener(TOUR_EVENT, onTour)
+      cleanup(() => {
+        window.removeEventListener(TOUR_EVENT, onTour)
+        timers.forEach((id) => window.clearTimeout(id))
+      })
     },
     { strategy: 'document-ready' },
   )

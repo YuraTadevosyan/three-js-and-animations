@@ -1,8 +1,11 @@
 import { component$ } from '@builder.io/qwik'
 import { ERAS } from '@/timeline/eras'
 import { openAbout } from './about-open'
+import { startTour } from '@/timeline/tour'
+import { useWorld } from '@/state/world'
 
 export const Intro = component$(() => {
+  const world = useWorld()
   return (
     <section class="layer layer-intro" aria-labelledby="intro-title">
       <div class="intro-inner">
@@ -23,6 +26,17 @@ export const Intro = component$(() => {
             </li>
           ))}
         </ol>
+        <p class="intro-actions">
+          <button type="button" class="intro-tour" onClick$={() => startTour(world)}>
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M2 1l9 5-9 5z" fill="currentColor" />
+            </svg>
+            Take the tour <span>about a minute</span>
+          </button>
+          <span class="intro-keys">
+            or scroll yourself · <kbd>←</kbd> <kbd>→</kbd> and <kbd>1</kbd>–<kbd>6</kbd> jump between decades
+          </span>
+        </p>
         <p class="intro-cue">
           Scroll to power on
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
