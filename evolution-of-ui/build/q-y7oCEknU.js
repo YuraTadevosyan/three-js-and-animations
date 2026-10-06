@@ -1,1 +1,0 @@
-import{v as d}from"./q-C7-qR3iZ.js";import{x as w}from"./q-C7-qR3iZ.js";import{p as n}from"./q-DmWx7mmR.js";const e=({track:o})=>{const[s,t]=d(),r=o(()=>s.alert),f=o(()=>s.shutdown);r&&n(t,r.kind==="info"?"w95-ding":"w95-chord"),f&&n(t,"w95-shutdown")};export{w as _hW,e as s_0sN0TZatmyE};

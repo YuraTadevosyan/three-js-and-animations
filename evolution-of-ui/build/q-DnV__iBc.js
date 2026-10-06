@@ -1,1 +1,0 @@
-import{v as t}from"./q-C7-qR3iZ.js";import{x as w}from"./q-C7-qR3iZ.js";import{b as e}from"./q-DmWx7mmR.js";const p=({track:n,cleanup:r})=>{const[o,a]=t();if(n(()=>a.playing),!a.playing){o.value=0;return}const s=window.setInterval(async()=>{o.value=await e()},500);r(()=>window.clearInterval(s))};export{w as _hW,p as s_0yfoUVOLyP4};

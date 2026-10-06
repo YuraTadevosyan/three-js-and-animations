@@ -1,1 +1,0 @@
-import{_ as m}from"./q-DkB49YG3.js";import{v as s}from"./q-C7-qR3iZ.js";import{x as d}from"./q-C7-qR3iZ.js";const n=({track:o})=>{const[t,r]=s(),e=o(()=>r.art);o(()=>t.value)&&m(()=>import("./q-1rFL57Wp.js"),[]).then(_=>_.setArt(e))};export{d as _hW,n as s_qKjjWmE7UKQ};

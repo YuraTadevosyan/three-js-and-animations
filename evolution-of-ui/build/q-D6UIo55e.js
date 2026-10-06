@@ -1,0 +1,1 @@
+import{v as n}from"./q-C7-qR3iZ.js";import{x as a}from"./q-C7-qR3iZ.js";import{A as o}from"./q-BY5Gfs_V.js";import{d as s}from"./q-CPPwR9Za.js";const d=({cleanup:t})=>{const[r]=n(),e=()=>{r.checks=s()};e(),window.addEventListener(o,e),t(()=>window.removeEventListener(o,e))};export{a as _hW,d as s_mmTyiBQlpIA};
